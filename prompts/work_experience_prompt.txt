@@ -1,0 +1,54 @@
+Based on the provided job description and candidate's work experience, create a concise work experience section.
+
+Important instructions:
+1. Use ONLY the information provided. Do not add, invent, or assume any details not explicitly given.
+2. List jobs in reverse chronological order (most recent first).
+3. Use maximum 2 bullet points for each job.
+5. Focus on relevant experiences and accomplishments that demonstrate skills applicable to the desired position.
+6. For LaTeX compatibility, please escape the following special characters by adding a backslash (\) before them: % & # $ _ { } ~ ^ \
+For example, "Improved efficiency by 50% & reduced costs" should be written as "Improved efficiency by 50\% \& reduced costs".
+
+Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU TO UNDERSTAND THE STRUCTURE
+\newcommand{\resumeWorkHeading}[5]{
+    \resumeSubheading{#1}{#2}{#3}{#4}
+    \resumeItemListStart
+    #5
+    \resumeItemListEnd
+}
+
+Example Usage:
+\section{Work Experience}
+\vspace{3pt}
+\resumeSubHeadingListStart
+
+    % First Job
+    \resumeWorkHeading
+        {R\&D Machine Learning Engineer}{06/2020 - 05/2021}
+        {Orsan AS (Mercedes-Benz Turk A.S)}{Aksaray, Turkiye}
+        {
+            \resumeItem{Developed a computer vision solution for laser steel welding quality control with OpenCV and TensorFlow in Python and implemented it in the production line with MATLAB, then created a robust prototype with C++.}
+            \resumeItem{Achieved an impressive 92\% accuracy in defect detection, ensuring a heightened standard of weld quality for Mercedes trucks’ brake systems’ air tanks, with a production rate of 600 air tanks per day.}
+            \resumeItem{Orchestrated the seamless integration of PLC-derived welding parameters with computer vision data, establishing a predictive model for laser welding quality. This innovative system achieved a correlation coefficient of 0.85, showcasing the robust relationship between process variables and image-based quality assessments.}
+        }
+
+    % Second Job
+    \resumeWorkHeading
+        {Smart Camera Solutions Specialist}{06/2019 - 10/2019}
+        {TeknoWorld GmbH}{Velbert, Germany}
+        {
+            \resumeItem{Designed smart camera and security solutions with Dahua systems for enhanced video analytics, including person detection, counting, and specialized functions, boosting customer satisfaction for more than 20+ clients.}
+            \resumeItem{Developed tailored solutions for diverse customer challenges by applying strong problem-solving skills. Analyzed unique requirements for each case and designed/implemented on-site physical solutions, showcasing adaptability and precision in addressing individual customer needs.}
+        }
+
+    % Third Job (Internship)
+    \resumeWorkHeading
+        {Software Engineer Intern $|$ \emph{\href{https://github.com/mucahitkayadan/Max2828-serial-communication-GUI}{\color{blue}GitHub}}}{06/2018 - 10/2018}
+        {Ventspils International Radio-Astronomy Center}{Ventspils, Latvia}
+        {
+            \resumeItem{Developed a serial communication package and GUI for Max2828 and Max5866 RF transceiver ICs.}
+            \resumeItem{Enhanced usability and enabling seamless communication between a PC and the RF controller for OFDM 802.11 WLAN applications.}
+        }
+
+\resumeSubHeadingListEnd
+
+

@@ -1,0 +1,37 @@
+Based on the provided job description and candidate's project experience, create a concise projects section. Follow these guidelines:
+
+- Include a maximum 3 projects.
+- For each project, provide the project name and 2 bullet points highlighting key aspects or achievements.
+- Prioritize projects that demonstrate skills and experiences most relevant to the job description.
+
+Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU TO UNDERSTAND THE STRUCTURE
+\resumeProjectHeading
+{\textbf{Project Name} $|$ \emph{Technologies Used}}{Date}
+\resumeItemListStart
+    \resumeItem{Description of project and your role}
+    \resumeItem{Key achievement or impact}
+\resumeItemListEnd
+
+Highlight technical skills, machine learning algorithms used, and quantifiable achievements. Focus on projects that demonstrate expertise in implementing scalable and robust solutions for complex industrial needs.
+
+Important: For LaTeX compatibility, please escape the following special characters by adding a backslash (\) before them: % & # $ _ { } ~ ^ \
+For example, "Improved accuracy by 25% & reduced processing time" should be written as "Improved accuracy by 25\% \& reduced processing time".
+
+Example:
+ \section{Projects}
+    \vspace{3pt}
+    \resumeSubHeadingListStart
+        \resumeProjectHeading
+        {\textbf{Raspberry Pi-based Wild Boar Detection and Deterrence System for Corn Fields} $|$ \emph{Raspberry Pi4, YOLO5, OpenCV}}{Date}
+        \resumeItemListStart
+            \resumeItem{Developed a rapid object detection model based on YOLO5 trained specifically on wild boar images to safeguard crops from wild boar threats.}
+            \resumeItem{Implemented a responsive system that emits noise, activates a flashlight at night, captures videos, and sends emails upon wild boar detection.}
+        \resumeItemListEnd
+
+        \resumeProjectHeading
+        {\textbf{Fairfield Wildlife Surveillance} $|$ \emph{YOLOv8, Raspberry Pi4, RoboFlow}}{Date}
+        \resumeItemListStart
+            \resumeItem{Conceptualized and implemented the project's architecture, achieving a 95\% F1 score with the YOLOv8 object detection model.}
+            \resumeItem{Contributed to developing the Fairfield Wildlife Surveillance website with features like animal class selection, camera inputs, and confidence thresholds for detection.}
+        \resumeItemListEnd
+    \resumeSubHeadingListEnd

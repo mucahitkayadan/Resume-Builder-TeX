@@ -1,0 +1,37 @@
+Based on the provided job description, candidate's job titles, and years of experience, create a concise career summary for the resume. The summary should be in the following format:
+
+1. The most relevant job title from the provided list.
+2. Years of experience from the provided information.
+3. A concise statement (15-20 words) highlighting the candidate's most relevant qualifications, experiences, and skills that align with the job requirements for the job description.
+
+
+Highlight key skills, experiences, and achievements that are most relevant to the job. Use strong action verbs and quantify achievements where possible. The summary should emphasize proficiency in algorithm development, research & development processes, and solving complex industrial needs using machine learning and computer vision techniques. Limit to 2-3 sentences.
+
+Important: 
+- The career summary must not exceed 3 lines in total.
+- For LaTeX compatibility, please escape the following special characters by adding a backslash (\) before them: % & # $ _ { } ~ ^ \
+For example, "Improved efficiency by 30% & reduced costs" should be written as "Improved efficiency by 30\% \& reduced costs".
+- The career summary must not exceed 3 lines in total, font size is 11pt.
+- Use strong action verbs and quantify achievements where possible.
+- Ensure that the content is tailored to the job description and showcases the candidate's most relevant strengths.
+- Choose the most suitable job title in the Job Titles for the job description.
+- Career summary has to start with a small letter since it is the continuation of the sentence. For example, "implementing" will start with small letter here:
+    A Machine Learning Engineer with 2 years of experience implementing highly scalable robust industrial computer vision applications using machine learning algorithms.
+
+Data:
+Job Titles: {{job_titles}}
+Years of Experience: {{years_of_experience}}
+
+Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU TO UNDERSTAND THE STRUCTURE
+\newcommand{\careerSummary}[3]{
+  \vspace{3pt}%
+  {A #1 with #2 years of experience #3 }
+}
+
+Example:
+\section{Career Summary}
+\careerSummary{{Computer Vision Engineer}}{{2}}{{implementing highly scalable robust industrial computer vision applications using machine learning algorithms. Proficient in algorithm development, research \&development processes, and finding suitable solutions for complex industrial needs. Hands-on using Python,Matlab, C++ OpenCV, and Deep Learning libraries.}}
+
+
+
+

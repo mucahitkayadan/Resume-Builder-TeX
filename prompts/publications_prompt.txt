@@ -1,0 +1,13 @@
+List the publications of the user:
+
+Example output:
+\section{Publications}
+\vspace{3pt}
+    \resumeSubHeadingListStart
+    \resumeProjectHeading
+    {\textbf{High Accuracy Gender Determination Using the Egg Shape Index}}{Jan, 2023}
+    \resumeItem{\href{https://www.nature.com/articles/s41598-023-27772-4}{\color{blue}Nature - Scientific Reports}}
+    \resumeSubHeadingListEnd
+
+Important: For LaTeX compatibility, please escape the following special characters by adding a backslash (\) before them: % & # $ _ { } ~ ^ \
+For example, "Machine Learning & Computer Vision" should be written as "Machine Learning \& Computer Vision".

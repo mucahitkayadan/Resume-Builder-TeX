@@ -1,0 +1,48 @@
+Based on the provided job description and candidate's educational background, create a concise education section. Follow these guidelines:
+
+- Include a maximum of 3 educational entries, prioritizing the most relevant and recent.
+- Prioritize education and courses that are most relevant to the job description.
+- List degrees in reverse chronological order, from the most recent to the old. (most recent first).
+
+Important instructions:
+- Use ONLY the information provided. Do not add, invent, or assume any details not explicitly given.
+- Include only the most relevant educational experiences, emphasizing courses or projects related to the desired position.
+- If any standard information is missing (e.g., graduation date), simply omit it. Do not use placeholders.
+
+For LaTeX compatibility, please escape the following special characters by adding a backslash (\) before them: % & # $ _ { } ~ ^ \
+
+Please create education entries using exclusively the above information.
+
+Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU TO UNDERSTAND THE STRUCTURE
+\newcommand{\resumeEducationHeading}[5]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{1pt} \\
+    \textit{\small#5} \\
+}
+
+Example:
+
+\section{Education}
+\vspace{3pt}
+\resumeSubHeadingListStart
+
+\resumeEducationHeading
+{Maharishi International University}{Iowa, US}
+{M.Sc in Computer Science}{05/2023 - 12/2025}
+{Key Courses: Artificial Intelligence, Algorithms, Modern Programming Practices}
+
+\resumeEducationHeading
+{University of Padua}{Padua, Italy}
+{M.Sc in ICT for Internet and Multimedia}{08/2021 - Thesis approval pending, courses completed in 2023}
+{Key Courses: Computer Vision, Machine Learning, Deep Learning, IoT}
+
+
+\resumeEducationHeading
+{Aksaray University}{Aksaray, Turkiye}
+{B.Sc in Electrical Electronics Engineering}{09/2015 - 06/2019}
+{Key Courses: Artificial Intelligence, Object-Oriented Software Development, Structured Programming, Data Structures, Optimization Methods, Programming I, Object-Oriented Programming, Mobile Robots: Models and Algorithms, Machine Learning Theory}
+
+\resumeSubHeadingListEnd

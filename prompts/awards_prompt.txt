@@ -1,0 +1,15 @@
+List significant awards or recognitions for the job description.
+
+Important: For LaTeX compatibility, please escape the following special characters by adding a backslash (\) before them: % & # $ _ { } ~ ^ \
+For example, "Best Paper Award (Top 5%)" should be written as "Best Paper Award (Top 5\%)".
+
+Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU TO UNDERSTAND THE STRUCTURE
+\section{Awards \& Achievements}
+\vspace{2pt}
+\resumeSubHeadingListStart
+\small{\item{
+{{awards_content}}
+}}
+\resumeSubHeadingListEnd
+
+

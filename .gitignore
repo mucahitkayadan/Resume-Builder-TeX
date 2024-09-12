@@ -1,0 +1,11 @@
+.venv/
+tex_template/
+tex_template.zip
+out/
+.cursorignore
+__pycache__/
+*__pycache__*/
+output/
+auxil/
+files/
+.idea/
