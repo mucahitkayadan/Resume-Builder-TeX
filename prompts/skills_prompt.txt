@@ -1,12 +1,13 @@
-Create a skills section for a resume from the given data.
+Task: Create a skills section in LaTeX using the following rules:
 
-Important instructions:
-- Use ONLY the skills explicitly mentioned in the provided data. Do not add or infer any skills not listed.
-- Prioritize skills that are most relevant to the job description. Each skill category can take 250 characters including special characters and spaces.
-If a line is not full, try to fill it from most relevant to less relevant.
-- For LaTeX compatibility, please escape the following special characters by adding a backslash (\) before them: % & # $ _ { } ~ ^ \
-- List all the programming languages in the languages section.
-- If there are more than 6 skill categories, list only the most relevant 6.
+Instructions:
+- Use only skills provided in the data. Do not add or infer additional skills.
+- Write the most relevant skills for the job description for the each skill category.
+- Omit any categories or skills not relevant to the job description.
+- For LaTeX compatibility, escape the following characters by adding a backslash before them: %, &, #, $, _, {, }, ~, ^, \.
+- Add other relevant skills as \resumeSkillHeading to your answer. List ALL relevant skills in each category, up to a maximum of 10 skills per category.
+- Ensure that all relevant skills from the dataset are included, even if this means listing more than 3-4 items per category.
+For example, if languages are less than 10, list all of them.
 
 Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU TO UNDERSTAND THE STRUCTURE
 \newcommand{\resumeSkillHeading}[2]{
@@ -14,15 +15,11 @@ Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NO
     {\textbf{\small#1}}{\small#2}
 }
 
-Please create a skills section using exclusively the above information.
-
 Example:
 \section{Skills}
 \resumeSubHeadingListStart
-    \resumeSkillHeading{Languages }{Python, C, C++, Java, MATLAB, GNU Octave}
-    \resumeSkillHeading{Computer Vision }{Object Detection, Feature Extraction, Stereo Vision, Object Tracking, Pose Estimation, Image Processing}
-    \resumeSkillHeading{Machine Learning }{Convolutional Networks, Transfer Learning, Generative Networks, Regression, Classification}
-    \resumeSkillHeading{Frameworks }{OpenCV, TensorFlow, PyTorch, Keras, Scikit-Learn, NumPy, Pandas, CUDA, ONNX}
-    \resumeSkillHeading{Platforms }{Nvidia Jetson, Raspberry Pi, Arduino, Android}
-    \resumeSkillHeading{Miscellaneous }{Git, Docker, QT, Google Colab, Conda, Signal Processing, Jupyter Notebook, Serial Communication}
+    \resumeSkillHeading{Languages}{Python, C++, MATLAB}
+    \resumeSkillHeading{Computer Vision}{Object Detection, Feature Extraction, Image Processing, Object Tracking, Semantic Segmentation, Instance Segmentation, Pose Estimation, Real-Time Video Analysis, Action Recognition, Visual Question Answering}
+    \resumeSkillHeading{Machine Learning}{Convolutional Networks, Transfer Learning, Generative Networks, NLP, Transformers, Unsupervised Learning, Reinforcement Learning, Dimensionality Reduction, Anomaly Detection, Time Series Analysis}
+    \resumeSkillHeading{Frameworks}{OpenCV, TensorFlow, PyTorch, Keras, Scikit-Learn}
 \resumeSubHeadingListEnd

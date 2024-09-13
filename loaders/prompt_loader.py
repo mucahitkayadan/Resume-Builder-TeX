@@ -57,3 +57,9 @@ class PromptLoader:
 
     def get_job_titles_prompt(self):
         return self._load_prompt('job_titles_prompt.txt')
+
+    def get_system_prompt(self):
+        return self._load_prompt('system_prompt.txt')
+    
+    def get_folder_name_prompt(self):
+        return self._load_prompt('folder_name_prompt.txt')

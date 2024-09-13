@@ -1,9 +1,3 @@
-%-------------------------
-% Resume in Latex
-% Author: Muja Kayadan
-% License: MIT
-%------------------------
-
 \usepackage{latexsym}
 \usepackage[empty]{fullpage}
 \usepackage{titlesec}
@@ -19,8 +13,9 @@
 \usepackage{fontawesome}
 \input{glyphtounicode}
 \usepackage{seqsplit}
-\usepackage[T1]{fontenc}
-\usepackage{lmodern}
+%\usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage{lmodern,textcomp}
 
 
 \pagestyle{fancy}
@@ -110,12 +105,13 @@
 }
 
 \newcommand{\resumeWorkHeading}[5]{
-    \resumeSubheading{#1}{#2}{#3}{#4}
-    \resumeItemListStart
-    #5
-    \resumeItemListEnd
+    \resumeSubHeadingListStart
+        \resumeSubheading{#1}{#2}{#3}{#4}
+        \resumeItemListStart
+        #5
+        \resumeItemListEnd
+    \resumeSubHeadingListEnd
 }
-
 
 \newcommand{\resumeOrganizationHeading}[4]{
   \vspace{-2pt}\item

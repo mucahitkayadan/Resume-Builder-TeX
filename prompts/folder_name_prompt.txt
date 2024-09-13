@@ -1,0 +1,17 @@
+By giving the job description, create a folder name for the resume.
+
+Instructions:
+- The folder name should be concatenation of company name and role.
+- The folder name should be in lowercase.
+- The folder name should be in one line.
+- Separate the words with underscores.
+- If the company name or role is not known, or you cannot assume it; consider it as unknown.
+
+Output Format:
+company_name_job_role
+
+Example:
+- meta_machine_learning_engineer
+- google_software_engineer
+- amazon_computer_vision_engineer
+- unknown_machine_vision_engineer

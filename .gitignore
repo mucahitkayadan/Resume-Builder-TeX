@@ -1,5 +1,5 @@
 .venv/
-tex_template/
+tex_headers/
 tex_template.zip
 out/
 .cursorignore

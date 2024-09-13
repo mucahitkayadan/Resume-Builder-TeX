@@ -8,7 +8,7 @@ class OpenAIRunner:
     A class to handle interactions with the OpenAI API for processing various sections of a resume.
     """
 
-    def __init__(self, model: str = "gpt-4o-mini"):
+    def __init__(self, model: str = "gpt-4o-mini", system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
         """
         Initialize the OpenAIRunner.
 
@@ -17,6 +17,7 @@ class OpenAIRunner:
         """
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.model = model
+        self.system_prompt = system_prompt
 
     def process_section(self, prompt: str, data: str, job_description: str) -> str:
         """
@@ -34,12 +35,13 @@ class OpenAIRunner:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."},
+                    {"role": "system", "content": self.system_prompt},
                     {"role": "user", "content": f"Prompt: {prompt}\n\nData: {data}\n\nJob Description: {job_description}"}
                 ],
-                temperature=0.2,  # Lower temperature for more focused outputs
-                presence_penalty=-0.5,  # Discourage introducing new topics
-                frequency_penalty=0.5   # Encourage diversity in word choice
+                temperature=0.1,  # Lower temperature for more focused and consistent outputs
+                presence_penalty=0,  # Neutral stance on introducing new topics
+                frequency_penalty=0.2,  # Slight encouragement for diversity in word choice
+                max_tokens=1000  # Ensure enough tokens for comprehensive skill listing
             )
             return response.choices[0].message.content.strip()
         except Exception as e:
@@ -60,19 +62,6 @@ class OpenAIRunner:
         """
         return self.process_section(prompt, str(personal_info), job_description)
 
-    # def process_header(self, prompt: str, personal_info: Dict[str, str], job_description: str) -> str:
-    #     """
-    #     Process the header section of the resume.
-    #
-    #     Args:
-    #         prompt (str): The system prompt for processing the header.
-    #         personal_info (Dict[str, str]): A dictionary containing personal information.
-    #         job_description (str): The job description to be included in the processing.
-    #
-    #     Returns:
-    #         str: The processed header content.
-    #     """
-    #     return self.process_section(prompt, str(personal_info), job_description)
 
     def process_career_summary(self, prompt: str, data: dict, job_description: str) -> str:
         # Extract job titles and years of experience from the career_summary dict
@@ -178,4 +167,28 @@ class OpenAIRunner:
         return self.process_section(prompt, str(publications), job_description)
 
     def process_job_titles(self, prompt: str, job_titles: List[str], job_description: str) -> str:
+        """
+        Process the job titles section of the resume.
+
+        Args:
+            prompt (str): The system prompt for processing job titles.
+            job_titles (List[str]): A list of job titles.
+            job_description (str): The job description to be included in the processing.
+
+        Returns:
+            str: The processed job titles content.
+        """
         return self.process_section(prompt, str(job_titles), job_description)
+
+    def create_folder_name(self, prompt: str, job_description: str) -> str:
+        """
+        Create a folder name based on the job description.
+
+        Args:
+            prompt (str): The system prompt for creating the folder name.
+            job_description (str): The job description to be used for creating the folder name.
+
+        Returns:
+            str: The generated folder name.
+        """
+        return self.process_section(prompt, "", job_description)
