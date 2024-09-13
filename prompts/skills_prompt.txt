@@ -1,13 +1,14 @@
 Task: Create a skills section in LaTeX using the following rules:
 
 Instructions:
-- Use only skills provided in the data. Do not add or infer additional skills.
-- Write the most relevant skills for the job description for the each skill category.
+- List only skills provided in the data. Do not add or infer additional skills. Even if other skills are mentioned in the job description, do not use them.
+- Write the most relevant skills for the job description for the skill category.
 - Omit any categories or skills not relevant to the job description.
-- For LaTeX compatibility, escape the following characters by adding a backslash before them: %, &, #, $, _, {, }, ~, ^, \.
-- Add other relevant skills as \resumeSkillHeading to your answer. List ALL relevant skills in each category, up to a maximum of 10 skills per category.
+- Add other relevant skills as \resumeSkillHeading to your answer. List ALL relevant skills for each category. Skills does not have to be explicitly exist in the job description.
 - Ensure that all relevant skills from the dataset are included, even if this means listing more than 3-4 items per category.
-For example, if languages are less than 10, list all of them.
+For example, if languages are less than 10, you have to list all of them.
+- List at least 5 skill categories, even if this means some skill categories are not relevant to the job description.
+- List at least 6 skills per category, even if this means some skills are not relevant to the job description.
 
 Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU TO UNDERSTAND THE STRUCTURE
 \newcommand{\resumeSkillHeading}[2]{

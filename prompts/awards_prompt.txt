@@ -1,8 +1,5 @@
 List significant awards or recognitions for the job description.
 
-Important: For LaTeX compatibility, please escape the following special characters by adding a backslash (\) before them: % & # $ _ { } ~ ^ \
-For example, "Best Paper Award (Top 5%)" should be written as "Best Paper Award (Top 5\%)".
-
 Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU TO UNDERSTAND THE STRUCTURE
 \newcommand{\resumeAwardHeading}[2]{
     \itemsep -0.5em % Reduces the space between items
@@ -16,7 +13,7 @@ Example:
     \resumeAwardHeading{68th Iowa Reserve Chess Championship Winner}{Issued by Iowa State Chess Association, 4 Rounds G/60 d5  (Aug 2023)}
     \resumeAwardHeading{High Honors Degree}{Awarded to Bachelor alumni who have graduated with a 3.60 GPA as 3rd of the faculty by Aksaray University. (Jun 2019)}
     \resumeAwardHeading{TUBITAK Scientist Support Programs Presidency Winner}{Egg Sex Classification with Morphological Methods" at the Food and Agriculture Category of 2242-University Students Research Project Competitions organized by TUBITAK Scientist Support Programs Presidency won the first prize in the Kayseri Regional Exhibition. (Jun 2019)}
-    \resumeAwardHeading{University of Padua Scholarship}{Awarded to graduate students who have been successful in the educational and professional area. Fee waiver + 7000€ / year grant. (Sep 2021 - Sep 2023)}
+    \resumeAwardHeading{University of Padua Scholarship}{Awarded to graduate students who have been successful in the educational and professional area. Fee waiver + 7000 Euro / year grant. (Sep 2021 - Sep 2023)}
 \resumeSubHeadingListEnd
 
 

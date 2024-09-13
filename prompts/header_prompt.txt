@@ -6,9 +6,6 @@ Important instructions:
 3. If any standard information is missing (e.g., address), simply omit it. Do not create placeholder text.
 4. Ensure all information used is accurate and directly from the input.
 
-For LaTeX compatibility, please escape the following special characters by adding a backslash (\) before them: % & # $ _ { } ~ ^ \
-For example, "example@email.com" should be written as "example\@email.com".
-
 Personal Information:
 {personal_info}
 

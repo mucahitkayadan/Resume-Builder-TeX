@@ -1,7 +1,5 @@
 Based on the provided information, choose the most suitable job title in the list for the job description.
 
 Important instructions:
-1. For LaTeX compatibility, please escape the following special characters by adding a backslash (\) before them: % & # $ _ { } ~ ^ \
-For example, "ML & CV Engineer" should be written as "ML \& CV Engineer".
 2. Choose the most suitable job title in the list for the job description.
 3. Answer only with the job title. No additional text or explanation is needed.

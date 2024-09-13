@@ -8,10 +8,6 @@ Instructions:
 - Include only the most relevant educational experiences, emphasizing courses or projects related to the desired position.
 - If any standard information is missing (e.g., graduation date), simply omit it. Do not use placeholders.
 
-For LaTeX compatibility, please escape the following special characters by adding a backslash (\) before them: % & # $ _ { } ~ ^ \
-
-Please create education entries using exclusively the above information.
-
 Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU TO UNDERSTAND THE STRUCTURE
 \newcommand{\resumeEducationHeading}[5]{
   \vspace{-2pt}\item
