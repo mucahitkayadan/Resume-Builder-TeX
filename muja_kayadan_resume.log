@@ -1,0 +1,52 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2024.9.10)  13 SEP 2024 20:40
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**./created_resumes/meta_ai_research_scientist_language_wearables/muja_kayadan_
+resume.tex
+
+(created_resumes/meta_ai_research_scientist_language_wearables/muja_kayadan_res
+ume.tex
+LaTeX2e <2024-06-01> patch level 2
+L3 programming layer <2024-08-16>
+(C:\Users\Muja\AppData\Local\Programs\MiKTeX\tex/latex/base\article.cls
+Document Class: article 2024/02/08 v1.4n Standard LaTeX document class
+(C:\Users\Muja\AppData\Local\Programs\MiKTeX\tex/latex/base\size11.clo
+File: size11.clo 2024/02/08 v1.4n Standard LaTeX file (size option)
+)
+\c@part=\count194
+\c@section=\count195
+\c@subsection=\count196
+\c@subsubsection=\count197
+\c@paragraph=\count198
+\c@subparagraph=\count199
+\c@figure=\count266
+\c@table=\count267
+\abovecaptionskip=\skip49
+\belowcaptionskip=\skip50
+\bibindent=\dimen141
+)
+
+! LaTeX Error: File `preamble.tex' not found.
+
+Type X to quit or <RETURN> to proceed,
+or enter new name. (Default extension: tex)
+
+Enter file name: 
+! Emergency stop.
+<read *> 
+         
+l.9 \input{preamble}
+                    ^^M
+End of file on the terminal!
+
+ 
+Here is how much of TeX's memory you used:
+ 229 strings out of 473899
+ 3146 string characters out of 5727101
+ 1925960 words of memory out of 5000000
+ 23193 multiletter control sequences out of 15000+600000
+ 558369 words of font info for 37 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 35i,0n,38p,216b,36s stack positions out of 10000i,1000n,20000p,200000b,200000s
+!  ==> Fatal error occurred, no output PDF file produced!

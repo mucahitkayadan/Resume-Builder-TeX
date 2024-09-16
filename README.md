@@ -11,6 +11,7 @@ This project is an AI-powered resume generator that creates tailored resumes bas
 - LaTeX template-based resume formatting
 - Automatic PDF compilation
 - Organization of generated resumes in job-specific folders
+- Parsing job descriptions from Indeed
 
 ## Project Structure
 
@@ -25,6 +26,8 @@ project_root/
 │   ├── json_loader.py
 │   ├── prompt_loader.py
 │   └── job_description_loader.py
+├── parsers/
+│   └── indeed_parser.py
 ├── utils/
 │   └── utils.py
 ├── tex_headers/
@@ -72,6 +75,16 @@ project_root/
 
 4. The generated resume will be saved in a new folder under `created_resumes/`, named after the company and position.
 
+## Parsing Indeed Job Descriptions
+
+To parse job descriptions from Indeed, use the `indeed_parser.py` script:
+
+1. Update the URL in the script to the Indeed job listing you want to parse.
+2. Run the script:
+   ```bash
+   python parsers/indeed_parser.py
+   ```
+
 ## Key Components
 
 ### main.py
@@ -88,6 +101,10 @@ Contains the `OpenAIRunner` class, which interfaces with the OpenAI API to gener
 - `json_loader.py`: Loads personal information from JSON
 - `prompt_loader.py`: Loads system prompts for AI
 - `job_description_loader.py`: Loads and processes job descriptions
+
+### parsers/indeed_parser.py
+
+Contains the `parse_indeed_job` function, which fetches and parses job descriptions from Indeed job listings.
 
 ### utils/utils.py
 

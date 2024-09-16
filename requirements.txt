@@ -1,2 +1,9 @@
 streamlit~=1.38.0
-PyLaTeX~=1.4.2
+
+anthropic~=0.34.2
+openai~=1.44.0
+python-dotenv~=1.0.1
+stqdm~=0.0.5
+tqdm~=4.66.5
+requests~=2.32.3
+beautifulsoup4~=4.12.3

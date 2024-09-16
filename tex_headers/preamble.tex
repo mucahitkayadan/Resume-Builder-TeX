@@ -16,6 +16,7 @@
 %\usepackage[T1]{fontenc}
 \usepackage[utf8x]{inputenc}
 \usepackage{lmodern,textcomp}
+\usepackage{bookmark}
 
 
 \pagestyle{fancy}
@@ -107,9 +108,7 @@
 \newcommand{\resumeWorkHeading}[5]{
     \resumeSubHeadingListStart
         \resumeSubheading{#1}{#2}{#3}{#4}
-        \resumeItemListStart
         #5
-        \resumeItemListEnd
     \resumeSubHeadingListEnd
 }
 
@@ -131,7 +130,12 @@
 \renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
 \newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
-\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListStart}{
+    \begin{itemize}
+%    \setlength{\itemsep}{0pt}
+%    \setlength{\parskip}{0pt}
+    \setlength{\leftskip}{-10pt} % Adjust this value to reduce indent
+}
 \newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
 
 % New command for personal information

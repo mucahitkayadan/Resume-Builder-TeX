@@ -2,7 +2,7 @@ Based on the provided job description and candidate's project experience, create
 
 Instructions:
 - Include maximum 4 projects.
-- For each project, provide the project name and 2-3 bullet points highlighting key aspects or achievements.
+- For each project, provide the project name and 3-4 bullet points highlighting key aspects or achievements.
 - Prioritize projects that demonstrate skills and experiences most relevant to the job description. If the job description about computer vision, list the projects related to computer vision. If the job description about LLMs, choose projects so.
 
 Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU TO UNDERSTAND THE STRUCTURE

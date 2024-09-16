@@ -8,6 +8,8 @@ from openai import OpenAI, OpenAIError
 from openai.types.chat import ChatCompletion
 from anthropic import Anthropic, APIError
 
+from loaders.tex_loader import TexLoader
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -50,9 +52,9 @@ class BaseRunner(ABC):
         """Process personal information section."""
         return self.process_section(prompt, str(personal_info), job_description)
 
-    def process_career_summary(self, prompt: str, data: dict, job_description: str) -> str:
-        """Process career summary section."""
-        return self.process_section(prompt, str(data), job_description)
+    # def process_career_summary(self, prompt: str, data: dict, job_description: str) -> str:
+    #     """Process career summary section."""
+    #     return self.process_section(prompt, str(data), job_description)
 
     def process_work_experience(self, prompt: str, work_experience: List[Dict[str, Any]], job_description: str) -> str:
         """Process work experience section."""
@@ -82,11 +84,37 @@ class BaseRunner(ABC):
         """Process publications section."""
         return self.process_section(prompt, str(publications), job_description)
 
+    def collect_resume_content(self, tex_loader: TexLoader) -> str:
+        """
+        Collect content from all sections of the resume using TexLoader.
+
+        Args:
+            tex_loader (TexLoader): An instance of TexLoader to load section content.
+
+        Returns:
+            str: Collected content from all sections.
+        """
+        sections = [
+            "personal_information",
+            "work_experience",
+            "skills",
+            "education",
+            "projects",
+            "awards",
+            "publications"
+        ]
+        content = {section: tex_loader.get_section_content(section) for section in sections}
+        return "\n\n".join([f"{section.capitalize()}:\n{details}" for section, details in content.items()])
+
+    def process_career_summary(self, prompt: str, data: dict, job_description: str, tex_loader: TexLoader) -> str:
+        """Process career summary section."""
+        resume_content = self.collect_resume_content(tex_loader)
+        return self.process_section(prompt, f"{str(data)}\n{resume_content}", job_description)
 
 class OpenAIRunner(BaseRunner):
     """Runner for OpenAI models."""
 
-    def __init__(self, model: str = "gpt-4-0125-preview", system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
+    def __init__(self, model: str = "gpt-4o-mini", system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
         """
         Initialize the OpenAIRunner.
 
@@ -118,11 +146,11 @@ class OpenAIRunner(BaseRunner):
                 model=self.model,
                 messages=[
                     {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": f"Prompt: {prompt}\n\nData: {data}\n\nJob Description: {job_description}"}
+                    {"role": "user", "content": f"Prompt: {prompt}\n\nUser Profile: {data}\n\nJob Description: {job_description}"}
                 ],
-                # temperature=0.1,
-                # presence_penalty=0,
-                # frequency_penalty=0.3,
+                temperature=0.1,
+                presence_penalty=0,
+                frequency_penalty=0.3,
                 max_tokens=1000
             )
             logger.info("Received response from OpenAI API")
@@ -142,7 +170,7 @@ class OpenAIRunner(BaseRunner):
 class ClaudeRunner(BaseRunner):
     """Runner for Claude (Anthropic) models."""
 
-    def __init__(self, model: str = "claude-3-sonnet-20240229", system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
+    def __init__(self, model: str = "claude-3-5-sonnet-20240620", system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
         """
         Initialize the ClaudeRunner.
 
@@ -177,7 +205,7 @@ class ClaudeRunner(BaseRunner):
                 messages=[
                     {
                         "role": "user",
-                        "content": f"Prompt: {prompt}\n\nData: {data}\n\nJob Description: {job_description}"
+                        "content": f"Prompt: {prompt}\n\nUser Profile: {data}\n\nJob Description: {job_description}"
                     }
                 ]
             )
@@ -221,6 +249,9 @@ class Runner(BaseRunner):
 
     def process_section(self, prompt: str, data: str, job_description: str) -> str:
         return self.runner.process_section(prompt, data, job_description)
+
+    # def process_career_summary(self, prompt: str, data: dict, job_description: str, tex_loader: TexLoader) -> str:
+    #     return self.runner.process_career_summary(prompt, data, job_description, tex_loader)
 
     def __getattr__(self, name):
         return getattr(self.runner, name)

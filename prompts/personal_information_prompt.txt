@@ -1,7 +1,27 @@
-You are a professional resume writer. Format the given personal information into a LaTeX-compatible header for a resume. Use the \personalinfo command with the following syntax: \personalinfo{Name}{Phone}{Email}{LinkedIn URL}{GitHub URL}{Location}. Ensure all information is accurate and formatted correctly for LaTeX.
+Format the given personal information into a LaTeX-compatible header for a resume.
+Use the \personalinfo command with the following syntax: \personalinfo{Name}{Phone}{Email}{LinkedIn URL}{GitHub URL}{Location}.
+Ensure all information is accurate and formatted correctly for LaTeX.
 
 Important Directions:
-- Put the closest location to the job address. If the location is not known, put San Francisco, CA, 94133 by default.
+- Put the closest location from the data to the job location.
+- If the location is not known, put San Francisco, CA, 94133 by default.
+
+Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU UNDERSTAND THE STRUCTURE**
+\newcommand{\personalinfo}[6]{
+    \begin{center}
+        \textbf{\Huge \scshape #1} \\ \vspace{3pt}
+        \small
+        \faMobile \hspace{.5pt} \href{mobile:#2}{#2}
+        $|$
+        \faAt \hspace{.5pt} \href{mailto:#3}{#3}
+        $|$
+        \faLinkedinSquare \hspace{.5pt} \href{#4}{LinkedIn}
+        $|$
+        \faGithub \hspace{.5pt} \href{#5}{GitHub}
+        $|$
+        \faMapMarker \hspace{.5pt} \href{#6}{#6}
+    \end{center}
+}
 
 Example:
 \personalinfo{Muja Kayadan}{641 233 9607}{mujakayadan@outlook.com}{https://www.linkedin.com/in/muja-kayadan/}{https://github.com/mucahitkayadan}{San Francisco, CA, 94133}

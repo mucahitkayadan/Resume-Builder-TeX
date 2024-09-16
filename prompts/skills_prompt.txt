@@ -1,8 +1,8 @@
 Task: Create a skills section in LaTeX using the following rules:
 
 Instructions:
-- List only skills provided in the data. Do not add or infer additional skills. Even if other skills are mentioned in the job description, do not use them.
-- Write the most relevant skills for the job description for the skill category.
+- Pick only skills provided in the data. Do not add or infer additional skills. Even if other skills are mentioned in the job description, do not use them.
+- Choose the most relevant skills for the job description for the skill category.
 - Omit any categories or skills not relevant to the job description.
 - Add other relevant skills as \resumeSkillHeading to your answer. List ALL relevant skills for each category. Skills does not have to be explicitly exist in the job description.
 - Ensure that all relevant skills from the dataset are included, even if this means listing more than 3-4 items per category.

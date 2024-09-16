@@ -52,14 +52,14 @@ class JsonLoader:
         """
         return self.data.get("skills", {})
 
-    def get_work_experience(self) -> Dict[str, Any]:
+    def get_work_experience(self) -> List[Dict[str, Any]]:
         """
         Retrieve work experience from the loaded JSON data.
 
         Returns:
-            Dict[str, Any]: A dictionary containing work experience information.
+            List[Dict[str, Any]]: A list of dictionaries containing work experience information.
         """
-        return self.data.get("work_experience", {})
+        return self.data.get("work_experience", [])
 
     def get_education(self) -> List[Dict[str, Any]]:
         """

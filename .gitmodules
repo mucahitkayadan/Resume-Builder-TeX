@@ -1,0 +1,3 @@
+[submodule "linkedin_applier"]
+	path = linkedin_applier
+	url = https://github.com/feder-cr/linkedIn_auto_jobs_applier_with_AI.git
