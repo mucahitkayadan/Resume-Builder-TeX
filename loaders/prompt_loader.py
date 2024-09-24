@@ -20,10 +20,6 @@ class PromptLoader:
             prompt = f.read().strip()
         return prompt
 
-    def get_header_prompt(self) -> str:
-        """Get the prompt for the header section."""
-        return self._load_prompt("header_prompt.txt")
-
     def get_career_summary_prompt(self) -> str:
         """Get the prompt for the career summary section."""
         return self._load_prompt("career_summary_prompt.txt")
@@ -63,3 +59,6 @@ class PromptLoader:
     
     def get_folder_name_prompt(self):
         return self._load_prompt('folder_name_prompt.txt')
+    
+    def get_cover_letter_prompt(self):
+        return self._load_prompt('cover_letter_prompt.txt')

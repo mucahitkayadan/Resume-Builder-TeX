@@ -12,8 +12,8 @@ system_prompt = prompt_loader.get_system_prompt()
 tex_loader = TexLoader("../created_resumes/ibm_firmware_engineer")
 
 class TestProcessSection:
-    def __init__(self):
-        self.runner = Runner(runner_type="openai", model="gpt-4o", system_prompt=system_prompt)
+    def __init__(self, temperature=0.5):
+        self.runner = Runner(runner_type="openai", model="gpt-4o", system_prompt=system_prompt, temperature=temperature)
 
     def test_skills(self, data, prompt, job_description):
         result = self.runner.process_skills(prompt, data, job_description)
@@ -36,11 +36,21 @@ class TestProcessSection:
     def test_work_experience(self, data, prompt, job_description):
         result = self.runner.process_work_experience(prompt, data, job_description)
         print(f"Result of process_work_experience: {result}")
+        
+    def test_cover_letter(self, prompt, tex_loader, job_description):  # Add temperature parameter
+        result = self.runner.process_cover_letter(prompt, tex_loader, job_description)
+#        print(f"Prompt: {prompt}\n\nJob Description: {job_description}\n\n")
+        print(f"Result of process_cover_letter: {result}")
 
 
-test_process_section = TestProcessSection()
-test_process_section.test_career_summary(prompt=prompt_loader.get_career_summary_prompt(),
-                                         data=JsonLoader("../files/information.json").get_career_summary(),
-                                         job_description=JobDescriptionLoader("../created_resumes/ibm_firmware_engineer/job_description.txt").get_job_description(),
-                                         tex_loader=TexLoader("../created_resumes/ibm_firmware_engineer")
-                                         )
+test_process_section = TestProcessSection(temperature=0.5)  # Example: Set temperature to 0.5
+# test_process_section.test_career_summary(prompt=prompt_loader.get_career_summary_prompt(),
+#                                          data=JsonLoader("../files/information.json").get_career_summary(),
+#                                          job_description=JobDescriptionLoader("../created_resumes/ibm_firmware_engineer/job_description.txt").get_job_description(),
+#                                          tex_loader=TexLoader("../created_resumes/ibm_firmware_engineer")
+#                                          )
+test_process_section.test_cover_letter(prompt=prompt_loader.get_cover_letter_prompt(),
+                                         tex_loader=TexLoader("../created_resumes/volvo_group_intern"),
+                                         job_description=JobDescriptionLoader("../created_resumes/volvo_group_intern/job_description.txt")
+                                       )
+

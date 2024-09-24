@@ -1,7 +1,6 @@
 import os
 import logging
 import streamlit as st
-from stqdm import stqdm
 from tqdm import tqdm
 from loaders.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
@@ -13,9 +12,14 @@ from utils.utils import Utils
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+def get_or_create_folder_name(job_description, runner, prompt_loader):
+    folder_name_prompt = prompt_loader.get_folder_name_prompt()
+    folder_name = runner.create_folder_name(folder_name_prompt, job_description)
+    return folder_name
+
 def main():
-    logger.info("Starting Resume Generator")
-    st.title("Resume Generator")
+    logger.info("Starting Resume and Cover Letter Generator")
+    st.title("Resume and Cover Letter Generator")
 
     # Get job description from user
     job_description = st.text_area("Enter the job description:", height=200)
@@ -27,108 +31,146 @@ def main():
     else:
         model_name = st.selectbox("Select Claude model:", ["claude-3-5-sonnet-20240620","claude-3-opus-20240229", "claude-3-sonnet-20240229"])
 
-    if st.button("Generate Resume"):
-        if not job_description:
-            logger.warning("Job description not provided")
-            st.error("Please enter a job description.")
-            return
+    # Add temperature slider
+    temperature = st.slider("Set temperature:", min_value=0.0, max_value=1.0, value=0.1, step=0.1)
 
-        logger.info(f"Generating resume with {model_type} model: {model_name}")
+    # Initialize common components
+    json_loader = JsonLoader("files/information.json")
+    prompt_loader = PromptLoader("prompts")
+    system_prompt = prompt_loader.get_system_prompt()
+    runner_type = "openai" if model_type == "OpenAI" else "claude"
+    runner = Runner(runner_type=runner_type, model=model_name, system_prompt=system_prompt, temperature=temperature)
 
-        # Initialize loaders
-        json_loader = JsonLoader("files/information.json")
-        prompt_loader = PromptLoader("prompts")
-        system_prompt = prompt_loader.get_system_prompt()
-        folder_name_prompt = prompt_loader.get_folder_name_prompt()
-        tex_loader = TexLoader(base_path="tex_template")
+    # Generate folder name once
+    folder_name = get_or_create_folder_name(job_description, runner, prompt_loader)
 
-        # Initialize runner
-        runner_type = "openai" if model_type == "OpenAI" else "claude"
-        runner = Runner(runner_type=runner_type, model=model_name, system_prompt=system_prompt)
+    # Add radio button for document selection
+    document_choice = st.radio(
+        "Choose what to generate:",
+        ("Resume Only", "Resume and Cover Letter")
+    )
 
-        # Get folder name from Runner
-        folder_name = runner.create_folder_name(folder_name_prompt, job_description)
-        logger.info(f"Created folder name: {folder_name}")
+    if st.button("Generate"):
+        if document_choice == "Resume Only":
+            generate_resume(job_description, runner, json_loader, prompt_loader, folder_name)
+        else:
+            generate_resume_and_cover_letter(job_description, runner, json_loader, prompt_loader, folder_name)
 
-        if not os.path.exists("created_resumes"):
-            os.makedirs("created_resumes")
-            logger.info("Created 'created_resumes' directory")
-        # Create output directory under created_resumes folder
-        output_dir = os.path.join("created_resumes", folder_name)
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-            logger.info(f"Created output directory: {output_dir}")
+def generate_resume(job_description, runner, json_loader, prompt_loader, folder_name):
+    if not job_description:
+        logger.warning("Job description not provided")
+        st.error("Please enter a job description.")
+        return
 
-        # Copy tex header files
-        tex_headers_dir = "tex_headers"
-        Utils.copy_tex_headers(tex_headers_dir, output_dir)
-        logger.info(f"Copied tex headers from {tex_headers_dir} to {output_dir}")
+    logger.info(f"Generating resume with {runner.runner_type} model: {runner.model}")
 
-        # Save job description to a file
-        job_description_file = os.path.join(output_dir, "job_description.txt")
-        with open(job_description_file, "w", encoding="utf-8") as f:
-            f.write(job_description)
-        logger.info(f"Saved job description to {job_description_file}")
+    output_dir = create_output_directory(folder_name)
 
-        # Process each section with progress bars
-        sections = [
-            "personal_information",
-            "skills",
-            "work_experience",
-            "education",
-            "projects",
-            # "awards",
-            # "publications"
-        ]
+    # Copy tex header files
+    Utils.copy_tex_headers("tex_headers", output_dir)
 
-        content_dict = {}
+    # Save job description
+    save_job_description(job_description, output_dir)
 
-        # Create a Streamlit progress bar
-        progress_bar = st.progress(0)
+    # Process sections
+    sections = ["personal_information", "skills", "work_experience", "education", "projects"]
+    content_dict = process_sections(sections, runner, prompt_loader, json_loader, job_description)
 
-        # Combined progress bar with tqdm for console
-        for index, section in enumerate(tqdm(sections, desc="Processing sections")):
-            prompt = getattr(prompt_loader, f"get_{section}_prompt")()
-            data = getattr(json_loader, f"get_{section}")()
-            processed_content = runner.process_section(prompt, data, job_description)
-            content_dict[section] = processed_content
-            logger.info(f"Processed {section} section")
+    # Write content to individual tex files
+    write_sections_to_files(sections, content_dict, output_dir)
 
-            # Update Streamlit progress bar
-            progress_bar.progress((index + 1) / len(sections))
+    # Process career summary
+    process_career_summary(runner, prompt_loader, json_loader, job_description, output_dir)
 
-        # Write content to individual tex files
-        for section in sections:
-            output_file = os.path.join(output_dir, f"{section}.tex")
-            with open(output_file, "w", encoding="utf-8") as f:
-                f.write(content_dict[section])
-            st.write(f"Content for {section} has been saved to {output_file}")
-            logger.info(f"Content for {section} has been saved to {output_file}")
+    # Generate PDF
+    generate_pdf(output_dir, "muja_kayadan_resume.tex")
+    st.success(f"Resume generated successfully in {output_dir}")
 
-        # Process career summary with all sections' content
-        career_summary_prompt = prompt_loader.get_career_summary_prompt()
-        career_summary_data = json_loader.get_career_summary()
-        tex_loader_instance = TexLoader(output_dir)  # Create a new TexLoader instance with the correct directory
-        career_summary_section = runner.process_career_summary(
-            career_summary_prompt,
-            career_summary_data,
-            job_description,
-            tex_loader_instance
-        )
-        logger.info("Processed career summary section")
+def generate_resume_and_cover_letter(job_description, runner, json_loader, prompt_loader, folder_name):
+    generate_resume(job_description, runner, json_loader, prompt_loader, folder_name)
+    generate_cover_letter(job_description, runner, json_loader, prompt_loader, folder_name)
 
-        # Save career summary to tex file
-        career_summary_file = os.path.join(output_dir, "career_summary.tex")
-        with open(career_summary_file, "w", encoding="utf-8") as f:
-            f.write(career_summary_section)
-        st.write(f"Career summary has been saved to {career_summary_file}")
-        logger.info(f"Career summary has been saved to {career_summary_file}")
+def generate_cover_letter(job_description, runner, json_loader, prompt_loader, folder_name):
+    if not job_description:
+        logger.warning("Job description not provided")
+        st.error("Please enter a job description.")
+        return
 
-        # After writing all the content
-        logger.info("Generating PDF")
-        os.system(f"cd {output_dir} && pdflatex muja_kayadan_resume.tex")
-        st.success(f"Resume generated successfully in {output_dir}")
-        logger.info(f"Resume generated successfully in {output_dir}")
+    logger.info(f"Generating cover letter with {runner.runner_type} model: {runner.model}")
+
+    output_dir = create_output_directory(folder_name)
+
+    cover_letter_prompt = prompt_loader.get_cover_letter_prompt()
+    tex_loader_instance = TexLoader(output_dir)
+    cover_letter_content = runner.process_cover_letter(cover_letter_prompt, tex_loader_instance, job_description)
+
+    # Save cover letter to tex file
+    cover_letter_file = os.path.join(output_dir, "cover_letter.tex")
+    with open(cover_letter_file, "w", encoding="utf-8") as f:
+        f.write(cover_letter_content)
+    st.write(f"Cover letter has been saved to {cover_letter_file}")
+    logger.info(f"Cover letter has been saved to {cover_letter_file}")
+
+    # Generate PDF
+    generate_pdf(output_dir, "cover_letter.tex")
+    st.success(f"Cover letter generated successfully in {output_dir}")
+
+def create_output_directory(folder_name):
+    if not os.path.exists("created_resumes"):
+        os.makedirs("created_resumes")
+        logger.info("Created 'created_resumes' directory")
+    output_dir = os.path.join("created_resumes", folder_name)
+    os.makedirs(output_dir, exist_ok=True)
+    logger.info(f"Created output directory: {output_dir}")
+    return output_dir
+
+def save_job_description(job_description, output_dir):
+    job_description_file = os.path.join(output_dir, "job_description.txt")
+    with open(job_description_file, "w", encoding="utf-8") as f:
+        f.write(job_description)
+    logger.info(f"Saved job description to {job_description_file}")
+
+def process_sections(sections, runner, prompt_loader, json_loader, job_description):
+    content_dict = {}
+    progress_bar = st.progress(0)
+    for index, section in enumerate(tqdm(sections, desc="Processing sections")):
+        prompt = getattr(prompt_loader, f"get_{section}_prompt")()
+        data = getattr(json_loader, f"get_{section}")()
+        processed_content = runner.process_section(prompt, data, job_description)
+        content_dict[section] = processed_content
+        logger.info(f"Processed {section} section")
+        progress_bar.progress((index + 1) / len(sections))
+    return content_dict
+
+def write_sections_to_files(sections, content_dict, output_dir):
+    for section in sections:
+        output_file = os.path.join(output_dir, f"{section}.tex")
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write(content_dict[section])
+        st.write(f"Content for {section} has been saved to {output_file}")
+        logger.info(f"Content for {section} has been saved to {output_file}")
+
+def process_career_summary(runner, prompt_loader, json_loader, job_description, output_dir):
+    career_summary_prompt = prompt_loader.get_career_summary_prompt()
+    career_summary_data = json_loader.get_career_summary()
+    tex_loader_instance = TexLoader(output_dir)
+    career_summary_section = runner.process_career_summary(
+        career_summary_prompt,
+        career_summary_data,
+        job_description,
+        tex_loader_instance
+    )
+    logger.info("Processed career summary section")
+    career_summary_file = os.path.join(output_dir, "career_summary.tex")
+    with open(career_summary_file, "w", encoding="utf-8") as f:
+        f.write(career_summary_section)
+    st.write(f"Career summary has been saved to {career_summary_file}")
+    logger.info(f"Career summary has been saved to {career_summary_file}")
+
+def generate_pdf(output_dir, tex_file):
+    logger.info("Generating PDF")
+    os.system(f"cd {output_dir} && pdflatex {tex_file}")
+    logger.info(f"PDF generated successfully in {output_dir}")
 
 if __name__ == '__main__':
     main()

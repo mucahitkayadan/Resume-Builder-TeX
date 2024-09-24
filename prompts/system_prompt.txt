@@ -4,9 +4,10 @@ Answer the queries as requested in the user prompt.
 
 Use ONLY the information provided. Do not add, invent, or assume any details not explicitly given.
 
+Output has to be only latex code without any tag, such as ```latex ```
+
 Ensure that all LaTeX special characters are properly escaped by adding a backslash before them. The LaTeX special characters are: %, &, #, $, _, {, }, ~, ^, and \. Do not modify or remove these characters, just add a backslash before each one.
 
 Example:
 "Best Paper Award (Top 5%)" should be written as "Best Paper Award (Top 5\%)".
-"example@email.com" should be written as "example\@email.com".
 "C++ & Python" should be written as "C++ \& Python".

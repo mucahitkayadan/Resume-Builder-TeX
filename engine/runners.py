@@ -1,7 +1,7 @@
 import os
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Union, Optional
+from typing import Any, Dict, List, Optional
 from dotenv import load_dotenv
 
 from openai import OpenAI, OpenAIError
@@ -39,10 +39,9 @@ class BaseRunner(ABC):
         Abstract method to process a section using the AI API.
 
         Args:
-            prompt (str): The prompt for the AI model.
-            data (str): The data to process.
-            job_description (str): The job description.
-
+            :param prompt: (str): The prompt for the AI model.
+            :param data: (str): The data to process.
+            :param job_description: (str): The job description.
         Returns:
             str: The processed section content.
         """
@@ -86,7 +85,7 @@ class BaseRunner(ABC):
 
     def collect_resume_content(self, tex_loader: TexLoader) -> str:
         """
-        Collect content from all sections of the resume using TexLoader.
+        Collect content from all sections of the résumé using TexLoader.
 
         Args:
             tex_loader (TexLoader): An instance of TexLoader to load section content.
@@ -111,18 +110,25 @@ class BaseRunner(ABC):
         resume_content = self.collect_resume_content(tex_loader)
         return self.process_section(prompt, f"{str(data)}\n{resume_content}", job_description)
 
+    def process_cover_letter(self, prompt: str, tex_loader: TexLoader,  job_description: str) -> str:
+        """Process cover letter section."""
+        resume_content = self.collect_resume_content(tex_loader)
+        return self.process_section(prompt, resume_content, job_description)
+
 class OpenAIRunner(BaseRunner):
     """Runner for OpenAI models."""
 
-    def __init__(self, model: str = "gpt-4o-mini", system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
+    def __init__(self, model: str = "gpt-4o-mini", temperature: float = 0.1, system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
         """
         Initialize the OpenAIRunner.
 
         Args:
             model (str): The OpenAI model to use.
+            temperature (float): The temperature setting for the model.
             system_prompt (str): The system prompt for the OpenAI model.
         """
         super().__init__(model, system_prompt)
+        self.temperature = temperature
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY not found in environment variables")
@@ -133,10 +139,9 @@ class OpenAIRunner(BaseRunner):
         Process a section using the OpenAI API.
 
         Args:
-            prompt (str): The prompt for the AI model.
-            data (str): The data to process.
-            job_description (str): The job description.
-
+            :param prompt: (str): The prompt for the AI model.
+            :param data: (str): The data to process.
+            :param job_description: (str): The job description.
         Returns:
             str: The processed section content.
         """
@@ -146,9 +151,14 @@ class OpenAIRunner(BaseRunner):
                 model=self.model,
                 messages=[
                     {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": f"Prompt: {prompt}\n\nUser Profile: {data}\n\nJob Description: {job_description}"}
+                    {"role": "user", "content": f"PROMPT: {prompt}\n\n"
+                                                f"USER PROFILE: **YOU WILL USE ONLY THIS DATA WHEN CRAFTING THE PART OF "
+                                                f"THE RESUME. DO NOT ADD OR ASSUME ANY SKILL OR TECHNOLOGY IF IT IS NOT "
+                                                f"EXPLICITLY GIVEN AND EVEN IT IS A MUST IN THE JOB DESCRIPTION!!**{data}\n\n"
+                                                f"JOB DESCRIPTION: {job_description}"
+                    }
                 ],
-                temperature=0.1,
+                temperature=self.temperature,  # Pass the temperature here
                 presence_penalty=0,
                 frequency_penalty=0.3,
                 max_tokens=1000
@@ -170,15 +180,17 @@ class OpenAIRunner(BaseRunner):
 class ClaudeRunner(BaseRunner):
     """Runner for Claude (Anthropic) models."""
 
-    def __init__(self, model: str = "claude-3-5-sonnet-20240620", system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
+    def __init__(self, model: str = "claude-3-5-sonnet-20240620", temperature: float = 0.1, system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
         """
         Initialize the ClaudeRunner.
 
         Args:
             model (str): The Claude model to use.
+            temperature (float): The temperature setting for the model.
             system_prompt (str): The system prompt for the Claude model.
         """
         super().__init__(model, system_prompt)
+        self.temperature = temperature  # Store the temperature
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise ValueError("ANTHROPIC_API_KEY not found in environment variables")
@@ -189,10 +201,9 @@ class ClaudeRunner(BaseRunner):
         Process a section using the Claude API.
 
         Args:
-            prompt (str): The prompt for the AI model.
-            data (str): The data to process.
-            job_description (str): The job description.
-
+            :param prompt: (str): The prompt for the AI model.
+            :param data: (str): The data to process.
+            :param job_description: (str): The job description.
         Returns:
             str: The processed section content.
         """
@@ -202,10 +213,13 @@ class ClaudeRunner(BaseRunner):
                 model=self.model,
                 max_tokens=1000,
                 system=self.system_prompt,
+                temperature=self.temperature,  # Pass the temperature here
                 messages=[
-                    {
-                        "role": "user",
-                        "content": f"Prompt: {prompt}\n\nUser Profile: {data}\n\nJob Description: {job_description}"
+                    {"role": "user", "content": f"PROMPT: {prompt}\n\n"
+                                                f"User Profile: **YOU WILL USE ONLY THIS DATA WHEN CRAFTING THE PART OF "
+                                                f"THE RESUME. DO NOT ADD OR ASSUME ANY SKILL OR TECHNOLOGY IF IT IS NOT "
+                                                f"EXPLICITLY GIVEN AND EVEN IT IS A MUST IN THE JOB DESCRIPTION!!**{data}\n\n"
+                                                f"JOB DESCRIPTION: {job_description}"
                     }
                 ]
             )
@@ -226,7 +240,7 @@ class ClaudeRunner(BaseRunner):
 class Runner(BaseRunner):
     """Main runner class that delegates to specific AI model runners."""
 
-    def __init__(self, runner_type: str, model: Optional[str] = None, system_prompt: Optional[str] = None):
+    def __init__(self, runner_type: str, model: Optional[str] = None, system_prompt: Optional[str] = None, temperature: Optional[float] = 0.1):
         """
         Initialize the Runner.
 
@@ -234,24 +248,25 @@ class Runner(BaseRunner):
             runner_type (str): The type of runner to use ("openai" or "claude").
             model (Optional[str]): The specific model to use, if any.
             system_prompt (Optional[str]): The system prompt to use, if any.
+            temperature (Optional[float]): The temperature setting for the model.
         """
         super().__init__(model or "", system_prompt or "")
+        self.runner_type = runner_type  # Add this line
         if runner_type == "openai":
             if model and not (model.startswith("gpt-") or model.startswith("o1-")):
                 raise ValueError(f"Invalid model for OpenAI: {model}")
-            self.runner: BaseRunner = OpenAIRunner(model=model, system_prompt=system_prompt)
+            self.runner = OpenAIRunner(model=model, system_prompt=system_prompt, temperature=temperature)
         elif runner_type == "claude":
             if model and not model.startswith("claude-"):
                 raise ValueError(f"Invalid model for Claude: {model}")
-            self.runner: BaseRunner = ClaudeRunner(model=model, system_prompt=system_prompt)
+            self.runner = ClaudeRunner(model=model, system_prompt=system_prompt, temperature=temperature)
         else:
             raise ValueError(f"Unsupported runner type: {runner_type}")
 
     def process_section(self, prompt: str, data: str, job_description: str) -> str:
         return self.runner.process_section(prompt, data, job_description)
 
-    # def process_career_summary(self, prompt: str, data: dict, job_description: str, tex_loader: TexLoader) -> str:
-    #     return self.runner.process_career_summary(prompt, data, job_description, tex_loader)
-
     def __getattr__(self, name):
+        if name == "runner_type":
+            return self.runner_type
         return getattr(self.runner, name)

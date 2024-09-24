@@ -6,6 +6,7 @@ Instructions:
 - The folder name should be in one line.
 - Separate the words with underscores.
 - If the company name or role is not known, or you cannot assume it; consider it as unknown.
+- Do NOT put a backslash '\' before underscores '_'
 
 Output Format:
 company_name_job_role
