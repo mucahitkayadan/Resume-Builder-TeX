@@ -118,7 +118,7 @@ class BaseRunner(ABC):
 class OpenAIRunner(BaseRunner):
     """Runner for OpenAI models."""
 
-    def __init__(self, model: str = "gpt-4o-mini", temperature: float = 0.1, system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
+    def __init__(self, model: str="gpt-4o-mini", temperature: float=0.1, system_prompt: str="You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
         """
         Initialize the OpenAIRunner.
 
@@ -151,11 +151,11 @@ class OpenAIRunner(BaseRunner):
                 model=self.model,
                 messages=[
                     {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": f"PROMPT: {prompt}\n\n"
-                                                f"USER PROFILE: **YOU WILL USE ONLY THIS DATA WHEN CRAFTING THE PART OF "
-                                                f"THE RESUME. DO NOT ADD OR ASSUME ANY SKILL OR TECHNOLOGY IF IT IS NOT "
-                                                f"EXPLICITLY GIVEN AND EVEN IT IS A MUST IN THE JOB DESCRIPTION!!**{data}\n\n"
-                                                f"JOB DESCRIPTION: {job_description}"
+                    {"role": "user", "content": f"{prompt}\n\n"
+                                                f"Here is the personal information in JSON format:\n"
+                                                f"<data> \n{data}\n </data>\n\n"
+                                                f"And here is the job description:\n"
+                                                f"<job_description> \n{job_description}\n </job_description>\n\n"
                     }
                 ],
                 temperature=self.temperature,  # Pass the temperature here
@@ -180,7 +180,7 @@ class OpenAIRunner(BaseRunner):
 class ClaudeRunner(BaseRunner):
     """Runner for Claude (Anthropic) models."""
 
-    def __init__(self, model: str = "claude-3-5-sonnet-20240620", temperature: float = 0.1, system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
+    def __init__(self, model: str="claude-3-5-sonnet-20240620", temperature: float=0.1, system_prompt: str="You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
         """
         Initialize the ClaudeRunner.
 
@@ -215,11 +215,11 @@ class ClaudeRunner(BaseRunner):
                 system=self.system_prompt,
                 temperature=self.temperature,  # Pass the temperature here
                 messages=[
-                    {"role": "user", "content": f"PROMPT: {prompt}\n\n"
-                                                f"User Profile: **YOU WILL USE ONLY THIS DATA WHEN CRAFTING THE PART OF "
-                                                f"THE RESUME. DO NOT ADD OR ASSUME ANY SKILL OR TECHNOLOGY IF IT IS NOT "
-                                                f"EXPLICITLY GIVEN AND EVEN IT IS A MUST IN THE JOB DESCRIPTION!!**{data}\n\n"
-                                                f"JOB DESCRIPTION: {job_description}"
+                    {"role": "user", "content": f"{prompt}\n\n"
+                                                f"Here is the personal information in JSON format:\n"
+                                                f"<data> \n{data}\n </data>\n\n"
+                                                f"And here is the job description:\n"
+                                                f"<job_description> \n{job_description}\n </job_description>\n\n"
                     }
                 ]
             )

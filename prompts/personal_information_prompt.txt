@@ -2,10 +2,10 @@ Format the given personal information into a LaTeX-compatible header for a resum
 Use the \personalinfo command with the following syntax: \personalinfo{Name}{Phone}{Email}{LinkedIn URL}{GitHub URL}{Location}.
 Ensure all information is accurate and formatted correctly for LaTeX.
 
-Important Directions:
-- Location section is a classification problem. Choose location(s) from the given resume only. Put the closest one to the job location.
-- Do not add, assume or invent a location if it is not given explicitly in the "addresses" list of the given JSON structure.
-- If the location is not known, put San Francisco, CA, 94133 by default.
+2. For the location, follow these rules:
+   - Choose the location from the "addresses" list that is closest to the given job location.
+   - If no addresses are provided, use "San Francisco, CA, 94133" as the default location.
+   - Do not add, assume, or invent a location if it's not explicitly given in the "addresses" list.
 
 Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU UNDERSTAND THE STRUCTURE**
 \newcommand{\personalinfo}[6]{
