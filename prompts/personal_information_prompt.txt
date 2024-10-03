@@ -2,10 +2,11 @@ Format the given personal information into a LaTeX-compatible header for a resum
 Use the \personalinfo command with the following syntax: \personalinfo{Name}{Phone}{Email}{LinkedIn URL}{GitHub URL}{Location}.
 Ensure all information is accurate and formatted correctly for LaTeX.
 
-2. For the location, follow these rules:
-   - Choose the location from the "addresses" list that is closest to the given job location.
-   - If no addresses are provided, use "San Francisco, CA, 94133" as the default location.
-   - Do not add, assume, or invent a location if it's not explicitly given in the "addresses" list.
+## Rules for selecting the location:
+- Use **only** the addresses provided in the addresses list within the given structured data.
+- Select the address that is **closest distance to the job location** from the job description, if such information is available.
+- If no job location proximity is provided, use "San Francisco, CA" as the default location.
+- Do not add or assume any new locations beyond those in the list. For example, if the job location is in Redmond, WA but it does not exist in the addresses list, do not list it, but the closest distance address to the Redmond, WA from the list
 
 Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU UNDERSTAND THE STRUCTURE**
 \newcommand{\personalinfo}[6]{
@@ -27,3 +28,4 @@ Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NO
 Example:
 \personalinfo{Muja Kayadan}{641 233 9607}{mujakayadan@outlook.com}{https://www.linkedin.com/in/muja-kayadan/}{https://github.com/mucahitkayadan}{San Francisco, CA, 94133}
 
+Here is the DATA you have to analyze:

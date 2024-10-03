@@ -11,9 +11,11 @@ json_loader = JsonLoader("../files/information.json")
 system_prompt = prompt_loader.get_system_prompt()
 tex_loader = TexLoader("../created_resumes/ibm_firmware_engineer")
 
+
 class TestProcessSection:
     def __init__(self):
-        self.runner = Runner(runner_type="claude", model="claude-3-5-sonnet-20240620", system_prompt=system_prompt, temperature=0.1)
+        self.runner = Runner(runner_type="claude", model="claude-3-5-sonnet-20240620", system_prompt=system_prompt,
+                             temperature=0.1)
 
     def test_skills(self, data, prompt, job_description):
         result = self.runner.process_skills(prompt, data, job_description)
@@ -36,18 +38,19 @@ class TestProcessSection:
     def test_work_experience(self, data, prompt, job_description):
         result = self.runner.process_work_experience(prompt, data, job_description)
         print(f"Result of process_work_experience: {result}")
-        
+
     def test_cover_letter(self, prompt, tex_loader, job_description):  # Add temperature parameter
         result = self.runner.process_cover_letter(prompt, tex_loader, job_description)
-#        print(f"Prompt: {prompt}\n\nJob Description: {job_description}\n\n")
+        #        print(f"Prompt: {prompt}\n\nJob Description: {job_description}\n\n")
         print(f"Result of process_cover_letter: {result}")
 
     def test_personal_information(self, prompt, data, job_description):
         result = self.runner.process_personal_information(prompt, data, job_description)
         print(f"{prompt}\n\n"
-                    f"<data> {data} </data>\n\n"
-                    f"<job_description> {job_description} </job_description>\n\n"
-                    f"Result of process_profile_information: {result}\n\n")
+              f"<data> {data} </data>\n\n"
+              f"<job_description> {job_description} </job_description>\n\n"
+              f"Result of process_profile_information: {result}\n\n")
+
 
 test_process_section = TestProcessSection()  # Example: Set temperature to 0.5
 # test_process_section.test_career_summary(prompt=prompt_loader.get_career_summary_prompt(),
@@ -61,6 +64,6 @@ test_process_section = TestProcessSection()  # Example: Set temperature to 0.5
 #                                        )
 #
 test_process_section.test_personal_information(prompt=prompt_loader.get_personal_information_prompt(),
-                                              data=JsonLoader("../files/information.json").get_personal_information(),
-                                              job_description=job_description_loader.get_job_description()
-                                              )
+                                               data=JsonLoader("../files/information.json").get_personal_information(),
+                                               job_description=job_description_loader.get_job_description()
+                                               )

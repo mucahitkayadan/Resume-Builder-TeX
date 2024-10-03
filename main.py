@@ -86,7 +86,8 @@ def generate_resume(job_description, runner, json_loader, prompt_loader, folder_
     save_job_description(job_description, output_dir)
 
     # Process sections
-    sections = ["personal_information", "skills", "work_experience", "education", "projects"]
+    # sections = ["personal_information", "skills", "work_experience", "education", "projects"]
+    sections = ["skills", "work_experience", "education", "projects"]
     content_dict = process_sections(sections, runner, prompt_loader, json_loader, job_description)
 
     # Write content to individual tex files
