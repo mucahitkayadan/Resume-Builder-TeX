@@ -3,6 +3,7 @@ import logging
 from tqdm import tqdm
 import streamlit as st
 from loaders.tex_loader import TexLoader
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -50,23 +51,44 @@ def generate_pdf(output_dir, tex_file):
     os.system(f"cd {output_dir} && pdflatex {tex_file}")
     logger.info(f"PDF generated successfully in {output_dir}")
 
+def sanitize_filename(name):
+    # Remove or replace characters that are invalid in filenames
+    return re.sub(r'[<>:"/\\|?*]', '', name).strip()
+
 def get_or_create_folder_name(job_description, runner, prompt_loader):
     folder_name_prompt = prompt_loader.get_folder_name_prompt()
-    folder_name = runner.create_folder_name(folder_name_prompt, job_description)
-    return folder_name
+    result = runner.create_folder_name(folder_name_prompt, job_description)
+    
+    try:
+        company_name, job_title = result.split('|')
+        company_name = sanitize_filename(company_name.strip())
+        job_title = sanitize_filename(job_title.strip())
+    except ValueError:
+        logger.warning(f"Unexpected format returned by create_folder_name: {result}")
+        # Fallback: Use a generic name and the first 50 characters of the job description
+        company_name = "Unknown_Company"
+        job_title = sanitize_filename(job_description[:50].replace(" ", "_"))
 
-def process_career_summary(runner, prompt_loader, json_loader, job_description, output_dir):
+    # Ensure we have non-empty values
+    if not company_name:
+        company_name = "Unknown_Company"
+    if not job_title:
+        job_title = "Unknown_Position"
+
+    # Limit the length of each part
+    company_name = company_name[:50]
+    job_title = job_title[:50]
+
+    folder_name = f"{company_name}_{job_title}"
+    logger.info(f"Created folder name: {folder_name}")
+    return company_name, job_title
+
+def process_career_summary(runner, prompt_loader, json_loader, job_description):
     career_summary_prompt = prompt_loader.get_career_summary_prompt()
     career_summary_data = json_loader.get_career_summary()
-    tex_loader_instance = TexLoader(output_dir)
     career_summary_section = runner.process_career_summary(
         career_summary_prompt,
         career_summary_data,
-        job_description,
-        tex_loader_instance
+        job_description
     )
-    logger.info("Processed career summary section")
-    career_summary_file = os.path.join(output_dir, "career_summary.tex")
-    with open(career_summary_file, "w", encoding="utf-8") as f:
-        f.write(career_summary_section)
-    return career_summary_file
+    return career_summary_section

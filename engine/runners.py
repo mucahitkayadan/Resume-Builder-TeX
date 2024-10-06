@@ -1,4 +1,5 @@
 import os
+import re
 import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
@@ -22,15 +23,10 @@ class BaseRunner(ABC):
     Abstract base class for AI model runners.
     """
 
-    def __init__(self, model: str, system_prompt: str):
-        """
-        Initialize the BaseRunner.
-
-        Args:
-            model (str): The name of the AI model to use.
-            system_prompt (str): The system prompt to use for the AI model.
-        """
+    def __init__(self, model: str, temperature: float, system_prompt: str):
         self.model = model
+        self.temperature = temperature
+        self.runner_type = self.__class__.__name__
         self.system_prompt = system_prompt
 
     @abstractmethod
@@ -73,7 +69,23 @@ class BaseRunner(ABC):
 
     def create_folder_name(self, prompt: str, job_description: str) -> str:
         """Create a folder name based on the job description."""
-        return self.process_section(prompt, "", job_description)
+        try:
+            result = self.process_section(prompt, "", job_description)
+            # Attempt to split the result
+            parts = result.split('|')
+            if len(parts) == 2:
+                return result  # Return as is if it's in the correct format
+            else:
+                logger.warning(f"Unexpected format in create_folder_name result: {result}")
+                # Attempt to extract company and job title using a more lenient approach
+                match = re.search(r'(.*?)[,|](.*)$', result)
+                if match:
+                    return f"{match.group(1).strip()}|{match.group(2).strip()}"
+                else:
+                    return f"Unknown_Company|{result[:50]}"  # Use the entire result as job title if parsing fails
+        except Exception as e:
+            logger.error(f"Error in create_folder_name: {str(e)}")
+            return "Error_Company|Error_Position"
 
     def process_awards(self, prompt: str, awards: List[Dict[str, Any]], job_description: str) -> str:
         """Process awards section."""
@@ -83,36 +95,24 @@ class BaseRunner(ABC):
         """Process publications section."""
         return self.process_section(prompt, str(publications), job_description)
 
-    def collect_resume_content(self, tex_loader: TexLoader) -> str:
+    def collect_resume_content(self, sections_content: dict) -> str:
         """
-        Collect content from all sections of the résumé using TexLoader.
+        Collect content from all sections of the résumé.
 
         Args:
-            tex_loader (TexLoader): An instance of TexLoader to load section content.
+            sections_content (dict): A dictionary containing the content of each section.
 
         Returns:
             str: Collected content from all sections.
         """
-        sections = [
-            "personal_information",
-            "work_experience",
-            "skills",
-            "education",
-            "projects",
-            "awards",
-            "publications"
-        ]
-        content = {section: tex_loader.get_section_content(section) for section in sections}
-        return "\n\n".join([f"{section.capitalize()}:\n{details}" for section, details in content.items()])
+        return "\n\n".join([f"{section.capitalize()}:\n{details}" for section, details in sections_content.items()])
 
-    def process_career_summary(self, prompt: str, data: dict, job_description: str, tex_loader: TexLoader) -> str:
+    def process_career_summary(self, prompt: str, data: dict, job_description: str) -> str:
         """Process career summary section."""
-        resume_content = self.collect_resume_content(tex_loader)
-        return self.process_section(prompt, f"{str(data)}\n{resume_content}", job_description)
+        return self.process_section(prompt, str(data), job_description)
 
-    def process_cover_letter(self, prompt: str, tex_loader: TexLoader,  job_description: str) -> str:
+    def process_cover_letter(self, prompt: str, resume_content: str, job_description: str) -> str:
         """Process cover letter section."""
-        resume_content = self.collect_resume_content(tex_loader)
         return self.process_section(prompt, resume_content, job_description)
 
 class OpenAIRunner(BaseRunner):
@@ -127,7 +127,7 @@ class OpenAIRunner(BaseRunner):
             temperature (float): The temperature setting for the model.
             system_prompt (str): The system prompt for the OpenAI model.
         """
-        super().__init__(model, system_prompt)
+        super().__init__(model, temperature, system_prompt)
         self.temperature = temperature
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
@@ -189,7 +189,7 @@ class ClaudeRunner(BaseRunner):
             temperature (float): The temperature setting for the model.
             system_prompt (str): The system prompt for the Claude model.
         """
-        super().__init__(model, system_prompt)
+        super().__init__(model, temperature, system_prompt)
         self.temperature = temperature  # Store the temperature
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
