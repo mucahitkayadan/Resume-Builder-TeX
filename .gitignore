@@ -9,3 +9,6 @@ auxil/
 files/
 .idea/
 created_resumes/
+.env
+/linkedin_applier/
+resumes.db

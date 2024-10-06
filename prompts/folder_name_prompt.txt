@@ -1,18 +1,18 @@
-By giving the job description, create a folder name for the resume.
+Based on the given job description, extract the company name and job title.
 
 Instructions:
-- The folder name should be concatenation of company name and role.
-- The folder name should be in lowercase.
-- The folder name should be in one line.
-- Separate the words with underscores.
-- If the company name or role is not known, or you cannot assume it; consider it as unknown.
-- Do NOT put a backslash '\' before underscores '_'
+- Provide the company name and job title separately.
+- Both should be in lowercase.
+- Use underscores instead of spaces.
+- If the company name or job title is not known or cannot be assumed, use "unknown".
+- Do NOT put a backslash '\' before underscores '_'.
 
 Output Format:
-company_name_job_role
+company_name|job_title
 
-Example:
-- meta_machine_learning_engineer
-- google_software_engineer
-- amazon_computer_vision_engineer
-- unknown_machine_vision_engineer
+Examples:
+- meta|machine_learning_engineer
+- google|software_engineer
+- amazon|computer_vision_engineer
+- go_global_world|machine_learning_engineer
+- unknown|data_scientist
