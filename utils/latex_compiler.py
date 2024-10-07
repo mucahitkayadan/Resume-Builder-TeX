@@ -1,15 +1,28 @@
 import os
 import subprocess
 import logging
-from pylatex import Document, Package, Command, NewPage, Section, Subsection
-from pylatex.utils import NoEscape
-import json
+from typing import Dict, Optional, Any
 from loaders.json_loader import JsonLoader
 import shutil
 
 logger = logging.getLogger(__name__)
 
-def generate_resume_pdf(db_manager, content_dict, output_dir):
+def generate_resume_pdf(db_manager: Any, content_dict: Dict[str, str], output_dir: str) -> Optional[bytes]:
+    """
+    Generate a PDF resume from the given content dictionary.
+
+    Args:
+        db_manager (Any): Database manager object to retrieve the preamble.
+        content_dict (Dict[str, str]): Dictionary containing resume content sections.
+        output_dir (str): Directory to output the generated files.
+
+    Returns:
+        Optional[bytes]: The content of the generated PDF file, or None if generation fails.
+
+    Raises:
+        subprocess.CalledProcessError: If LaTeX compilation fails.
+        FileNotFoundError: If the generated PDF file is not found.
+    """
     logger.info("Starting PDF generation process")
     
     # Create the content of the .tex file manually
@@ -48,9 +61,6 @@ def generate_resume_pdf(db_manager, content_dict, output_dir):
         f.write(full_tex_content)
 
     logger.info(f"Generated .tex file at {tex_path}")
-    
-    # Log the content of the .tex file
-    # logger.info(f"Generated .tex file content:\n{full_tex_content}")
 
     # Compile the .tex file
     pdf_path = os.path.join(output_dir, 'resume.pdf')
@@ -90,7 +100,26 @@ def generate_resume_pdf(db_manager, content_dict, output_dir):
     return pdf_content
 
 
-def generate_cover_letter_pdf(db_manager, cover_letter_content, resume_id, output_dir, company_name, job_title, json_loader):
+def generate_cover_letter_pdf(db_manager: Any, cover_letter_content: str, resume_id: int, output_dir: str, company_name: str, job_title: str, json_loader: JsonLoader) -> bytes:
+    """
+    Generate a PDF cover letter based on the given content and information.
+
+    Args:
+        db_manager (Any): Database manager object to retrieve the cover letter template.
+        cover_letter_content (str): The main content of the cover letter.
+        resume_id (int): The ID of the associated resume.
+        output_dir (str): Directory to output the generated files.
+        company_name (str): Name of the company the cover letter is addressed to.
+        job_title (str): Title of the job being applied for.
+        json_loader (JsonLoader): JsonLoader object to retrieve personal information.
+
+    Returns:
+        bytes: The content of the generated PDF file.
+
+    Raises:
+        ValueError: If the cover letter template or personal information is not found.
+        subprocess.CalledProcessError: If LaTeX compilation fails.
+    """
     logger.info("Starting cover letter PDF generation")
     tex_file_path = os.path.join(output_dir, "cover_letter.tex")
     logger.info(f"TeX file path: {tex_file_path}")

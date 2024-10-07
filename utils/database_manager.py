@@ -1,15 +1,33 @@
 import sqlite3
 import json
 import logging
+from typing import Dict, Optional, Union, Any
 
 class DatabaseManager:
+    """
+    A class to manage database operations for resume and cover letter storage.
+
+    This class handles all database interactions including creating tables,
+    inserting and retrieving resumes and cover letters, and managing preambles.
+
+    Attributes:
+        logger (logging.Logger): Logger for the DatabaseManager.
+        conn (sqlite3.Connection): SQLite database connection.
+    """
+
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        self.conn = sqlite3.connect('resumes.db')
+        """
+        Initialize the DatabaseManager with a connection to the SQLite database.
+        """
+        self.logger: logging.Logger = logging.getLogger(__name__)
+        self.conn: sqlite3.Connection = sqlite3.connect('resumes.db')
         self.create_tables()
 
-    def create_tables(self):
-        cursor = self.conn.cursor()
+    def create_tables(self) -> None:
+        """
+        Create necessary tables in the database if they don't exist.
+        """
+        cursor: sqlite3.Cursor = self.conn.cursor()
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS resumes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,8 +63,32 @@ class DatabaseManager:
         self.conn.commit()
         self.logger.info("Tables created/updated successfully")
 
-    def insert_resume(self, company_name, job_title, job_description, content_dict, pdf_content, model_type, model_name, temperature, cover_letter=None, cover_letter_pdf=None):
-        cursor = self.conn.cursor()
+    def insert_resume(self, company_name: str, job_title: str, job_description: str, 
+                      content_dict: Dict[str, str], pdf_content: bytes, model_type: str, 
+                      model_name: str, temperature: float, cover_letter: Optional[str] = None, 
+                      cover_letter_pdf: Optional[bytes] = None) -> int:
+        """
+        Insert a new resume into the database.
+
+        Args:
+            company_name (str): Name of the company.
+            job_title (str): Title of the job.
+            job_description (str): Description of the job.
+            content_dict (Dict[str, str]): Dictionary containing resume content sections.
+            pdf_content (bytes): PDF content of the resume.
+            model_type (str): Type of the AI model used.
+            model_name (str): Name of the AI model used.
+            temperature (float): Temperature setting used for AI generation.
+            cover_letter (Optional[str]): Cover letter text, if available.
+            cover_letter_pdf (Optional[bytes]): PDF content of the cover letter, if available.
+
+        Returns:
+            int: ID of the inserted resume.
+
+        Raises:
+            sqlite3.Error: If there's an error inserting the resume.
+        """
+        cursor: sqlite3.Cursor = self.conn.cursor()
         try:
             cursor.execute('''
                 INSERT INTO resumes (
@@ -76,7 +118,7 @@ class DatabaseManager:
                 cover_letter_pdf
             ))
             self.conn.commit()
-            resume_id = cursor.lastrowid
+            resume_id: int = cursor.lastrowid
             self.logger.info(f"Resume inserted successfully with ID: {resume_id}")
             return resume_id
         except sqlite3.Error as e:
@@ -84,8 +126,19 @@ class DatabaseManager:
             self.conn.rollback()
             raise
 
-    def update_cover_letter(self, resume_id, cover_letter, cover_letter_pdf):
-        cursor = self.conn.cursor()
+    def update_cover_letter(self, resume_id: int, cover_letter: str, cover_letter_pdf: bytes) -> None:
+        """
+        Update the cover letter for a specific resume.
+
+        Args:
+            resume_id (int): ID of the resume to update.
+            cover_letter (str): Updated cover letter text.
+            cover_letter_pdf (bytes): Updated PDF content of the cover letter.
+
+        Raises:
+            sqlite3.Error: If there's an error updating the cover letter.
+        """
+        cursor: sqlite3.Cursor = self.conn.cursor()
         try:
             cursor.execute('''
                 UPDATE resumes
@@ -99,10 +152,22 @@ class DatabaseManager:
             self.conn.rollback()
             raise
 
-    def get_resume(self, resume_id):
+    def get_resume(self, resume_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Retrieve a resume from the database by its ID.
+
+        Args:
+            resume_id (int): ID of the resume to retrieve.
+
+        Returns:
+            Optional[Dict[str, Any]]: Dictionary containing resume data if found, None otherwise.
+
+        Raises:
+            Exception: If there's an error retrieving the resume.
+        """
         try:
             with self.conn:
-                cursor = self.conn.cursor()
+                cursor: sqlite3.Cursor = self.conn.cursor()
                 cursor.execute('''
                     SELECT id, company_name, job_title, job_description, 
                            personal_information, career_summary, skills, 
@@ -131,10 +196,22 @@ class DatabaseManager:
             self.logger.error(f"Error retrieving resume: {str(e)}")
             raise
 
-    def update_section(self, company_name, job_title, section_name, content):
+    def update_section(self, company_name: str, job_title: str, section_name: str, content: str) -> None:
+        """
+        Update a specific section of a resume.
+
+        Args:
+            company_name (str): Name of the company.
+            job_title (str): Title of the job.
+            section_name (str): Name of the section to update.
+            content (str): New content for the section.
+
+        Raises:
+            Exception: If there's an error updating the section.
+        """
         try:
             with self.conn:
-                cursor = self.conn.cursor()
+                cursor: sqlite3.Cursor = self.conn.cursor()
                 # First, check if the resume exists
                 cursor.execute('''
                     SELECT content FROM resumes
@@ -168,8 +245,17 @@ class DatabaseManager:
             self.logger.error(f"Error updating {section_name} section: {str(e)}")
             raise
 
-    def insert_preamble(self, content):
-        cursor = self.conn.cursor()
+    def insert_preamble(self, content: str) -> None:
+        """
+        Insert or replace the preamble content in the database.
+
+        Args:
+            content (str): The preamble content to insert.
+
+        Raises:
+            sqlite3.Error: If there's an error inserting the preamble.
+        """
+        cursor: sqlite3.Cursor = self.conn.cursor()
         try:
             cursor.execute('INSERT OR REPLACE INTO preambles (id, content) VALUES (1, ?)', (content,))
             self.conn.commit()
@@ -178,10 +264,22 @@ class DatabaseManager:
             self.logger.error(f"Error inserting preamble: {e}")
             raise
 
-    def get_preamble(self, preamble_id=1):
+    def get_preamble(self, preamble_id: int = 1) -> Optional[str]:
+        """
+        Retrieve the preamble content from the database.
+
+        Args:
+            preamble_id (int): ID of the preamble to retrieve (default is 1).
+
+        Returns:
+            Optional[str]: The preamble content if found, None otherwise.
+
+        Raises:
+            Exception: If there's an error retrieving the preamble.
+        """
         try:
             with self.conn:
-                cursor = self.conn.cursor()
+                cursor: sqlite3.Cursor = self.conn.cursor()
                 cursor.execute('SELECT content FROM preambles WHERE id = ?', (preamble_id,))
                 result = cursor.fetchone()
                 if result:
@@ -193,8 +291,17 @@ class DatabaseManager:
             self.logger.error(f"Error retrieving preamble: {str(e)}")
             raise
 
-    def update_preamble(self, new_content):
-        cursor = self.conn.cursor()
+    def update_preamble(self, new_content: str) -> None:
+        """
+        Update the preamble content in the database.
+
+        Args:
+            new_content (str): The new preamble content.
+
+        Raises:
+            sqlite3.Error: If there's an error updating the preamble.
+        """
+        cursor: sqlite3.Cursor = self.conn.cursor()
         try:
             cursor.execute('UPDATE preambles SET content = ? WHERE id = 1', (new_content,))
             self.conn.commit()
@@ -203,8 +310,17 @@ class DatabaseManager:
             self.logger.error(f"Error updating preamble: {e}")
             raise
 
-    def get_latest_resume_id(self):
-        cursor = self.conn.cursor()
+    def get_latest_resume_id(self) -> Optional[int]:
+        """
+        Get the ID of the most recently inserted resume.
+
+        Returns:
+            Optional[int]: The ID of the latest resume, or None if no resumes exist.
+
+        Raises:
+            sqlite3.Error: If there's an error retrieving the latest resume ID.
+        """
+        cursor: sqlite3.Cursor = self.conn.cursor()
         try:
             cursor.execute('SELECT MAX(id) FROM resumes')
             result = cursor.fetchone()
@@ -213,21 +329,57 @@ class DatabaseManager:
             self.logger.error(f"Error getting latest resume ID: {e}")
             return None
 
-    def store_signature_image(self, user_id, image_data):
-        query = "UPDATE users SET signature_image = %s WHERE id = %s"
-        self.cursor.execute(query, (image_data, user_id))
+    def store_signature_image(self, user_id: int, image_data: bytes) -> None:
+        """
+        Store a user's signature image in the database.
+
+        Args:
+            user_id (int): ID of the user.
+            image_data (bytes): Binary data of the signature image.
+
+        Raises:
+            sqlite3.Error: If there's an error storing the signature image.
+        """
+        cursor: sqlite3.Cursor = self.conn.cursor()
+        query = "UPDATE users SET signature_image = ? WHERE id = ?"
+        cursor.execute(query, (image_data, user_id))
         self.conn.commit()
 
-    def get_signature_image(self, user_id):
-        query = "SELECT signature_image FROM users WHERE id = %s"
-        self.cursor.execute(query, (user_id,))
-        result = self.cursor.fetchone()
+    def get_signature_image(self, user_id: int) -> Optional[bytes]:
+        """
+        Retrieve a user's signature image from the database.
+
+        Args:
+            user_id (int): ID of the user.
+
+        Returns:
+            Optional[bytes]: Binary data of the signature image if found, None otherwise.
+
+        Raises:
+            sqlite3.Error: If there's an error retrieving the signature image.
+        """
+        cursor: sqlite3.Cursor = self.conn.cursor()
+        query = "SELECT signature_image FROM users WHERE id = ?"
+        cursor.execute(query, (user_id,))
+        result = cursor.fetchone()
         return result[0] if result else None
 
-    def get_personal_information(self, resume_id):
+    def get_personal_information(self, resume_id: int) -> Optional[str]:
+        """
+        Retrieve the personal information for a specific resume.
+
+        Args:
+            resume_id (int): ID of the resume.
+
+        Returns:
+            Optional[str]: Personal information if found, None otherwise.
+
+        Raises:
+            Exception: If there's an error retrieving the personal information.
+        """
         try:
             with self.conn:
-                cursor = self.conn.cursor()
+                cursor: sqlite3.Cursor = self.conn.cursor()
                 cursor.execute('SELECT personal_information FROM resumes WHERE id = ?', (resume_id,))
                 result = cursor.fetchone()
                 if result:
@@ -238,5 +390,8 @@ class DatabaseManager:
             self.logger.error(f"Error retrieving personal information: {str(e)}")
             raise
 
-    def __del__(self):
+    def __del__(self) -> None:
+        """
+        Close the database connection when the object is destroyed.
+        """
         self.conn.close()

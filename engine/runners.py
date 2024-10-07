@@ -2,7 +2,7 @@ import os
 import re
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from dotenv import load_dotenv
 
 from openai import OpenAI, OpenAIError
@@ -24,10 +24,18 @@ class BaseRunner(ABC):
     """
 
     def __init__(self, model: str, temperature: float, system_prompt: str):
-        self.model = model
-        self.temperature = temperature
-        self.runner_type = self.__class__.__name__
-        self.system_prompt = system_prompt
+        """
+        Initialize the BaseRunner.
+
+        Args:
+            model (str): The name of the AI model to use.
+            temperature (float): The temperature setting for the model.
+            system_prompt (str): The system prompt for the AI model.
+        """
+        self.model: str = model
+        self.temperature: float = temperature
+        self.runner_type: str = self.__class__.__name__
+        self.system_prompt: str = system_prompt
 
     @abstractmethod
     def process_section(self, prompt: str, data: str, job_description: str) -> str:
@@ -35,90 +43,184 @@ class BaseRunner(ABC):
         Abstract method to process a section using the AI API.
 
         Args:
-            :param prompt: (str): The prompt for the AI model.
-            :param data: (str): The data to process.
-            :param job_description: (str): The job description.
+            prompt (str): The prompt for the AI model.
+            data (str): The data to process.
+            job_description (str): The job description.
+
         Returns:
             str: The processed section content.
         """
         pass
 
     def process_personal_information(self, prompt: str, personal_info: Dict[str, str], job_description: str) -> str:
-        """Process personal information section."""
+        """
+        Process personal information section.
+
+        Args:
+            prompt (str): The prompt for the AI model.
+            personal_info (Dict[str, str]): Personal information data.
+            job_description (str): The job description.
+
+        Returns:
+            str: Processed personal information content.
+        """
         return self.process_section(prompt, str(personal_info), job_description)
 
-    # def process_career_summary(self, prompt: str, data: dict, job_description: str) -> str:
-    #     """Process career summary section."""
-    #     return self.process_section(prompt, str(data), job_description)
-
     def process_work_experience(self, prompt: str, work_experience: List[Dict[str, Any]], job_description: str) -> str:
-        """Process work experience section."""
+        """
+        Process work experience section.
+
+        Args:
+            prompt (str): The prompt for the AI model.
+            work_experience (List[Dict[str, Any]]): Work experience data.
+            job_description (str): The job description.
+
+        Returns:
+            str: Processed work experience content.
+        """
         return self.process_section(prompt, str(work_experience), job_description)
 
     def process_skills(self, prompt: str, skills: Dict[str, List[str]], job_description: str) -> str:
-        """Process skills section."""
+        """
+        Process skills section.
+
+        Args:
+            prompt (str): The prompt for the AI model.
+            skills (Dict[str, List[str]]): Skills data.
+            job_description (str): The job description.
+
+        Returns:
+            str: Processed skills content.
+        """
         return self.process_section(prompt, str(skills), job_description)
 
     def process_education(self, prompt: str, education: List[Dict[str, Any]], job_description: str) -> str:
-        """Process education section."""
+        """
+        Process education section.
+
+        Args:
+            prompt (str): The prompt for the AI model.
+            education (List[Dict[str, Any]]): Education data.
+            job_description (str): The job description.
+
+        Returns:
+            str: Processed education content.
+        """
         return self.process_section(prompt, str(education), job_description)
 
     def process_projects(self, prompt: str, projects: List[Dict[str, Any]], job_description: str) -> str:
-        """Process projects section."""
+        """
+        Process projects section.
+
+        Args:
+            prompt (str): The prompt for the AI model.
+            projects (List[Dict[str, Any]]): Projects data.
+            job_description (str): The job description.
+
+        Returns:
+            str: Processed projects content.
+        """
         return self.process_section(prompt, str(projects), job_description)
 
     def create_folder_name(self, prompt: str, job_description: str) -> str:
-        """Create a folder name based on the job description."""
+        """
+        Create a folder name based on the job description.
+
+        Args:
+            prompt (str): The prompt for the AI model.
+            job_description (str): The job description.
+
+        Returns:
+            str: Generated folder name.
+        """
         try:
             result = self.process_section(prompt, "", job_description)
-            # Attempt to split the result
             parts = result.split('|')
             if len(parts) == 2:
-                return result  # Return as is if it's in the correct format
+                return result
             else:
                 logger.warning(f"Unexpected format in create_folder_name result: {result}")
-                # Attempt to extract company and job title using a more lenient approach
                 match = re.search(r'(.*?)[,|](.*)$', result)
                 if match:
                     return f"{match.group(1).strip()}|{match.group(2).strip()}"
                 else:
-                    return f"Unknown_Company|{result[:50]}"  # Use the entire result as job title if parsing fails
+                    return f"Unknown_Company|{result[:50]}"
         except Exception as e:
             logger.error(f"Error in create_folder_name: {str(e)}")
             return "Error_Company|Error_Position"
 
     def process_awards(self, prompt: str, awards: List[Dict[str, Any]], job_description: str) -> str:
-        """Process awards section."""
+        """
+        Process awards section.
+
+        Args:
+            prompt (str): The prompt for the AI model.
+            awards (List[Dict[str, Any]]): Awards data.
+            job_description (str): The job description.
+
+        Returns:
+            str: Processed awards content.
+        """
         return self.process_section(prompt, str(awards), job_description)
 
     def process_publications(self, prompt: str, publications: List[Dict[str, Any]], job_description: str) -> str:
-        """Process publications section."""
+        """
+        Process publications section.
+
+        Args:
+            prompt (str): The prompt for the AI model.
+            publications (List[Dict[str, Any]]): Publications data.
+            job_description (str): The job description.
+
+        Returns:
+            str: Processed publications content.
+        """
         return self.process_section(prompt, str(publications), job_description)
 
-    def collect_resume_content(self, sections_content: dict) -> str:
+    def collect_resume_content(self, sections_content: Dict[str, str]) -> str:
         """
         Collect content from all sections of the résumé.
 
         Args:
-            sections_content (dict): A dictionary containing the content of each section.
+            sections_content (Dict[str, str]): A dictionary containing the content of each section.
 
         Returns:
             str: Collected content from all sections.
         """
         return "\n\n".join([f"{section.capitalize()}:\n{details}" for section, details in sections_content.items()])
 
-    def process_career_summary(self, prompt: str, data: dict, job_description: str) -> str:
-        """Process career summary section."""
+    def process_career_summary(self, prompt: str, data: Dict[str, Any], job_description: str) -> str:
+        """
+        Process career summary section.
+
+        Args:
+            prompt (str): The prompt for the AI model.
+            data (Dict[str, Any]): Career summary data.
+            job_description (str): The job description.
+
+        Returns:
+            str: Processed career summary content.
+        """
         return self.process_section(prompt, str(data), job_description)
 
     def process_cover_letter(self, prompt: str, resume_content: str, job_description: str) -> str:
-        """Process cover letter section."""
+        """
+        Process cover letter section.
+
+        Args:
+            prompt (str): The prompt for the AI model.
+            resume_content (str): The content of the resume.
+            job_description (str): The job description.
+
+        Returns:
+            str: Processed cover letter content.
+        """
         return self.process_section(prompt, resume_content, job_description)
 
 class OpenAIRunner(BaseRunner):
     """Runner for OpenAI models."""
 
-    def __init__(self, model: str="gpt-4o-mini", temperature: float=0.1, system_prompt: str="You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
+    def __init__(self, model: str = "gpt-4o-mini", temperature: float = 0.1, system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
         """
         Initialize the OpenAIRunner.
 
@@ -128,20 +230,21 @@ class OpenAIRunner(BaseRunner):
             system_prompt (str): The system prompt for the OpenAI model.
         """
         super().__init__(model, temperature, system_prompt)
-        self.temperature = temperature
+        self.temperature: float = temperature
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY not found in environment variables")
-        self.client = OpenAI(api_key=api_key)
+        self.client: OpenAI = OpenAI(api_key=api_key)
 
     def process_section(self, prompt: str, data: str, job_description: str) -> str:
         """
         Process a section using the OpenAI API.
 
         Args:
-            :param prompt: (str): The prompt for the AI model.
-            :param data: (str): The data to process.
-            :param job_description: (str): The job description.
+            prompt (str): The prompt for the AI model.
+            data (str): The data to process.
+            job_description (str): The job description.
+
         Returns:
             str: The processed section content.
         """
@@ -158,7 +261,7 @@ class OpenAIRunner(BaseRunner):
                                                 f"<job_description> \n{job_description}\n </job_description>\n\n"
                     }
                 ],
-                temperature=self.temperature,  # Pass the temperature here
+                temperature=self.temperature,
                 presence_penalty=0,
                 frequency_penalty=0.3,
                 max_tokens=1000
@@ -180,7 +283,7 @@ class OpenAIRunner(BaseRunner):
 class ClaudeRunner(BaseRunner):
     """Runner for Claude (Anthropic) models."""
 
-    def __init__(self, model: str="claude-3-5-sonnet-20240620", temperature: float=0.1, system_prompt: str="You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
+    def __init__(self, model: str = "claude-3-5-sonnet-20240620", temperature: float = 0.1, system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
         """
         Initialize the ClaudeRunner.
 
@@ -190,20 +293,21 @@ class ClaudeRunner(BaseRunner):
             system_prompt (str): The system prompt for the Claude model.
         """
         super().__init__(model, temperature, system_prompt)
-        self.temperature = temperature  # Store the temperature
+        self.temperature: float = temperature
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise ValueError("ANTHROPIC_API_KEY not found in environment variables")
-        self.client = Anthropic(api_key=api_key)
+        self.client: Anthropic = Anthropic(api_key=api_key)
 
     def process_section(self, prompt: str, data: str, job_description: str) -> str:
         """
         Process a section using the Claude API.
 
         Args:
-            :param prompt: (str): The prompt for the AI model.
-            :param data: (str): The data to process.
-            :param job_description: (str): The job description.
+            prompt (str): The prompt for the AI model.
+            data (str): The data to process.
+            job_description (str): The job description.
+
         Returns:
             str: The processed section content.
         """
@@ -213,7 +317,7 @@ class ClaudeRunner(BaseRunner):
                 model=self.model,
                 max_tokens=1000,
                 system=self.system_prompt,
-                temperature=self.temperature,  # Pass the temperature here
+                temperature=self.temperature,
                 messages=[
                     {"role": "user", "content": f"{prompt}\n\n"
                                                 f"Here is the personal information in JSON format:\n"
@@ -250,23 +354,43 @@ class Runner(BaseRunner):
             system_prompt (Optional[str]): The system prompt to use, if any.
             temperature (Optional[float]): The temperature setting for the model.
         """
-        super().__init__(model or "", system_prompt or "")
-        self.runner_type = runner_type  # Add this line
+        super().__init__(model or "", temperature or 0.1, system_prompt or "")
+        self.runner_type: str = runner_type
         if runner_type == "openai":
             if model and not (model.startswith("gpt-") or model.startswith("o1-")):
                 raise ValueError(f"Invalid model for OpenAI: {model}")
-            self.runner = OpenAIRunner(model=model, system_prompt=system_prompt, temperature=temperature)
+            self.runner: Union[OpenAIRunner, ClaudeRunner] = OpenAIRunner(model=model, system_prompt=system_prompt, temperature=temperature)
         elif runner_type == "claude":
             if model and not model.startswith("claude-"):
                 raise ValueError(f"Invalid model for Claude: {model}")
-            self.runner = ClaudeRunner(model=model, system_prompt=system_prompt, temperature=temperature)
+            self.runner: Union[OpenAIRunner, ClaudeRunner] = ClaudeRunner(model=model, system_prompt=system_prompt, temperature=temperature)
         else:
             raise ValueError(f"Unsupported runner type: {runner_type}")
 
     def process_section(self, prompt: str, data: str, job_description: str) -> str:
+        """
+        Process a section using the selected AI model runner.
+
+        Args:
+            prompt (str): The prompt for the AI model.
+            data (str): The data to process.
+            job_description (str): The job description.
+
+        Returns:
+            str: The processed section content.
+        """
         return self.runner.process_section(prompt, data, job_description)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
+        """
+        Delegate attribute access to the underlying runner.
+
+        Args:
+            name (str): The name of the attribute to access.
+
+        Returns:
+            Any: The value of the requested attribute.
+        """
         if name == "runner_type":
             return self.runner_type
         return getattr(self.runner, name)

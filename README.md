@@ -1,17 +1,30 @@
-# AI-Powered Resume Generator
+# AI-Powered Resume and Cover Letter Generator
+
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Setup and Installation](#setup-and-installation)
+- [Usage](#usage)
+- [Parsing Indeed Job Descriptions](#parsing-indeed-job-descriptions)
+- [Key Components](#key-components)
+- [Customization](#customization)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
 ## Project Overview
 
-This project is an AI-powered resume generator that creates tailored resumes based on job descriptions. It uses OpenAI's language model to analyze job requirements and generate relevant content for each section of the resume. The system then compiles the resume into a professional LaTeX document and converts it to PDF.
+The AI-Powered Resume and Cover Letter Generator is a sophisticated tool designed to automate the creation of professional resumes and cover letters. By leveraging OpenAI's language model, this project analyzes job descriptions to generate tailored content for each section of a resume and cover letter. The system then compiles the resume into a LaTeX document and converts it to a PDF, ensuring a polished and professional presentation.
 
 ## Features
 
-- Job description analysis using AI
-- Customized resume content generation
-- LaTeX template-based resume formatting
-- Automatic PDF compilation
-- Organization of generated resumes in job-specific folders
-- Parsing job descriptions from Indeed
+- **AI-Driven Content Generation**: Utilizes AI to analyze job descriptions and generate customized resume and cover letter content.
+- **LaTeX Formatting**: Employs LaTeX templates for high-quality document formatting.
+- **PDF Compilation**: Converts LaTeX documents into PDF format for easy sharing and printing.
+- **Job-Specific Organization**: Automatically organizes generated documents into job-specific folders.
+- **Indeed Job Description Parsing**: Directly parses job descriptions from Indeed to streamline the input process.
 
 ## Project Structure
 

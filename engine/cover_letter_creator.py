@@ -2,19 +2,63 @@ import os
 import logging
 import subprocess
 import json
+from typing import Optional, Any
 from utils.database_manager import DatabaseManager
 from loaders.tex_loader import TexLoader
-from utils.latex_compiler import generate_cover_letter_pdf  # Add this import at the top of the file
+from utils.latex_compiler import generate_cover_letter_pdf
+from loaders.json_loader import JsonLoader
+from loaders.prompt_loader import PromptLoader
 
 class CoverLetterCreator:
-    def __init__(self, runner, json_loader, prompt_loader, db_manager):
+    """
+    A class for creating cover letters based on job descriptions and resume data.
+
+    This class handles the process of cover letter generation, including
+    content creation, PDF generation, and database storage.
+
+    Attributes:
+        runner: An instance of the AI model runner.
+        json_loader (JsonLoader): An instance of JsonLoader for loading personal information.
+        prompt_loader (PromptLoader): An instance of PromptLoader for loading prompts.
+        logger (logging.Logger): A logger instance for logging operations.
+        db_manager (DatabaseManager): An instance of DatabaseManager for database operations.
+    """
+
+    def __init__(self, runner: Any, json_loader: JsonLoader, prompt_loader: PromptLoader, db_manager: DatabaseManager):
+        """
+        Initialize the CoverLetterCreator with necessary components.
+
+        Args:
+            runner: An instance of the AI model runner.
+            json_loader (JsonLoader): An instance of JsonLoader.
+            prompt_loader (PromptLoader): An instance of PromptLoader.
+            db_manager (DatabaseManager): An instance of DatabaseManager.
+        """
         self.runner = runner
         self.json_loader = json_loader
         self.prompt_loader = prompt_loader
         self.logger = logging.getLogger(__name__)
         self.db_manager = db_manager
 
-    def generate_cover_letter(self, job_description, resume_id, company_name, job_title):
+    def generate_cover_letter(self, job_description: str, resume_id: int, company_name: str, job_title: str) -> str:
+        """
+        Generate a cover letter based on the given job description and resume data.
+
+        This method handles the entire process of cover letter generation, including
+        content creation, PDF generation, and database storage.
+
+        Args:
+            job_description (str): The job description to base the cover letter on.
+            resume_id (int): The ID of the resume in the database.
+            company_name (str): The name of the company.
+            job_title (str): The title of the job.
+
+        Returns:
+            str: A message indicating the result of the cover letter generation process.
+
+        Raises:
+            Exception: If there's an error in PDF generation or database insertion.
+        """
         self.logger.info(f"Starting cover letter generation for resume ID: {resume_id}")
         
         if not job_description:
@@ -63,7 +107,7 @@ class CoverLetterCreator:
                 output_dir,
                 company_name,
                 job_title,
-                self.json_loader  # Pass the JsonLoader instance
+                self.json_loader
             )
             self.logger.info("PDF generation successful")
         except Exception as e:
