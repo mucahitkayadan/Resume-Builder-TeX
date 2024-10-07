@@ -19,13 +19,14 @@ class ResumeCreator:
         self.db_manager = db_manager
         self.logger = logging.getLogger(__name__)
 
-    def generate_resume(self, job_description, company_name, job_title, model_type, runner_type, temperature):
+    def generate_resume(self, job_description, company_name, job_title, model_type, model_name, temperature):
         self.logger.info("Starting resume generation process")
         self.logger.info(f"Generating resume with {self.runner.__class__.__name__} model: {self.runner.model}")
         
         if not job_description:
             self.logger.warning("Job description not provided")
-            return "Please enter a job description."
+            yield "Please enter a job description.", 0
+            return
 
         # Process sections
         sections = [
@@ -33,7 +34,7 @@ class ResumeCreator:
             "education", "projects", "awards", "publications"
         ]
         content_dict = {}
-        for section in sections:
+        for i, section in enumerate(sections):
             prompt_method = getattr(self.prompt_loader, f"get_{section}_prompt")
             data_method = getattr(self.json_loader, f"get_{section}")
             prompt = prompt_method()
@@ -42,6 +43,7 @@ class ResumeCreator:
             content = process_method(prompt, data, job_description)
             content_dict[section] = content
             self.logger.info(f"Processed {section} section")
+            yield f"Processed {section} section", (i + 1) / len(sections)
 
         self.logger.info("Content generation completed")
 
@@ -55,7 +57,8 @@ class ResumeCreator:
             self.logger.info("PDF generation successful")
         except Exception as e:
             self.logger.error(f"PDF generation failed: {str(e)}")
-            return f"Resume generation failed: {str(e)}"
+            yield f"Resume generation failed: {str(e)}", 1
+            return
 
         # Insert into database
         try:
@@ -66,14 +69,14 @@ class ResumeCreator:
                 content_dict,
                 pdf_content,
                 model_type,
-                runner_type,
+                model_name,
                 temperature
             )
             self.logger.info(f"Resume generated successfully with ID: {resume_id}")
-            return f"Resume generated successfully with ID: {resume_id}"
+            yield f"Resume generated successfully with ID: {resume_id}", 1
         except Exception as e:
             self.logger.error(f"Database insertion failed: {str(e)}")
-            return f"Resume generation completed but database insertion failed: {str(e)}"
+            yield f"Resume generation completed but database insertion failed: {str(e)}", 1
 
     def create_output_directory(self, company_name, job_title):
         folder_name = f"{company_name}_{job_title}".replace(" ", "_")

@@ -1,6 +1,4 @@
 .venv/
-tex_template.zip
-out/
 .cursorignore
 __pycache__/
 *__pycache__*/
@@ -12,3 +10,4 @@ created_resumes/
 .env
 /linkedin_applier/
 resumes.db
+.cadence

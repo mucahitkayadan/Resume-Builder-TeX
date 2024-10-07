@@ -1,76 +1,33 @@
 Task:
-You are given a resume content, job description and latex template, create a cover letter for the job application in latex format.
-** IMPORTANT** You are writing a cover letter for the job description, not a job from my user profile!!
+You are given a resume content and job description. Create a cover letter for the job application.
+** IMPORTANT** You are writing a cover letter for the given job description, not a job from the user's profile!
 
 Instructions: 
-- Use the resume content to create a cover letter for the job description.
-- Your output should be in given latex format.
+- Use the resume content to create a cover letter tailored to the job description.
 - Write a cover letter that is 4 paragraphs long, naturally written and not too formal.
 - Explain each paragraph with detail.
-- Do not use words and verbs that are not used in daily life. It should seem like a foreigner wrote the cover letter.
-- Cover letter should be easy to read and understand.
-- You have to put the company name and address in the cover letter.
-- If company name or location is not available in the resume or the job description, leave it blank.
-- The first paragraph of my job application letter should include information on why you are writing. Mention the job you are applying for and where you found the position.
-- The second paragraph should highlight my relevant skills, experiences, and achievements that make you a suitable candidate for the role. Elaborate it. Convince the recruiter to hire me.
-- The third paragraph expresses how my values align with the company’s mission or culture, and express enthusiasm for the opportunity. Elaborate it. Convince the recruiter to hire me.
-- Conclude my application letter by thanking the employer for considering you for the position.
-- Write each paragraph in a \lettercontent{ } command
-- Write the company name in \companyname{ } command
-- Write the company location in \companyaddress{ } command
+- Use casual, simple, everyday language. The writing style should reflect that of a non-native English speaker who is fluent but not overly formal.
+- The cover letter should be easy to read and understand.
+- Use the information provided about the candidate's background to add personal touches and unique selling points to the letter.
+- If the company name or location is not available in the resume or the job description, use generic terms like "your company" or omit location references.
+
+Paragraph Structure:
+1. Introduction: State the position you're applying for and where you found the job posting. Express your enthusiasm for the role.
+
+2. Qualifications: Highlight your relevant skills, experiences, and achievements that make you a suitable candidate. Use specific examples from your resume to demonstrate your qualifications. Focus on convincing the recruiter of your suitability.
+
+3. Company Alignment: Express how your values align with the company's mission or culture. Show your enthusiasm for the opportunity and explain why you're particularly interested in this position and company. Continue to build a compelling case for your candidacy.
+
+4. Conclusion: Thank the employer for considering your application. Express your interest in further discussing your qualifications and how you can contribute to the company's success.
+
+Additional Notes:
+- Do not include any LaTeX formatting in your output.
+- Focus on creating compelling content that showcases the candidate's qualifications and enthusiasm for the role.
+- Tailor the letter to the specific job and company mentioned in the job description.
+- Use the information provided about the candidate's background to add personal touches and unique selling points to the letter.
 
 OUTPUT FORMAT:
-\documentclass[letterpaper,12pt]{article}
-\usepackage{graphicx}
-\usepackage{ragged2e}
-\input{preamble}
-
-\pagestyle{fancy}
-\fancyhf{}
-
-\rfoot{Page \thepage \hspace{1pt}}
-\thispagestyle{empty}
-\renewcommand{\headrulewidth}{0pt}
-\begin{document}
-
-\input{personal_information}
-
-\hfill
-
-\begin{minipage}[t]{0.5\textwidth}
-\companyname{Insert the name of the company from the job description here. }
-\newline
-
-\companyaddress{Insert the location of the company from the job description here.}
-\newline
-
-\end{minipage}
-\begin{minipage}[t]{0.49\textwidth}
-\currentdate{\today}
-\end{minipage}
-
-\justifying
-\lettercontent{Dear Recruiter,}
-\newline
-
-\lettercontent{Enter first paragraph here}
-\newline
-
-\lettercontent{Enter second paragraph here}
-
-\newline
-
-\lettercontent{Enter 3rd paragraph here.}
-\newline
-
-\lettercontent{Enter 4th paragraph here. }
-\newline
-
-\closing{Sincerely,\\ \vspace{.1cm} \includegraphics{signature} \vspace{-1cm} \\ }
-
-\signature{Muja Kayadan}
-
-\end{document}
+Your output should be plain text, divided into four paragraphs as described above. Do not include any LaTeX commands or formatting.
 
 SOME INFORMATION ABOUT ME:
 Growing up in a small Turkish town with no tech culture and limited resources, I faced a seemingly impossible dream of becoming a software engineer specializing in AI. Refusing to let circumstances define my future, I tackled this challenge with unwavering determination and creativity.

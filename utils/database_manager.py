@@ -25,8 +25,10 @@ class DatabaseManager:
                 awards TEXT,
                 publications TEXT,
                 pdf_content BLOB,
+                cover_letter TEXT,
+                cover_letter_pdf BLOB,
                 model_type TEXT,
-                runner_type TEXT,
+                model_name TEXT,
                 temperature REAL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -43,7 +45,7 @@ class DatabaseManager:
         self.conn.commit()
         self.logger.info("Tables created/updated successfully")
 
-    def insert_resume(self, company_name, job_title, job_description, content_dict, pdf_content, model_type, runner_type, temperature):
+    def insert_resume(self, company_name, job_title, job_description, content_dict, pdf_content, model_type, model_name, temperature, cover_letter=None, cover_letter_pdf=None):
         cursor = self.conn.cursor()
         try:
             cursor.execute('''
@@ -52,9 +54,10 @@ class DatabaseManager:
                     personal_information, career_summary, skills, 
                     work_experience, education, projects, 
                     awards, publications, pdf_content,
-                    model_type, runner_type, temperature
+                    model_type, model_name, temperature,
+                    cover_letter, cover_letter_pdf
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 company_name, job_title, job_description,
                 content_dict.get('personal_information', ''),
@@ -67,14 +70,33 @@ class DatabaseManager:
                 content_dict.get('publications', ''),
                 pdf_content,
                 model_type,
-                runner_type,
-                temperature
+                model_name,
+                temperature,
+                cover_letter,
+                cover_letter_pdf
             ))
             self.conn.commit()
-            self.logger.info("Resume inserted successfully")
-            return cursor.lastrowid
+            resume_id = cursor.lastrowid
+            self.logger.info(f"Resume inserted successfully with ID: {resume_id}")
+            return resume_id
         except sqlite3.Error as e:
             self.logger.error(f"Error inserting resume: {e}")
+            self.conn.rollback()
+            raise
+
+    def update_cover_letter(self, resume_id, cover_letter, cover_letter_pdf):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute('''
+                UPDATE resumes
+                SET cover_letter = ?, cover_letter_pdf = ?
+                WHERE id = ?
+            ''', (cover_letter, cover_letter_pdf, resume_id))
+            self.conn.commit()
+            self.logger.info(f"Cover letter updated for resume ID: {resume_id}")
+        except sqlite3.Error as e:
+            self.logger.error(f"Error updating cover letter: {e}")
+            self.conn.rollback()
             raise
 
     def get_resume(self, resume_id):
@@ -85,7 +107,7 @@ class DatabaseManager:
                     SELECT id, company_name, job_title, job_description, 
                            personal_information, career_summary, skills, 
                            work_experience, education, projects, 
-                           awards, publications, pdf_content
+                           awards, publications
                     FROM resumes WHERE id = ?
                 ''', (resume_id,))
                 row = cursor.fetchone()
@@ -102,36 +124,12 @@ class DatabaseManager:
                         'education': row[8],
                         'projects': row[9],
                         'awards': row[10],
-                        'publications': row[11],
-                        'pdf_content': row[12]
+                        'publications': row[11]
                     }
                 return None
         except Exception as e:
             self.logger.error(f"Error retrieving resume: {str(e)}")
             raise
-
-    def get_all_latex_headers(self):
-        cursor = self.conn.cursor()
-        try:
-            cursor.execute('SELECT name, content FROM latex_headers')
-            headers = {row[0]: row[1] for row in cursor.fetchall()}
-            return headers
-        except Exception as e:
-            self.logger.error(f"Error retrieving LaTeX headers: {str(e)}")
-            return {}
-
-    def insert_latex_header(self, name, content):
-        cursor = self.conn.cursor()
-        try:
-            cursor.execute('''
-                INSERT OR REPLACE INTO latex_headers (name, content)
-                VALUES (?, ?)
-            ''', (name, content))
-            self.conn.commit()
-            self.logger.info(f"LaTeX header '{name}' inserted successfully")
-        except Exception as e:
-            self.logger.error(f"Error inserting LaTeX header: {str(e)}")
-            self.conn.rollback()
 
     def update_section(self, company_name, job_title, section_name, content):
         try:
@@ -180,19 +178,20 @@ class DatabaseManager:
             self.logger.error(f"Error inserting preamble: {e}")
             raise
 
-    def get_preamble(self):
-        cursor = self.conn.cursor()
+    def get_preamble(self, preamble_id=1):
         try:
-            cursor.execute('SELECT content FROM preambles WHERE id = 1')
-            result = cursor.fetchone()
-            if result:
-                return result[0]
-            else:
-                self.logger.warning("Preamble not found in database")
-                return None
-        except sqlite3.Error as e:
-            self.logger.error(f"Error retrieving preamble: {e}")
-            return None
+            with self.conn:
+                cursor = self.conn.cursor()
+                cursor.execute('SELECT content FROM preambles WHERE id = ?', (preamble_id,))
+                result = cursor.fetchone()
+                if result:
+                    return result[0]
+                else:
+                    self.logger.error(f"Preamble with ID {preamble_id} not found")
+                    return None
+        except Exception as e:
+            self.logger.error(f"Error retrieving preamble: {str(e)}")
+            raise
 
     def update_preamble(self, new_content):
         cursor = self.conn.cursor()
@@ -202,6 +201,41 @@ class DatabaseManager:
             self.logger.info("Preamble updated successfully")
         except sqlite3.Error as e:
             self.logger.error(f"Error updating preamble: {e}")
+            raise
+
+    def get_latest_resume_id(self):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute('SELECT MAX(id) FROM resumes')
+            result = cursor.fetchone()
+            return result[0] if result[0] is not None else None
+        except sqlite3.Error as e:
+            self.logger.error(f"Error getting latest resume ID: {e}")
+            return None
+
+    def store_signature_image(self, user_id, image_data):
+        query = "UPDATE users SET signature_image = %s WHERE id = %s"
+        self.cursor.execute(query, (image_data, user_id))
+        self.conn.commit()
+
+    def get_signature_image(self, user_id):
+        query = "SELECT signature_image FROM users WHERE id = %s"
+        self.cursor.execute(query, (user_id,))
+        result = self.cursor.fetchone()
+        return result[0] if result else None
+
+    def get_personal_information(self, resume_id):
+        try:
+            with self.conn:
+                cursor = self.conn.cursor()
+                cursor.execute('SELECT personal_information FROM resumes WHERE id = ?', (resume_id,))
+                result = cursor.fetchone()
+                if result:
+                    return result[0]
+                else:
+                    return None
+        except Exception as e:
+            self.logger.error(f"Error retrieving personal information: {str(e)}")
             raise
 
     def __del__(self):
