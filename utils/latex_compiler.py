@@ -1,7 +1,7 @@
 import os
 import subprocess
 import logging
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, Tuple
 from loaders.json_loader import JsonLoader
 import shutil
 
@@ -100,7 +100,7 @@ def generate_resume_pdf(db_manager: Any, content_dict: Dict[str, str], output_di
     return pdf_content
 
 
-def generate_cover_letter_pdf(db_manager: Any, cover_letter_content: str, resume_id: int, output_dir: str, company_name: str, job_title: str, json_loader: JsonLoader) -> bytes:
+def generate_cover_letter_pdf(db_manager: Any, cover_letter_content: str, resume_id: int, output_dir: str, company_name: str, job_title: str, json_loader: JsonLoader) -> Tuple[bytes, str]:
     """
     Generate a PDF cover letter based on the given content and information.
 
@@ -114,7 +114,7 @@ def generate_cover_letter_pdf(db_manager: Any, cover_letter_content: str, resume
         json_loader (JsonLoader): JsonLoader object to retrieve personal information.
 
     Returns:
-        bytes: The content of the generated PDF file.
+        Tuple[bytes, str]: The content of the generated PDF file and the LaTeX content.
 
     Raises:
         ValueError: If the cover letter template or personal information is not found.
@@ -218,4 +218,4 @@ def generate_cover_letter_pdf(db_manager: Any, cover_letter_content: str, resume
         raise
 
     logger.info("Cover letter PDF generation completed")
-    return pdf_content
+    return pdf_content, template

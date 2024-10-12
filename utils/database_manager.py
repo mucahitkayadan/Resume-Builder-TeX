@@ -126,25 +126,32 @@ class DatabaseManager:
             self.conn.rollback()
             raise
 
-    def update_cover_letter(self, resume_id: int, cover_letter: str, cover_letter_pdf: bytes) -> None:
+    def update_cover_letter(self, resume_id: int, cover_letter_latex: str, cover_letter_pdf: Optional[bytes] = None) -> None:
         """
         Update the cover letter for a specific resume.
 
         Args:
             resume_id (int): ID of the resume to update.
-            cover_letter (str): Updated cover letter text.
-            cover_letter_pdf (bytes): Updated PDF content of the cover letter.
+            cover_letter_latex (str): LaTeX content of the cover letter.
+            cover_letter_pdf (Optional[bytes]): PDF content of the cover letter, if available.
 
         Raises:
             sqlite3.Error: If there's an error updating the cover letter.
         """
         cursor: sqlite3.Cursor = self.conn.cursor()
         try:
-            cursor.execute('''
-                UPDATE resumes
-                SET cover_letter = ?, cover_letter_pdf = ?
-                WHERE id = ?
-            ''', (cover_letter, cover_letter_pdf, resume_id))
+            if cover_letter_pdf is not None:
+                cursor.execute('''
+                    UPDATE resumes
+                    SET cover_letter = ?, cover_letter_pdf = ?
+                    WHERE id = ?
+                ''', (cover_letter_latex, cover_letter_pdf, resume_id))
+            else:
+                cursor.execute('''
+                    UPDATE resumes
+                    SET cover_letter = ?
+                    WHERE id = ?
+                ''', (cover_letter_latex, resume_id))
             self.conn.commit()
             self.logger.info(f"Cover letter updated for resume ID: {resume_id}")
         except sqlite3.Error as e:

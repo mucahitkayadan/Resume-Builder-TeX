@@ -5,8 +5,13 @@ from tqdm import tqdm
 import streamlit as st
 from loaders.tex_loader import TexLoader
 import re
+from config import CHECK_CLEARANCE, CLEARANCE_KEYWORDS
+from config import LOG_LEVEL
+from utils.logger_config import setup_logger
+from tqdm import tqdm
+import logging
 
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 def check_clearance_requirement(job_description: str) -> bool:
     """
@@ -18,8 +23,9 @@ def check_clearance_requirement(job_description: str) -> bool:
     Returns:
         bool: True if clearance-related keywords are found, False otherwise.
     """
-    clearance_keywords = ["security clearance", "clearance required", "US citizen only", "US Citizen", "Permanent Resident"]
-    return any(keyword.lower() in job_description.lower() for keyword in clearance_keywords)
+    if not CHECK_CLEARANCE:
+        return False
+    return any(keyword.lower() in job_description.lower() for keyword in CLEARANCE_KEYWORDS)
 
 def create_output_directory(folder_name: str) -> str:
     """
@@ -67,14 +73,13 @@ def process_sections(sections: List[str], runner: Any, prompt_loader: Any, json_
         Dict[str, str]: A dictionary containing processed content for each section.
     """
     content_dict = {}
-    progress_bar = st.progress(0)
-    for index, section in enumerate(tqdm(sections, desc="Processing sections")):
+    iterator = tqdm(sections, desc="Processing sections") if LOG_LEVEL <= logging.DEBUG else sections
+    for section in iterator:
         prompt = getattr(prompt_loader, f"get_{section}_prompt")()
         data = getattr(json_loader, f"get_{section}")()
         processed_content = runner.process_section(prompt, data, job_description)
         content_dict[section] = processed_content
         logger.info(f"Processed {section} section")
-        progress_bar.progress((index + 1) / len(sections))
     return content_dict
 
 def write_sections_to_files(sections: List[str], content_dict: Dict[str, str], output_dir: str) -> None:

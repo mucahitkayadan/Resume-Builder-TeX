@@ -9,10 +9,10 @@ from loaders.prompt_loader import PromptLoader
 from engine.runners import OpenAIRunner, ClaudeRunner, BaseRunner
 from engine.resume_creator import ResumeCreator
 from engine.cover_letter_creator import CoverLetterCreator
+from utils.logger_config import setup_logger
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 def main() -> None:
     """

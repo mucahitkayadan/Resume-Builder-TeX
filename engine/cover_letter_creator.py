@@ -85,8 +85,6 @@ class CoverLetterCreator:
         elif not isinstance(resume_data, str):
             self.logger.error(f"Unexpected resume_data type: {type(resume_data)}")
             resume_data = json.dumps({})  # Convert to empty JSON string as fallback
-        self.logger.info(f"Resume data type after conversion: {type(resume_data)}")
-        self.logger.debug(f"Resume data content (first 100 chars): {resume_data[:100]}...")
 
         self.logger.info("Fetching cover letter prompt")
         cover_letter_prompt = self.prompt_loader.get_cover_letter_prompt()
@@ -98,11 +96,14 @@ class CoverLetterCreator:
         os.makedirs(output_dir, exist_ok=True)
         self.logger.info(f"Created output directory: {output_dir}")
         
+        pdf_content = None
+        latex_content = None
+        
         try:
             self.logger.info("Generating cover letter PDF")
-            pdf_content = generate_cover_letter_pdf(
+            pdf_content, latex_content = generate_cover_letter_pdf(
                 self.db_manager, 
-                cover_letter_content, 
+                cover_letter_content,
                 resume_id,
                 output_dir,
                 company_name,
@@ -112,13 +113,17 @@ class CoverLetterCreator:
             self.logger.info("PDF generation successful")
         except Exception as e:
             self.logger.error(f"Error generating PDF: {str(e)}")
-            return f"Error: Failed to generate PDF. Please check the logs for more details."
+            # Even if PDF generation fails, we still have the LaTeX content
+            latex_content = cover_letter_content
 
         # Update resume with cover letter
         try:
-            self.db_manager.update_cover_letter(resume_id, cover_letter_content, pdf_content)
+            self.db_manager.update_cover_letter(resume_id, latex_content, pdf_content)
+            self.logger.info("Cover letter updated in database successfully")
+            if pdf_content:
+                return f"Cover letter generated and saved successfully for resume ID: {resume_id}"
+            else:
+                return f"Cover letter content saved, but PDF generation failed for resume ID: {resume_id}"
         except Exception as e:
             self.logger.error(f"Error updating cover letter in database: {str(e)}")
             return f"Error: Failed to update cover letter in database. Please check the logs for more details."
-
-        return f"Cover letter generated successfully for resume ID: {resume_id}"

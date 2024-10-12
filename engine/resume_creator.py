@@ -117,8 +117,8 @@ class ResumeCreator:
                 model_name,
                 temperature
             )
-            self.logger.info(f"Resume generated successfully with ID: {resume_id}")
-            yield f"Resume generated successfully with ID: {resume_id}", 1
+            self.logger.info(f"Resume {company_name}_{job_title} generated successfully with ID: {resume_id}")
+            yield f"Resume {company_name}_{job_title} generated successfully with ID: {resume_id}", 1
         except Exception as e:
             self.logger.error(f"Database insertion failed: {str(e)}")
             yield f"Resume generation completed but database insertion failed: {str(e)}", 1
