@@ -6,6 +6,7 @@
 - [Features](#features)
 - [Project Structure](#project-structure)
 - [Setup and Installation](#setup-and-installation)
+- [Docker Setup](#docker-setup)
 - [Usage](#usage)
 - [Parsing Indeed Job Descriptions](#parsing-indeed-job-descriptions)
 - [Key Components](#key-components)
@@ -16,7 +17,7 @@
 
 ## Project Overview
 
-The AI-Powered Resume and Cover Letter Generator is a sophisticated tool designed to automate the creation of professional resumes and cover letters. By leveraging OpenAI's language model, this project analyzes job descriptions to generate tailored content for each section of a resume and cover letter. The system then compiles the resume into a LaTeX document and converts it to a PDF, ensuring a polished and professional presentation.
+The AI-Powered Resume and Cover Letter Generator is a sophisticated tool designed to automate the creation of professional resumes and cover letters. By leveraging OpenAI's and Anthropic's language models, this project analyzes job descriptions to generate tailored content for each section of a resume and cover letter. The system then compiles the resume into a LaTeX document and converts it to a PDF, ensuring a polished and professional presentation.
 
 ## Features
 
@@ -25,6 +26,7 @@ The AI-Powered Resume and Cover Letter Generator is a sophisticated tool designe
 - **PDF Compilation**: Converts LaTeX documents into PDF format for easy sharing and printing.
 - **Job-Specific Organization**: Automatically organizes generated documents into job-specific folders.
 - **Indeed Job Description Parsing**: Directly parses job descriptions from Indeed to streamline the input process.
+- **Docker Support**: Easily deploy and run the application using Docker.
 
 ## Project Structure
 
@@ -69,11 +71,33 @@ project_root/
    pip install -r requirements.txt
    ```
 
-3. Set up your OpenAI API key:
+3. Set up your API keys:
    - Create a `.env` file in the project root
-   - Add your API key: `OPENAI_API_KEY=your_api_key_here`
+   - Add your API keys:
+     ```
+     OPENAI_API_KEY=your_openai_api_key_here
+     ANTHROPIC_API_KEY=your_anthropic_api_key_here
+     ```
 
 4. Ensure you have LaTeX installed on your system (for PDF compilation).
+
+## Docker Setup
+
+1. Ensure Docker is installed on your system.
+
+2. Build the Docker image:
+   ```bash
+   docker build -t resume-generator .
+   ```
+
+3. Run the Docker container:
+   ```bash
+   docker run -p 8501:8501 --env-file .env resume-generator
+   ```
+
+   This command uses the environment variables from your `.env` file.
+
+4. Access the application by opening a web browser and navigating to `http://localhost:8501`.
 
 ## Usage
 
@@ -84,6 +108,10 @@ project_root/
 3. Run the main script:
    ```bash
    python main.py
+   ```
+   Or, if using Docker:
+   ```bash
+   docker run -p 8501:8501 --env-file .env resume-generator
    ```
 
 4. The generated resume will be saved in a new folder under `created_resumes/`, named after the company and position.
@@ -140,4 +168,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Acknowledgments
 
 - OpenAI for providing the GPT model
+- Anthropic for providing the Claude model
 - LaTeX project for the document preparation system
