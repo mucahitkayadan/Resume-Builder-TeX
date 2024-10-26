@@ -3,7 +3,9 @@ import json
 import logging
 from typing import Dict, Optional, Union, Any, List, Tuple
 import os
+from utils.logger_config import setup_logger
 
+logger = setup_logger(__name__)
 class DatabaseManager:
     """
     A class to manage database operations for resume and cover letter storage.
@@ -114,104 +116,75 @@ class DatabaseManager:
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             ''', (
                 company_name, job_title, job_description,
-                content_dict.get('personal_information', ''),
-                content_dict.get('career_summary', ''),
-                content_dict.get('skills', ''),
-                content_dict.get('work_experience', ''),
-                content_dict.get('education', ''),
-                content_dict.get('projects', ''),
-                content_dict.get('awards', ''),
-                content_dict.get('publications', ''),
+                content_dict.get('personal_information', '').encode('utf-8'),
+                content_dict.get('career_summary', '').encode('utf-8'),
+                content_dict.get('skills', '').encode('utf-8'),
+                content_dict.get('work_experience', '').encode('utf-8'),
+                content_dict.get('education', '').encode('utf-8'),
+                content_dict.get('projects', '').encode('utf-8'),
+                content_dict.get('awards', '').encode('utf-8'),
+                content_dict.get('publications', '').encode('utf-8'),
                 pdf_content,
-                model_type,
-                model_name,
-                temperature,
-                cover_letter,
-                cover_letter_pdf
+                model_type, model_name, temperature,
+                cover_letter.encode('utf-8') if cover_letter else None,
+                cover_letter_pdf,
             ))
             self.conn.commit()
             resume_id: int = cursor.lastrowid
             self.logger.info(f"Resume inserted successfully with ID: {resume_id}")
             return resume_id
         except sqlite3.Error as e:
-            self.logger.error(f"Error inserting resume: {e}")
+            self.logger.error(f"Error inserting resume: {str(e)}")
             self.conn.rollback()
             raise
 
-    def update_cover_letter(self, resume_id: int, cover_letter_latex: str, cover_letter_pdf: Optional[bytes] = None) -> None:
-        """
-        Update the cover letter for a specific resume.
-
-        Args:
-            resume_id (int): ID of the resume to update.
-            cover_letter_latex (str): LaTeX content of the cover letter.
-            cover_letter_pdf (Optional[bytes]): PDF content of the cover letter, if available.
-
-        Raises:
-            sqlite3.Error: If there's an error updating the cover letter.
-        """
-        cursor: sqlite3.Cursor = self.conn.cursor()
+    def update_cover_letter(self, resume_id, latex_content, pdf_content):
         try:
-            if cover_letter_pdf is not None:
-                cursor.execute('''
-                    UPDATE resumes
-                    SET cover_letter = ?, cover_letter_pdf = ?
-                    WHERE id = ?
-                ''', (cover_letter_latex, cover_letter_pdf, resume_id))
-            else:
-                cursor.execute('''
-                    UPDATE resumes
-                    SET cover_letter = ?
-                    WHERE id = ?
-                ''', (cover_letter_latex, resume_id))
-            self.conn.commit()
-            self.logger.info(f"Cover letter updated for resume ID: {resume_id}")
-        except sqlite3.Error as e:
-            self.logger.error(f"Error updating cover letter: {e}")
-            self.conn.rollback()
+            with self.conn:
+                self.conn.execute(
+                    "UPDATE resumes SET cover_letter = ?, cover_letter_pdf = ? WHERE id = ?",
+                    (latex_content.encode('utf-8'), pdf_content, resume_id)
+                )
+        except Exception as e:
+            logger.error(f"Error updating cover letter: {str(e)}")
             raise
 
     def get_resume(self, resume_id: int) -> Optional[Dict[str, Any]]:
         """
-        Retrieve a resume from the database by its ID.
+        Retrieve a specific resume from the database, excluding large binary data.
 
         Args:
-            resume_id (int): ID of the resume to retrieve.
+            resume_id (int): The ID of the resume to retrieve.
 
         Returns:
-            Optional[Dict[str, Any]]: Dictionary containing resume data if found, None otherwise.
+            Optional[Dict[str, Any]]: A dictionary containing the resume information if found,
+                                      None otherwise. Excludes PDF content and other large binary data.
 
         Raises:
-            Exception: If there's an error retrieving the resume.
+            sqlite3.Error: If there's an error executing the SQL query.
         """
         try:
             with self.conn:
                 cursor: sqlite3.Cursor = self.conn.cursor()
-                cursor.execute('''
+                cursor.execute("""
                     SELECT id, company_name, job_title, job_description, 
                            personal_information, career_summary, skills, 
                            work_experience, education, projects, 
-                           awards, publications
+                           awards, publications, model_type, model_name, 
+                           temperature, created_at, last_updated
                     FROM resumes WHERE id = ?
-                ''', (resume_id,))
-                row = cursor.fetchone()
-                if row:
-                    return {
-                        'id': row[0],
-                        'company_name': row[1],
-                        'job_title': row[2],
-                        'job_description': row[3],
-                        'personal_information': row[4],
-                        'career_summary': row[5],
-                        'skills': row[6],
-                        'work_experience': row[7],
-                        'education': row[8],
-                        'projects': row[9],
-                        'awards': row[10],
-                        'publications': row[11]
-                    }
+                """, (resume_id,))
+                columns: List[str] = [column[0] for column in cursor.description]
+                values: Optional[Tuple] = cursor.fetchone()
+                if values:
+                    result = dict(zip(columns, values))
+                    # Decode UTF-8 encoded text fields
+                    for key, value in result.items():
+                        if isinstance(value, bytes):
+                            result[key] = value.decode('utf-8')
+                    return result
                 return None
-        except Exception as e:
+        except sqlite3.Error as e:
             self.logger.error(f"Error retrieving resume: {str(e)}")
             raise
 
@@ -430,26 +403,6 @@ class DatabaseManager:
         cursor.execute("SELECT id, company_name, job_title, created_at FROM resumes")
         return cursor.fetchall()
 
-    def get_resume(self, resume_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Retrieve a specific resume from the database.
-
-        Args:
-            resume_id (int): The ID of the resume to retrieve.
-
-        Returns:
-            Optional[Dict[str, Any]]: A dictionary containing the resume information if found,
-                                      None otherwise. The dictionary keys correspond to column names.
-
-        Raises:
-            sqlite3.Error: If there's an error executing the SQL query.
-        """
-        cursor: sqlite3.Cursor = self.conn.cursor()
-        cursor.execute("SELECT * FROM resumes WHERE id = ?", (resume_id,))
-        columns: List[str] = [column[0] for column in cursor.description]
-        values: Optional[Tuple] = cursor.fetchone()
-        return dict(zip(columns, values)) if values else None
-
     def update_resume(self, resume_id: int, updated_data: Dict[str, Any]) -> None:
         cursor: sqlite3.Cursor = self.conn.cursor()
         try:
@@ -475,3 +428,94 @@ class DatabaseManager:
         self.cursor.execute('SELECT content FROM tex_headers WHERE name = ?', (name,))
         result = self.cursor.fetchone()
         return result[0] if result else None
+
+    def get_latest_resume(self):
+        try:
+            with self.conn:
+                cursor = self.conn.cursor()
+                cursor.execute("SELECT * FROM resumes ORDER BY id DESC LIMIT 1")
+                result = cursor.fetchone()
+                if result:
+                    columns = [column[0] for column in cursor.description]
+                    return dict(zip(columns, result))
+                return None
+        except Exception as e:
+            logger.error(f"Error retrieving latest resume: {str(e)}")
+            raise
+
+    def get_resume_full(self, resume_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Retrieve a full resume from the database, including all fields except large binary data.
+
+        Args:
+            resume_id (int): The ID of the resume to retrieve.
+
+        Returns:
+            Optional[Dict[str, Any]]: A dictionary containing all resume information if found,
+                                      None otherwise. Excludes PDF content.
+
+        Raises:
+            sqlite3.Error: If there's an error executing the SQL query.
+        """
+        try:
+            with self.conn:
+                cursor: sqlite3.Cursor = self.conn.cursor()
+                cursor.execute("""
+                    SELECT id, company_name, job_title, job_description, 
+                           personal_information, career_summary, skills, 
+                           work_experience, education, projects, 
+                           awards, publications, model_type, model_name, 
+                           temperature, created_at, last_updated
+                    FROM resumes WHERE id = ?
+                """, (resume_id,))
+                columns: List[str] = [column[0] for column in cursor.description]
+                values: Optional[Tuple] = cursor.fetchone()
+                if values:
+                    result = dict(zip(columns, values))
+                    # Decode UTF-8 encoded text fields
+                    for key, value in result.items():
+                        if isinstance(value, bytes):
+                            result[key] = value.decode('utf-8')
+                    return result
+                return None
+        except sqlite3.Error as e:
+            self.logger.error(f"Error retrieving full resume: {str(e)}")
+            raise
+
+    def get_resume_for_cover_letter(self, resume_id: int) -> Optional[Dict[str, str]]:
+        """
+        Retrieve specific resume sections needed for cover letter generation.
+
+        Args:
+            resume_id (int): The ID of the resume to retrieve.
+
+        Returns:
+            Optional[Dict[str, str]]: A dictionary containing specific resume sections if found,
+                                      None otherwise.
+
+        Raises:
+            sqlite3.Error: If there's an error executing the SQL query.
+        """
+        try:
+            with self.conn:
+                cursor: sqlite3.Cursor = self.conn.cursor()
+                cursor.execute("""
+                    SELECT personal_information, career_summary, skills, 
+                           work_experience, education, projects, 
+                           awards, publications
+                    FROM resumes WHERE id = ?
+                """, (resume_id,))
+                columns: List[str] = [column[0] for column in cursor.description]
+                values: Optional[Tuple] = cursor.fetchone()
+                if values:
+                    result = dict(zip(columns, values))
+                    # Decode UTF-8 encoded text fields
+                    for key, value in result.items():
+                        if isinstance(value, bytes):
+                            result[key] = value.decode('utf-8')
+                    return result
+                return None
+        except sqlite3.Error as e:
+            self.logger.error(f"Error retrieving resume for cover letter: {str(e)}")
+            raise
+

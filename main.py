@@ -17,6 +17,7 @@ from easy_applier.resume_generator import ResumeGenerator
 from easy_applier.job_applier import JobApplier
 from easy_applier.utils import create_output_directory, get_latest_resume_path
 from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy
+import traceback
 
 # Configure logging
 logger = setup_logger(__name__)
@@ -140,8 +141,17 @@ def main() -> None:
                         
                         resume_id = db_manager.get_latest_resume_id()
                         generation_completed = True
+                    except UnicodeEncodeError as e:
+                        st.error(f"Error encoding characters: {str(e)}")
+                        logger.error(f"UnicodeEncodeError in generate_resume: {str(e)}")
+                        logger.error(f"Error position: {e.start}-{e.end}")
+                        logger.error(f"Problematic string: {e.object[max(0, e.start-10):e.end+10]}")
+                        logger.error(f"Full traceback: {traceback.format_exc()}")
+                        resume_id = None
                     except Exception as e:
                         st.error(f"Error generating resume: {str(e)}")
+                        logger.error(f"Error in generate_resume: {str(e)}")
+                        logger.error(f"Full traceback: {traceback.format_exc()}")
                         resume_id = None
 
                 if generation_option in ["Cover Letter", "Both"]:

@@ -9,6 +9,7 @@ from utils.latex_compiler import generate_cover_letter_pdf
 from loaders.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
+import io
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,6 @@ class CoverLetterCreator:
         self.json_loader = json_loader
         self.prompt_loader = prompt_loader
         self.db_manager = db_manager
-        self.logger = logging.getLogger(__name__)
 
     def generate_cover_letter(self, job_description: str, resume_id: int, company_name: str, job_title: str) -> str:
         """
@@ -62,48 +62,32 @@ class CoverLetterCreator:
         Raises:
             Exception: If there's an error in PDF generation or database insertion.
         """
-        self.logger.info(f"Starting cover letter generation for resume ID: {resume_id}")
+        logger.info(f"Starting cover letter generation for resume ID: {resume_id}")
         
         if not job_description:
-            self.logger.warning("Job description not provided")
             return "Please enter a job description."
 
-        self.logger.info(f"Generating cover letter with {self.ai_runner.__class__.__name__} model")
-
-        # Get resume data
-        self.logger.info(f"Fetching resume data for ID: {resume_id}")
-        resume_data = self.db_manager.get_resume(resume_id)
-        self.logger.info(f"Resume data type: {type(resume_data)}")
-        self.logger.debug(f"Resume data content: {resume_data}")
-        
+        # Use the new method to get resume data for cover letter
+        resume_data = self.db_manager.get_resume_for_cover_letter(resume_id)
         if not resume_data:
-            self.logger.error(f"Resume with ID {resume_id} not found")
-            return f"Error: Resume with ID {resume_id} not found"
+            return f"Resume with ID {resume_id} not found or has no content suitable for cover letter generation."
 
-        # Ensure resume_data is a string
+        logger.info("Generating cover letter with AIRunner model")
         resume_data = self._ensure_string(resume_data)
-
-        self.logger.info("Fetching cover letter prompt")
         cover_letter_prompt = self.prompt_loader.get_cover_letter_prompt()
-        self.logger.info("Processing cover letter with AI model")
+
         try:
             cover_letter_content = self.ai_runner.process_section(cover_letter_prompt, resume_data, job_description)
         except Exception as e:
-            self.logger.error(f"Error processing cover letter: {str(e)}")
-            return f"Error: Failed to process cover letter. Please check the logs for more details."
+            logger.error(f"Failed to process cover letter: {str(e)}")
+            return f"Failed to process cover letter: {str(e)}"
 
-        # Generate PDF
         output_dir = os.path.join("created_resumes", f"{company_name}_{job_title}")
         os.makedirs(output_dir, exist_ok=True)
-        self.logger.info(f"Created output directory: {output_dir}")
-        
-        pdf_content = None
-        latex_content = None
-        
+
         try:
-            self.logger.info("Generating cover letter PDF")
             pdf_content, latex_content = generate_cover_letter_pdf(
-                self.db_manager, 
+                self.db_manager,
                 cover_letter_content,
                 resume_id,
                 output_dir,
@@ -111,29 +95,19 @@ class CoverLetterCreator:
                 job_title,
                 self.json_loader
             )
-            self.logger.info("PDF generation successful")
-        except Exception as e:
-            self.logger.error(f"Error generating PDF: {str(e)}")
-            # Even if PDF generation fails, we still have the LaTeX content
-            latex_content = cover_letter_content
-
-        # Update resume with cover letter
-        try:
             self.db_manager.update_cover_letter(resume_id, latex_content, pdf_content)
-            self.logger.info("Cover letter updated in database successfully")
-            if pdf_content:
-                return f"Cover letter generated and saved successfully for resume ID: {resume_id}"
-            else:
-                return f"Cover letter content saved, but PDF generation failed for resume ID: {resume_id}"
+            return "Cover letter generated and saved successfully."
         except Exception as e:
-            self.logger.error(f"Error updating cover letter in database: {str(e)}")
-            return f"Error: Failed to update cover letter in database. Please check the logs for more details."
+            logger.error(f"Failed to generate PDF: {str(e)}")
+            self.db_manager.update_cover_letter(resume_id, cover_letter_content, None)
+            return "Cover letter content saved, but PDF generation failed."
 
     def _ensure_string(self, data):
         if isinstance(data, dict):
-            return json.dumps(data)
+            return {k: self._ensure_string(v) for k, v in data.items()}
         elif isinstance(data, bytes):
             return data.decode('utf-8')
-        elif not isinstance(data, str):
-            return json.dumps({})
-        return data
+        elif isinstance(data, str):
+            return data
+        else:
+            return str(data)

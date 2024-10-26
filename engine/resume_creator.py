@@ -10,6 +10,7 @@ from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy
 from loaders.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
 from utils.file_operations import create_output_directory, save_job_description
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -81,10 +82,14 @@ class ResumeCreator:
             content = self.process_section(section, process_type, job_description)
             if content:
                 content_dict[section] = content
-            self.logger.info(f"Processed {section} section")
+                self.logger.info(f"Processed {section} section")
+                self.logger.debug(f"{section} content: {content[:100]}...")  # Log first 100 chars
             yield f"Processed {section} section", (i + 1) / len(selected_sections)
 
         self.logger.info("Content generation completed")
+
+        # Debug: Log the entire content_dict
+        self.logger.debug(f"Full content_dict: {content_dict}")
 
         # Create output directory and save job description
         output_dir = create_output_directory(f"{company_name}_{job_title}")
@@ -96,6 +101,10 @@ class ResumeCreator:
             self.logger.info("PDF generation successful")
         except Exception as e:
             self.logger.error(f"PDF generation failed: {str(e)}")
+            self.logger.error(f"Error type: {type(e).__name__}")
+            self.logger.error(f"Error args: {e.args}")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            self.logger.error("Line number: %s", exc_traceback.tb_lineno)
             yield f"Resume generation failed: {str(e)}", 1
             return
 

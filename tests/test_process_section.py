@@ -10,7 +10,8 @@ class TestProcessSection(unittest.TestCase):
     def setUp(self):
         self.json_loader = JsonLoader("../files/information.json")
         self.prompt_loader = PromptLoader("../prompts")
-        self.job_description_loader = JobDescriptionLoader("../created_resumes/akraya_machine_learning_engineer/job_description.txt")
+        self.job_description_loader = JobDescriptionLoader(
+            "../created_resumes/akraya_machine_learning_engineer/job_description.txt")
         
         # Create strategies with mocked clients
         self.openai_strategy = OpenAIStrategy("gpt-4", 0.7)

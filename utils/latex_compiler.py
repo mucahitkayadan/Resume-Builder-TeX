@@ -4,6 +4,8 @@ import logging
 from typing import Dict, Optional, Any, Tuple
 from loaders.json_loader import JsonLoader
 import shutil
+import io
+import unicodedata
 
 logger = logging.getLogger(__name__)
 
@@ -186,11 +188,9 @@ def generate_cover_letter_pdf(db_manager: Any, cover_letter_content: str, resume
 
     logger.debug(f"Full LaTeX content:\n{template}")
     
-    # Write full LaTeX content to .tex file
-    logger.info(f"Writing LaTeX content to file: {tex_file_path}")
-    with open(tex_file_path, "w", encoding="utf-8") as f:
+    # Write the LaTeX content to a file
+    with io.open(tex_file_path, 'w', encoding='utf-8') as f:
         f.write(template)
-    logger.info("LaTeX content written to file successfully")
     
     # Compile LaTeX to PDF
     logger.info("Compiling LaTeX to PDF")
@@ -225,3 +225,8 @@ def generate_cover_letter_pdf(db_manager: Any, cover_letter_content: str, resume
 
     logger.info("Cover letter PDF generation completed")
     return pdf_content, template
+
+def sanitize_text(text):
+    # Remove or replace problematic characters
+    return ''.join(char for char in unicodedata.normalize('NFKD', text)
+                   if unicodedata.category(char)[0] != 'C')
