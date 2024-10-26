@@ -20,14 +20,33 @@ def get_user_section_selection() -> Dict[str, str]:
         "personal_information", "career_summary", "skills", "work_experience", 
         "education", "projects", "awards", "publications"
     ]
+    options = ["Process", "Hardcode", "Skip"]
     selected_sections = {}
+
+    st.subheader("Section Handling")
+    
+    # Create column headers
+    col1, col2 = st.columns([2, 3])
+    col1.write("**Section**")
+    col2.write("**Action**")
+    
+    # Create rows for each section
     for section in sections:
-        choice = st.selectbox(
-            f"How should we handle the {section} section?",
-            ["process", "hardcode", "skip"],
-            key=f"section_{section}"
+        col1, col2 = st.columns([2, 3])
+        col1.write(section.replace("_", " ").title())
+        
+        # Create radio buttons for each option
+        selected_option = col2.radio(
+            f"Select action for {section}",  # Provide a meaningful label
+            options,
+            index=0,  # Default to "Process"
+            key=f"section_{section}",
+            label_visibility="collapsed",
+            horizontal=True
         )
-        selected_sections[section] = choice
+        
+        selected_sections[section] = selected_option.lower()
+    
     return selected_sections
 
 def main() -> None:
@@ -81,7 +100,6 @@ def main() -> None:
         job_title: str
         company_name, job_title = get_or_create_folder_name(job_description, runner, prompt_loader)
 
-        st.subheader("Section Handling")
         selected_sections = get_user_section_selection()
 
         generation_option: str = st.selectbox("Choose generation option", ["Resume", "Cover Letter", "Both"])

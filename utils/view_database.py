@@ -17,12 +17,15 @@ def view_database():
     else:
         # Convert the resumes data to a pandas DataFrame
         df = pd.DataFrame(resumes, columns=['ID', 'Company Name', 'Job Title', 'Creation Date'])
+        
+        # Sort the DataFrame by ID in descending order
+        df = df.sort_values('ID', ascending=False)
 
         # Display the DataFrame
         st.dataframe(df)
 
         # Allow user to select a resume to view details
-        selected_resume_id = st.selectbox("Select a resume to view details:", df['ID'])
+        selected_resume_id = st.selectbox("Select a resume to view details:", df['ID'], index=0)
 
         if selected_resume_id:
             resume_details = db_manager.get_resume(selected_resume_id)
@@ -50,4 +53,3 @@ def view_database():
 
 if __name__ == "__main__":
     view_database()
-
