@@ -7,7 +7,7 @@ import shutil
 
 logger = logging.getLogger(__name__)
 
-def generate_resume_pdf(db_manager: Any, content_dict: Dict[str, str], output_dir: str) -> Optional[bytes]:
+def generate_resume_pdf(db_manager: Any, content_dict: Dict[str, str], output_dir: str, filename: str = 'resume.tex') -> Optional[bytes]:
     """
     Generate a PDF resume from the given content dictionary.
 
@@ -15,6 +15,7 @@ def generate_resume_pdf(db_manager: Any, content_dict: Dict[str, str], output_di
         db_manager (Any): Database manager object to retrieve the preamble.
         content_dict (Dict[str, str]): Dictionary containing resume content sections.
         output_dir (str): Directory to output the generated files.
+        filename (str): The filename of the generated .tex file. Defaults to 'resume.tex'.
 
     Returns:
         Optional[bytes]: The content of the generated PDF file, or None if generation fails.
@@ -56,7 +57,7 @@ def generate_resume_pdf(db_manager: Any, content_dict: Dict[str, str], output_di
     full_tex_content = '\n'.join(tex_content)
 
     # Write to .tex file
-    tex_path = os.path.join(output_dir, 'resume.tex')
+    tex_path = os.path.join(output_dir, filename)
     with open(tex_path, 'w', encoding='utf-8') as f:
         f.write(full_tex_content)
 
@@ -65,16 +66,21 @@ def generate_resume_pdf(db_manager: Any, content_dict: Dict[str, str], output_di
     # Compile the .tex file
     pdf_path = os.path.join(output_dir, 'resume.pdf')
     try:
-        for _ in range(2):  # Run twice to resolve references
-            process = subprocess.Popen(['pdflatex', '-interaction=nonstopmode', '-output-directory', output_dir, tex_path], 
-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = process.communicate(timeout=30)
-            if process.returncode != 0:
-                logger.error(f"pdflatex returned non-zero exit status. stdout: {stdout.decode()}, stderr: {stderr.decode()}")
-                raise subprocess.CalledProcessError(process.returncode, process.args)
-    except subprocess.TimeoutExpired:
-        process.kill()
-        logger.error("pdflatex process timed out after 30 seconds")
+        process = subprocess.run(
+            ['pdflatex', '-interaction=nonstopmode', '-output-directory', output_dir, tex_path],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+        logger.info("LaTeX compilation output:")
+        logger.info(process.stdout)
+        logger.info("LaTeX compilation errors:")
+        logger.info(process.stderr)
+    except subprocess.CalledProcessError as e:
+        logger.error("LaTeX compilation failed. Error output:")
+        logger.error(e.output)
+        logger.error("Error details:")
+        logger.error(e.stderr)
         raise
     except Exception as e:
         logger.error(f"Error compiling LaTeX: {str(e)}")

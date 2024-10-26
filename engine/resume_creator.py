@@ -9,6 +9,8 @@ from utils.document_utils import (
 )
 from utils.database_manager import DatabaseManager
 from utils.latex_compiler import generate_resume_pdf
+from engine.hardcode_sections import HardcodeSections
+from loaders.tex_loader import TexLoader
 
 logger = logging.getLogger(__name__)
 
@@ -42,9 +44,12 @@ class ResumeCreator:
         self.prompt_loader = prompt_loader
         self.db_manager = db_manager
         self.logger = logging.getLogger(__name__)
+        self.tex_loader = TexLoader(db_manager)
+        self.hardcoder = HardcodeSections(json_loader, self.tex_loader)
 
     def generate_resume(self, job_description: str, company_name: str, job_title: str, 
-                        model_type: str, model_name: str, temperature: float) -> Generator[Tuple[str, float], None, None]:
+                        model_type: str, model_name: str, temperature: float,
+                        selected_sections: Dict[str, str]) -> Generator[Tuple[str, float], None, None]:
         """
         Generate a resume based on the given job description.
 
@@ -58,6 +63,7 @@ class ResumeCreator:
             model_type: The type of AI model used.
             model_name: The name of the AI model used.
             temperature: The temperature setting for the AI model.
+            selected_sections: A dictionary of sections to process.
 
         Yields:
             A tuple containing a status message and a progress value (0 to 1).
@@ -74,21 +80,23 @@ class ResumeCreator:
             return
 
         # Process sections
-        sections = [
-            "personal_information", "career_summary", "skills", "work_experience", 
-            "education", "projects", "awards", "publications"
-        ]
         content_dict: Dict[str, str] = {}
-        for i, section in enumerate(sections):
-            prompt_method = getattr(self.prompt_loader, f"get_{section}_prompt")
-            data_method = getattr(self.json_loader, f"get_{section}")
-            prompt = prompt_method()
-            data = data_method()
-            process_method = getattr(self.runner, f"process_{section}")
-            content = process_method(prompt, data, job_description)
+        for i, (section, process_type) in enumerate(selected_sections.items()):
+            if process_type == "skip":
+                continue
+            elif process_type == "hardcode":
+                content = self.hardcoder.hardcode_section(section)
+            else:  # "process"
+                prompt_method = getattr(self.prompt_loader, f"get_{section}_prompt")
+                data_method = getattr(self.json_loader, f"get_{section}")
+                prompt = prompt_method()
+                data = data_method()
+                process_method = getattr(self.runner, f"process_{section}")
+                content = process_method(prompt, data, job_description)
+            
             content_dict[section] = content
             self.logger.info(f"Processed {section} section")
-            yield f"Processed {section} section", (i + 1) / len(sections)
+            yield f"Processed {section} section", (i + 1) / len(selected_sections)
 
         self.logger.info("Content generation completed")
 
@@ -139,3 +147,27 @@ class ResumeCreator:
         os.makedirs(output_dir, exist_ok=True)
         self.logger.info(f"Created output directory: {output_dir}")
         return output_dir
+
+    def hardcode_section(self, section: str) -> str:
+        if section == "awards":
+            return self.hardcode_awards()
+        elif section == "publications":
+            return self.hardcode_publications()
+        else:
+            raise ValueError(f"Hardcoding not implemented for section: {section}")
+
+    def hardcode_awards(self) -> str:
+        awards = self.json_loader.get_awards()
+        latex_content = "\\section{Awards \\& Achievements}\n\\resumeSubHeadingListStart\n"
+        for award in awards:
+            latex_content += f"    \\resumeAwardHeading{{{award['name']}}}{{{award['explanation']}}}\n"
+        latex_content += "\\resumeSubHeadingListEnd"
+        return latex_content
+
+    def hardcode_publications(self) -> str:
+        publications = self.json_loader.get_publications()
+        latex_content = "\\section{Publications}\n\\resumeSubHeadingListStart\n"
+        for pub in publications:
+            latex_content += f"    \\resumePublicationHeading{{{pub['name']}}}{{{pub['publisher']}}}{{{pub['Year']}}}{{{pub['link']}}}\n"
+        latex_content += "\\resumeSubHeadingListEnd"
+        return latex_content

@@ -1,7 +1,8 @@
 import sqlite3
 import json
 import logging
-from typing import Dict, Optional, Union, Any
+from typing import Dict, Optional, Union, Any, List, Tuple
+import os
 
 class DatabaseManager:
     """
@@ -15,12 +16,13 @@ class DatabaseManager:
         conn (sqlite3.Connection): SQLite database connection.
     """
 
-    def __init__(self):
+    def __init__(self, db_path='resumes.db'):
         """
         Initialize the DatabaseManager with a connection to the SQLite database.
         """
         self.logger: logging.Logger = logging.getLogger(__name__)
-        self.conn: sqlite3.Connection = sqlite3.connect('resumes.db')
+        self.conn: sqlite3.Connection = sqlite3.connect(db_path)
+        self.cursor = self.conn.cursor()
         self.create_tables()
 
     def create_tables(self) -> None:
@@ -60,7 +62,16 @@ class DatabaseManager:
             )
         ''')
         
+        # Create tex_headers table
+        self.cursor.execute('''
+        CREATE TABLE IF NOT EXISTS tex_headers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,
+            content TEXT NOT NULL
+        )
+        ''')
         self.conn.commit()
+        
         self.logger.info("Tables created/updated successfully")
 
     def insert_resume(self, company_name: str, job_title: str, job_description: str, 
@@ -97,9 +108,10 @@ class DatabaseManager:
                     work_experience, education, projects, 
                     awards, publications, pdf_content,
                     model_type, model_name, temperature,
-                    cover_letter, cover_letter_pdf
+                    cover_letter, cover_letter_pdf,
+                    created_at, last_updated
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             ''', (
                 company_name, job_title, job_description,
                 content_dict.get('personal_information', ''),
@@ -402,3 +414,64 @@ class DatabaseManager:
         Close the database connection when the object is destroyed.
         """
         self.conn.close()
+
+    def get_all_resumes(self) -> List[Tuple[int, str, str, str]]:
+        """
+        Retrieve all resumes from the database.
+
+        Returns:
+            List[Tuple[int, str, str, str]]: A list of tuples containing resume information.
+                Each tuple contains (id, company_name, job_title, created_at).
+
+        Raises:
+            sqlite3.Error: If there's an error executing the SQL query.
+        """
+        cursor: sqlite3.Cursor = self.conn.cursor()
+        cursor.execute("SELECT id, company_name, job_title, created_at FROM resumes")
+        return cursor.fetchall()
+
+    def get_resume(self, resume_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Retrieve a specific resume from the database.
+
+        Args:
+            resume_id (int): The ID of the resume to retrieve.
+
+        Returns:
+            Optional[Dict[str, Any]]: A dictionary containing the resume information if found,
+                                      None otherwise. The dictionary keys correspond to column names.
+
+        Raises:
+            sqlite3.Error: If there's an error executing the SQL query.
+        """
+        cursor: sqlite3.Cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM resumes WHERE id = ?", (resume_id,))
+        columns: List[str] = [column[0] for column in cursor.description]
+        values: Optional[Tuple] = cursor.fetchone()
+        return dict(zip(columns, values)) if values else None
+
+    def update_resume(self, resume_id: int, updated_data: Dict[str, Any]) -> None:
+        cursor: sqlite3.Cursor = self.conn.cursor()
+        try:
+            set_clause = ", ".join([f"{key} = ?" for key in updated_data.keys()])
+            query = f"UPDATE resumes SET {set_clause}, last_updated = CURRENT_TIMESTAMP WHERE id = ?"
+            values = list(updated_data.values()) + [resume_id]
+            cursor.execute(query, values)
+            self.conn.commit()
+            self.logger.info(f"Resume with ID {resume_id} updated successfully")
+        except sqlite3.Error as e:
+            self.logger.error(f"Error updating resume: {e}")
+            self.conn.rollback()
+            raise
+
+    def insert_tex_header(self, name: str, content: str):
+        self.cursor.execute('''
+        INSERT OR REPLACE INTO tex_headers (name, content)
+        VALUES (?, ?)
+        ''', (name, content))
+        self.conn.commit()
+
+    def get_tex_header(self, name: str) -> Optional[str]:
+        self.cursor.execute('SELECT content FROM tex_headers WHERE name = ?', (name,))
+        result = self.cursor.fetchone()
+        return result[0] if result else None
