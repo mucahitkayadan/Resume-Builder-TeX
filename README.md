@@ -45,8 +45,6 @@ project_root/
 │   └── indeed_parser.py
 ├── utils/
 │   └── utils.py
-├── tex_headers/
-│   └── (LaTeX header files)
 ├── tex_template/
 │   └── (LaTeX template files)
 ├── prompts/
@@ -170,3 +168,15 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - OpenAI for providing the GPT model
 - Anthropic for providing the Claude model
 - LaTeX project for the document preparation system
+
+## LaTeX Templates
+
+LaTeX templates are now stored in the database. To modify a template:
+
+1. Use the DatabaseManager to retrieve the template
+2. Make your modifications
+3. Use the DatabaseManager to update the template in the database
+
+## TexLoader
+
+The TexLoader class now loads LaTeX templates from the database instead of from files. It uses the DatabaseManager to retrieve templates.

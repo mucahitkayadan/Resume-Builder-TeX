@@ -82,6 +82,14 @@ class CoverLetterCreator:
         if isinstance(resume_data, dict):
             self.logger.info("Converting resume_data dict to JSON string")
             resume_data = json.dumps(resume_data)
+        elif isinstance(resume_data, bytes):
+            self.logger.info("Converting resume_data bytes to string")
+            resume_data = resume_data.decode('utf-8')
+            # Try to parse it as JSON, if it fails, use it as is
+            try:
+                json.loads(resume_data)
+            except json.JSONDecodeError:
+                self.logger.info("resume_data is not valid JSON, using as plain text")
         elif not isinstance(resume_data, str):
             self.logger.error(f"Unexpected resume_data type: {type(resume_data)}")
             resume_data = json.dumps({})  # Convert to empty JSON string as fallback
@@ -89,7 +97,11 @@ class CoverLetterCreator:
         self.logger.info("Fetching cover letter prompt")
         cover_letter_prompt = self.prompt_loader.get_cover_letter_prompt()
         self.logger.info("Processing cover letter with AI model")
-        cover_letter_content = self.runner.process_cover_letter(cover_letter_prompt, resume_data, job_description)
+        try:
+            cover_letter_content = self.runner.process_cover_letter(cover_letter_prompt, resume_data, job_description)
+        except Exception as e:
+            self.logger.error(f"Error processing cover letter: {str(e)}")
+            return f"Error: Failed to process cover letter. Please check the logs for more details."
 
         # Generate PDF
         output_dir = os.path.join("created_resumes", f"{company_name}_{job_title}")
