@@ -1,69 +1,80 @@
-from engine.runners import Runner
+import unittest
+from unittest.mock import Mock, patch
+from engine.runners import AIRunner
+from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy
 from loaders.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
-from loaders.tex_loader import TexLoader
 from loaders.job_description_loader import JobDescriptionLoader
 
-job_description_loader = JobDescriptionLoader("../files/job_description.txt")
-job_description = job_description_loader.get_job_description()
-prompt_loader = PromptLoader("../prompts")
-json_loader = JsonLoader("../files/information.json")
-system_prompt = prompt_loader.get_system_prompt()
-tex_loader = TexLoader("../created_resumes/ibm_firmware_engineer")
+class TestProcessSection(unittest.TestCase):
+    def setUp(self):
+        self.json_loader = JsonLoader("../files/information.json")
+        self.prompt_loader = PromptLoader("../prompts")
+        self.job_description_loader = JobDescriptionLoader("../created_resumes/akraya_machine_learning_engineer/job_description.txt")
+        
+        # Create strategies with mocked clients
+        self.openai_strategy = OpenAIStrategy("gpt-4", 0.7)
+        self.claude_strategy = ClaudeStrategy("claude-2", 0.7)
+        
+        # Create AIRunner with OpenAI strategy as default
+        self.ai_runner = AIRunner(self.openai_strategy)
 
+    @patch('openai.OpenAI')
+    def test_process_personal_information_openai(self, mock_openai):
+        # Create a mock for the OpenAI client
+        mock_client = Mock()
+        mock_openai.return_value = mock_client
 
-class TestProcessSection:
-    def __init__(self):
-        self.runner = Runner(runner_type="claude", model="claude-3-5-sonnet-20240620", system_prompt=system_prompt,
-                             temperature=0.1)
+        # Create a mock for the chat completions create method
+        mock_create = Mock()
+        mock_client.chat.completions.create = mock_create
 
-    def test_skills(self, data, prompt, job_description):
-        result = self.runner.process_skills(prompt, data, job_description)
-        print(f"Result of process_skills: {result}")
+        # Create a mock for the response
+        mock_response = Mock()
+        mock_response.choices = [Mock(message=Mock(content="Processed personal information"))]
+        mock_create.return_value = mock_response
 
-    def test_education(self, data, prompt, job_description):
-        result = self.runner.process_education(prompt, data, job_description)
-        print(f"Result of process_education: {result}")
+        # Assign the mock client to the strategy
+        self.openai_strategy.client = mock_client
 
-    def test_folder_name(self, prompt, job_description):
-        result = self.runner.create_folder_name(prompt, job_description)
-        print(f"Result of create_folder_name: {result}")
+        prompt = self.prompt_loader.get_personal_information_prompt()
+        data = self.json_loader.get_personal_information()
+        job_description = self.job_description_loader.get_job_description()
 
-    def test_career_summary(self, prompt, data, job_description, tex_loader):
-        # Use the collect_resume_content method from BaseRunner
-        result = self.runner.process_career_summary(prompt, data, job_description, tex_loader)
-        print(f"Prompt: {prompt}\n\nData: {data}\n\nJob Description: {job_description}\n\n")
-        print(f"Result of process_career_summary: {result}")
+        result = self.ai_runner.process_section(prompt, str(data), job_description)
+        
+        self.assertEqual(result, "Processed personal information")
+        mock_create.assert_called_once()
 
-    def test_work_experience(self, data, prompt, job_description):
-        result = self.runner.process_work_experience(prompt, data, job_description)
-        print(f"Result of process_work_experience: {result}")
+    @patch('anthropic.Anthropic')
+    def test_process_personal_information_claude(self, mock_anthropic):
+        self.ai_runner.set_strategy(self.claude_strategy)
+        
+        # Create a mock for the Anthropic client
+        mock_client = Mock()
+        mock_anthropic.return_value = mock_client
 
-    def test_cover_letter(self, prompt, tex_loader, job_description):  # Add temperature parameter
-        result = self.runner.process_cover_letter(prompt, tex_loader, job_description)
-        #        print(f"Prompt: {prompt}\n\nJob Description: {job_description}\n\n")
-        print(f"Result of process_cover_letter: {result}")
+        # Create a mock for the completions create method
+        mock_create = Mock()
+        mock_client.completions.create = mock_create
 
-    def test_personal_information(self, prompt, data, job_description):
-        result = self.runner.process_personal_information(prompt, data, job_description)
-        print(f"{prompt}\n\n"
-              f"<data> {data} </data>\n\n"
-              f"<job_description> {job_description} </job_description>\n\n"
-              f"Result of process_profile_information: {result}\n\n")
+        # Create a mock for the response
+        mock_response = Mock(completion="Processed personal information")
+        mock_create.return_value = mock_response
 
+        # Assign the mock client to the strategy
+        self.claude_strategy.client = mock_client
 
-test_process_section = TestProcessSection()  # Example: Set temperature to 0.5
-# test_process_section.test_career_summary(prompt=prompt_loader.get_career_summary_prompt(),
-#                                          data=JsonLoader("../files/information.json").get_career_summary(),
-#                                          job_description=JobDescriptionLoader("../created_resumes/ibm_firmware_engineer/job_description.txt").get_job_description(),
-#                                          tex_loader=TexLoader("../created_resumes/ibm_firmware_engineer")
-#                                          )
-# test_process_section.test_cover_letter(prompt=prompt_loader.get_cover_letter_prompt(),
-#                                          tex_loader=TexLoader("../created_resumes/volvo_group_intern"),
-#                                          job_description=JobDescriptionLoader("../created_resumes/volvo_group_intern/job_description.txt")
-#                                        )
-#
-test_process_section.test_personal_information(prompt=prompt_loader.get_personal_information_prompt(),
-                                               data=JsonLoader("../files/information.json").get_personal_information(),
-                                               job_description=job_description_loader.get_job_description()
-                                               )
+        prompt = self.prompt_loader.get_personal_information_prompt()
+        data = self.json_loader.get_personal_information()
+        job_description = self.job_description_loader.get_job_description()
+
+        result = self.ai_runner.process_section(prompt, str(data), job_description)
+        
+        self.assertEqual(result, "Processed personal information")
+        mock_create.assert_called_once()
+
+    # Add more tests for other sections and scenarios as needed
+
+if __name__ == '__main__':
+    unittest.main()

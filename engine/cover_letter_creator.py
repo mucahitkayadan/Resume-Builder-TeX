@@ -2,12 +2,15 @@ import os
 import logging
 import subprocess
 import json
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 from utils.database_manager import DatabaseManager
 from loaders.tex_loader import TexLoader
 from utils.latex_compiler import generate_cover_letter_pdf
 from loaders.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
+from engine.runners import AIRunner
+
+logger = logging.getLogger(__name__)
 
 class CoverLetterCreator:
     """
@@ -24,7 +27,7 @@ class CoverLetterCreator:
         db_manager (DatabaseManager): An instance of DatabaseManager for database operations.
     """
 
-    def __init__(self, runner: Any, json_loader: JsonLoader, prompt_loader: PromptLoader, db_manager: DatabaseManager):
+    def __init__(self, ai_runner: AIRunner, json_loader: JsonLoader, prompt_loader: PromptLoader, db_manager: DatabaseManager):
         """
         Initialize the CoverLetterCreator with necessary components.
 
@@ -34,11 +37,11 @@ class CoverLetterCreator:
             prompt_loader (PromptLoader): An instance of PromptLoader.
             db_manager (DatabaseManager): An instance of DatabaseManager.
         """
-        self.runner = runner
+        self.ai_runner = ai_runner
         self.json_loader = json_loader
         self.prompt_loader = prompt_loader
-        self.logger = logging.getLogger(__name__)
         self.db_manager = db_manager
+        self.logger = logging.getLogger(__name__)
 
     def generate_cover_letter(self, job_description: str, resume_id: int, company_name: str, job_title: str) -> str:
         """
@@ -65,7 +68,7 @@ class CoverLetterCreator:
             self.logger.warning("Job description not provided")
             return "Please enter a job description."
 
-        self.logger.info(f"Generating cover letter with {self.runner.__class__.__name__} model: {self.runner.model}")
+        self.logger.info(f"Generating cover letter with {self.ai_runner.__class__.__name__} model")
 
         # Get resume data
         self.logger.info(f"Fetching resume data for ID: {resume_id}")
@@ -78,27 +81,13 @@ class CoverLetterCreator:
             return f"Error: Resume with ID {resume_id} not found"
 
         # Ensure resume_data is a string
-        self.logger.info("Ensuring resume_data is a string")
-        if isinstance(resume_data, dict):
-            self.logger.info("Converting resume_data dict to JSON string")
-            resume_data = json.dumps(resume_data)
-        elif isinstance(resume_data, bytes):
-            self.logger.info("Converting resume_data bytes to string")
-            resume_data = resume_data.decode('utf-8')
-            # Try to parse it as JSON, if it fails, use it as is
-            try:
-                json.loads(resume_data)
-            except json.JSONDecodeError:
-                self.logger.info("resume_data is not valid JSON, using as plain text")
-        elif not isinstance(resume_data, str):
-            self.logger.error(f"Unexpected resume_data type: {type(resume_data)}")
-            resume_data = json.dumps({})  # Convert to empty JSON string as fallback
+        resume_data = self._ensure_string(resume_data)
 
         self.logger.info("Fetching cover letter prompt")
         cover_letter_prompt = self.prompt_loader.get_cover_letter_prompt()
         self.logger.info("Processing cover letter with AI model")
         try:
-            cover_letter_content = self.runner.process_cover_letter(cover_letter_prompt, resume_data, job_description)
+            cover_letter_content = self.ai_runner.process_section(cover_letter_prompt, resume_data, job_description)
         except Exception as e:
             self.logger.error(f"Error processing cover letter: {str(e)}")
             return f"Error: Failed to process cover letter. Please check the logs for more details."
@@ -139,3 +128,12 @@ class CoverLetterCreator:
         except Exception as e:
             self.logger.error(f"Error updating cover letter in database: {str(e)}")
             return f"Error: Failed to update cover letter in database. Please check the logs for more details."
+
+    def _ensure_string(self, data):
+        if isinstance(data, dict):
+            return json.dumps(data)
+        elif isinstance(data, bytes):
+            return data.decode('utf-8')
+        elif not isinstance(data, str):
+            return json.dumps({})
+        return data

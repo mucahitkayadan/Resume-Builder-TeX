@@ -10,6 +10,7 @@ from openai.types.chat import ChatCompletion
 from anthropic import Anthropic, APIError
 
 from loaders.tex_loader import TexLoader
+from engine.ai_strategies import AIStrategy, OpenAIStrategy, ClaudeStrategy
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -217,180 +218,23 @@ class BaseRunner(ABC):
         """
         return self.process_section(prompt, resume_content, job_description)
 
-class OpenAIRunner(BaseRunner):
-    """Runner for OpenAI models."""
+class AIRunner:
+    def __init__(self, strategy: AIStrategy):
+        self.strategy = strategy
 
-    def __init__(self, model: str = "gpt-4o-mini", temperature: float = 0.1, system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
-        """
-        Initialize the OpenAIRunner.
-
-        Args:
-            model (str): The OpenAI model to use.
-            temperature (float): The temperature setting for the model.
-            system_prompt (str): The system prompt for the OpenAI model.
-        """
-        super().__init__(model, temperature, system_prompt)
-        self.temperature: float = temperature
-        api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            raise ValueError("OPENAI_API_KEY not found in environment variables")
-        self.client: OpenAI = OpenAI(api_key=api_key)
+    def set_strategy(self, strategy: AIStrategy):
+        self.strategy = strategy
 
     def process_section(self, prompt: str, data: str, job_description: str) -> str:
-        """
-        Process a section using the OpenAI API.
+        return self.strategy.process_section(prompt, data, job_description)
 
-        Args:
-            prompt (str): The prompt for the AI model.
-            data (str): The data to process.
-            job_description (str): The job description.
+    def create_folder_name(self, folder_name_prompt: str, job_description: str) -> str:
+        return self.strategy.create_folder_name(folder_name_prompt, job_description)
 
-        Returns:
-            str: The processed section content.
-        """
-        try:
-            logger.info(f"Sending request to OpenAI API with model: {self.model}")
-            response: ChatCompletion = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": f"{prompt}\n\n"
-                                                f"Here is the personal information in JSON format:\n"
-                                                f"<data> \n{data}\n </data>\n\n"
-                                                f"And here is the job description:\n"
-                                                f"<job_description> \n{job_description}\n </job_description>\n\n"
-                    }
-                ],
-                temperature=self.temperature,
-                presence_penalty=0,
-                frequency_penalty=0.3,
-                max_tokens=1000
-            )
-            logger.info("Received response from OpenAI API")
-            if response.choices and response.choices[0].message.content:
-                return response.choices[0].message.content
-            else:
-                logger.warning("Received empty content from OpenAI API")
-                return ""
-        except OpenAIError as e:
-            logger.error(f"OpenAI API error: {e}")
-            return f"Error: {str(e)}"
-        except Exception as e:
-            logger.error(f"Unexpected error processing section: {e}")
-            return f"Unexpected error: {str(e)}"
+    @property
+    def model(self):
+        return self.strategy.model
 
-
-class ClaudeRunner(BaseRunner):
-    """Runner for Claude (Anthropic) models."""
-
-    def __init__(self, model: str = "claude-3-5-sonnet-20240620", temperature: float = 0.1, system_prompt: str = "You are a professional resume writer. Do not add external text to your answers, answer only with asked latex content, no introduction or explanation."):
-        """
-        Initialize the ClaudeRunner.
-
-        Args:
-            model (str): The Claude model to use.
-            temperature (float): The temperature setting for the model.
-            system_prompt (str): The system prompt for the Claude model.
-        """
-        super().__init__(model, temperature, system_prompt)
-        self.temperature: float = temperature
-        api_key = os.getenv("ANTHROPIC_API_KEY")
-        if not api_key:
-            raise ValueError("ANTHROPIC_API_KEY not found in environment variables")
-        self.client: Anthropic = Anthropic(api_key=api_key)
-
-    def process_section(self, prompt: str, data: str, job_description: str) -> str:
-        """
-        Process a section using the Claude API.
-
-        Args:
-            prompt (str): The prompt for the AI model.
-            data (str): The data to process.
-            job_description (str): The job description.
-
-        Returns:
-            str: The processed section content.
-        """
-        try:
-            logger.info(f"Sending request to Claude API with model: {self.model}")
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=1000,
-                system=self.system_prompt,
-                temperature=self.temperature,
-                messages=[
-                    {"role": "user", "content": f"{prompt}\n\n"
-                                                f"Here is the personal information in JSON format:\n"
-                                                f"<data> \n{data}\n </data>\n\n"
-                                                f"And here is the job description:\n"
-                                                f"<job_description> \n{job_description}\n </job_description>\n\n"
-                    }
-                ]
-            )
-            logger.info("Received response from Claude API")
-            if response.content:
-                return response.content[0].text
-            else:
-                logger.warning("Received empty content from Claude API")
-                return ""
-        except APIError as e:
-            logger.error(f"Anthropic API error: {e}")
-            return f"Error: {str(e)}"
-        except Exception as e:
-            logger.error(f"Unexpected error processing section: {e}")
-            return f"Unexpected error: {str(e)}"
-
-
-class Runner(BaseRunner):
-    """Main runner class that delegates to specific AI model runners."""
-
-    def __init__(self, runner_type: str, model: Optional[str] = None, system_prompt: Optional[str] = None, temperature: Optional[float] = 0.1):
-        """
-        Initialize the Runner.
-
-        Args:
-            runner_type (str): The type of runner to use ("openai" or "claude").
-            model (Optional[str]): The specific model to use, if any.
-            system_prompt (Optional[str]): The system prompt to use, if any.
-            temperature (Optional[float]): The temperature setting for the model.
-        """
-        super().__init__(model or "", temperature or 0.1, system_prompt or "")
-        self.runner_type: str = runner_type
-        if runner_type == "openai":
-            if model and not (model.startswith("gpt-") or model.startswith("o1-")):
-                raise ValueError(f"Invalid model for OpenAI: {model}")
-            self.runner: Union[OpenAIRunner, ClaudeRunner] = OpenAIRunner(model=model, system_prompt=system_prompt, temperature=temperature)
-        elif runner_type == "claude":
-            if model and not model.startswith("claude-"):
-                raise ValueError(f"Invalid model for Claude: {model}")
-            self.runner: Union[OpenAIRunner, ClaudeRunner] = ClaudeRunner(model=model, system_prompt=system_prompt, temperature=temperature)
-        else:
-            raise ValueError(f"Unsupported runner type: {runner_type}")
-
-    def process_section(self, prompt: str, data: str, job_description: str) -> str:
-        """
-        Process a section using the selected AI model runner.
-
-        Args:
-            prompt (str): The prompt for the AI model.
-            data (str): The data to process.
-            job_description (str): The job description.
-
-        Returns:
-            str: The processed section content.
-        """
-        return self.runner.process_section(prompt, data, job_description)
-
-    def __getattr__(self, name: str) -> Any:
-        """
-        Delegate attribute access to the underlying runner.
-
-        Args:
-            name (str): The name of the attribute to access.
-
-        Returns:
-            Any: The value of the requested attribute.
-        """
-        if name == "runner_type":
-            return self.runner_type
-        return getattr(self.runner, name)
+    @property
+    def temperature(self):
+        return self.strategy.temperature

@@ -6,11 +6,17 @@ from utils.database_manager import DatabaseManager
 from utils.document_utils import check_clearance_requirement, create_output_directory, get_or_create_folder_name
 from loaders.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
-from engine.runners import OpenAIRunner, ClaudeRunner, BaseRunner
+from engine.runners import AIRunner
 from engine.resume_creator import ResumeCreator
 from engine.cover_letter_creator import CoverLetterCreator
 from utils.logger_config import setup_logger
 from utils.view_database import view_database
+from dotenv import load_dotenv
+from easy_applier.linkedin_scraper import LinkedInScraper
+from easy_applier.resume_generator import ResumeGenerator
+from easy_applier.job_applier import JobApplier
+from easy_applier.utils import create_output_directory, get_latest_resume_path
+from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy
 
 # Configure logging
 logger = setup_logger(__name__)
@@ -74,11 +80,11 @@ def main() -> None:
         clearance_required: bool = check_clearance_requirement(job_description)
 
         # Add model selection
-        model_type: str = st.selectbox("Select AI model:", ["OpenAI", "Claude"])
-        model_name: str = st.selectbox("Select OpenAI model:", ["gpt-4o", "gpt-4o-mini", "gpt-4o-2024-08-06", "o1-mini", "gpt-4o-2024-05-13"]) \
-            if model_type == "OpenAI" else (
-            st.selectbox("Select Claude model:",
-                         ["claude-3-5-sonnet-20240620", "claude-3-opus-20240229", "claude-3-sonnet-20240229"]))
+        model_type: str = st.selectbox("Select AI model type:", ["OpenAI", "Claude"])
+        if model_type == "OpenAI":
+            model_name: str = st.selectbox("Select OpenAI model:", ["gpt-4o", "gpt-4o-mini", "gpt-4o-2024-08-06", "o1-mini", "gpt-4o-2024-05-13"])
+        else:
+            model_name: str = st.selectbox("Select Claude model:", ["claude-3-5-sonnet-latest", "claude-3-opus-latest", "claude-3-5-sonnet-20241022", "claude-3-5-sonnet-20240620", "claude-3-opus-20240229", "claude-3-sonnet-20240229"])
 
         # Add temperature slider
         temperature: float = st.slider("Set temperature:", min_value=0.0, max_value=1.0, value=0.1, step=0.1)
@@ -88,17 +94,14 @@ def main() -> None:
         prompt_loader: PromptLoader = PromptLoader('prompts/')
         system_prompt: str = prompt_loader.get_system_prompt()
 
-        # Initialize the appropriate runner based on model_type
-        runner: BaseRunner
+        # Create AIRunner with the selected strategy
         if model_type == "OpenAI":
-            runner = OpenAIRunner(model_name, temperature, system_prompt)
+            ai_strategy = OpenAIStrategy(model_name, temperature, system_prompt)
         else:
-            runner = ClaudeRunner(model_name, temperature, system_prompt)
+            ai_strategy = ClaudeStrategy(model_name, temperature, system_prompt)
+        ai_runner = AIRunner(ai_strategy)
 
-        # Extract company name and job title from job description
-        company_name: str
-        job_title: str
-        company_name, job_title = get_or_create_folder_name(job_description, runner, prompt_loader)
+        resume_creator = ResumeCreator(ai_runner, json_loader, prompt_loader, db_manager)
 
         selected_sections = get_user_section_selection()
 
@@ -113,11 +116,21 @@ def main() -> None:
                 resume_id: Optional[int] = None
                 generation_completed: bool = False
 
+                # Extract company name and job title from job description
+                company_name: str
+                job_title: str
+                company_name, job_title = get_or_create_folder_name(job_description, ai_runner, prompt_loader)
+
                 if generation_option in ["Resume", "Both"]:
                     try:
-                        resume_creator: ResumeCreator = ResumeCreator(runner, json_loader, prompt_loader, db_manager)
                         for update, progress in resume_creator.generate_resume(
-                            job_description, company_name, job_title, model_type, model_name, temperature, selected_sections
+                            job_description,
+                            company_name,
+                            job_title,
+                            model_type,
+                            model_name,
+                            temperature,
+                            selected_sections
                         ):
                             progress_bar.progress(progress * 0.5 if generation_option == "Both" else progress)
                             status_area.info(update)
@@ -135,11 +148,11 @@ def main() -> None:
                         st.error("Please generate a resume first.")
                     else:
                         try:
-                            cover_letter_creator: CoverLetterCreator = CoverLetterCreator(runner, json_loader, prompt_loader, db_manager)
+                            cover_letter_creator: CoverLetterCreator = CoverLetterCreator(ai_runner, json_loader, prompt_loader, db_manager)
                             cover_letter_result: str = cover_letter_creator.generate_cover_letter(
                                 job_description, 
                                 resume_id, 
-                                company_name, 
+                                company_name,
                                 job_title
                             )
                             st.write(cover_letter_result)

@@ -11,6 +11,10 @@ from utils.database_manager import DatabaseManager
 from utils.latex_compiler import generate_resume_pdf
 from engine.hardcode_sections import HardcodeSections
 from loaders.tex_loader import TexLoader
+from engine.runners import AIRunner
+from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy
+from loaders.json_loader import JsonLoader
+from loaders.prompt_loader import PromptLoader
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +33,7 @@ class ResumeCreator:
         logger: A logger instance for logging operations.
     """
 
-    def __init__(self, runner, json_loader, prompt_loader, db_manager: DatabaseManager):
+    def __init__(self, ai_runner: AIRunner, json_loader: JsonLoader, prompt_loader: PromptLoader, db_manager: DatabaseManager):
         """
         Initialize the ResumeCreator with necessary components.
 
@@ -39,7 +43,7 @@ class ResumeCreator:
             prompt_loader: An instance of PromptLoader.
             db_manager: An instance of DatabaseManager.
         """
-        self.runner = runner
+        self.ai_runner = ai_runner
         self.json_loader = json_loader
         self.prompt_loader = prompt_loader
         self.db_manager = db_manager
@@ -72,12 +76,20 @@ class ResumeCreator:
             Exception: If there's an error in PDF generation or database insertion.
         """
         self.logger.info("Starting resume generation process")
-        self.logger.info(f"Generating resume with {self.runner.__class__.__name__} model: {self.runner.model}")
+        self.logger.info(f"Generating resume with {self.ai_runner.__class__.__name__} model: {self.ai_runner.model}")
         
         if not job_description:
             self.logger.warning("Job description not provided")
             yield "Please enter a job description.", 0
             return
+
+        # Set the appropriate strategy based on model_type
+        if model_type == "OpenAI":
+            self.ai_runner.set_strategy(OpenAIStrategy(model_name, temperature, self.prompt_loader.get_system_prompt()))
+        elif model_type == "Claude":
+            self.ai_runner.set_strategy(ClaudeStrategy(model_name, temperature, self.prompt_loader.get_system_prompt()))
+        else:
+            raise ValueError(f"Unsupported model type: {model_type}")
 
         # Process sections
         content_dict: Dict[str, str] = {}
@@ -87,12 +99,9 @@ class ResumeCreator:
             elif process_type == "hardcode":
                 content = self.hardcoder.hardcode_section(section)
             else:  # "process"
-                prompt_method = getattr(self.prompt_loader, f"get_{section}_prompt")
-                data_method = getattr(self.json_loader, f"get_{section}")
-                prompt = prompt_method()
-                data = data_method()
-                process_method = getattr(self.runner, f"process_{section}")
-                content = process_method(prompt, data, job_description)
+                prompt = getattr(self.prompt_loader, f"get_{section}_prompt")()
+                data = getattr(self.json_loader, f"get_{section}")()
+                content = self.ai_runner.process_section(prompt, data, job_description)
             
             content_dict[section] = content
             self.logger.info(f"Processed {section} section")
@@ -147,27 +156,3 @@ class ResumeCreator:
         os.makedirs(output_dir, exist_ok=True)
         self.logger.info(f"Created output directory: {output_dir}")
         return output_dir
-
-    def hardcode_section(self, section: str) -> str:
-        if section == "awards":
-            return self.hardcode_awards()
-        elif section == "publications":
-            return self.hardcode_publications()
-        else:
-            raise ValueError(f"Hardcoding not implemented for section: {section}")
-
-    def hardcode_awards(self) -> str:
-        awards = self.json_loader.get_awards()
-        latex_content = "\\section{Awards \\& Achievements}\n\\resumeSubHeadingListStart\n"
-        for award in awards:
-            latex_content += f"    \\resumeAwardHeading{{{award['name']}}}{{{award['explanation']}}}\n"
-        latex_content += "\\resumeSubHeadingListEnd"
-        return latex_content
-
-    def hardcode_publications(self) -> str:
-        publications = self.json_loader.get_publications()
-        latex_content = "\\section{Publications}\n\\resumeSubHeadingListStart\n"
-        for pub in publications:
-            latex_content += f"    \\resumePublicationHeading{{{pub['name']}}}{{{pub['publisher']}}}{{{pub['Year']}}}{{{pub['link']}}}\n"
-        latex_content += "\\resumeSubHeadingListEnd"
-        return latex_content
