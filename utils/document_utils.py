@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Callable
 from tqdm import tqdm
 import streamlit as st
 from loaders.tex_loader import TexLoader
@@ -28,58 +28,20 @@ def check_clearance_requirement(job_description: str) -> bool:
     return any(keyword.lower() in job_description.lower() for keyword in CLEARANCE_KEYWORDS)
 
 def create_output_directory(folder_name: str) -> str:
-    """
-    Create an output directory for storing resume files.
-
-    Args:
-        folder_name (str): The name of the folder to create.
-
-    Returns:
-        str: The path to the created output directory.
-    """
-    if not os.path.exists("created_resumes"):
-        os.makedirs("created_resumes")
-        logger.info("Created 'created_resumes' directory")
     output_dir = os.path.join("created_resumes", folder_name)
     os.makedirs(output_dir, exist_ok=True)
-    logger.info(f"Created output directory: {output_dir}")
     return output_dir
 
 def save_job_description(job_description: str, output_dir: str) -> None:
-    """
-    Save the job description to a file in the output directory.
-
-    Args:
-        job_description (str): The job description text.
-        output_dir (str): The path to the output directory.
-    """
-    job_description_file = os.path.join(output_dir, "job_description.txt")
-    with open(job_description_file, "w", encoding="utf-8") as f:
+    with open(os.path.join(output_dir, "job_description.txt"), "w") as f:
         f.write(job_description)
-    logger.info(f"Saved job description to {job_description_file}")
 
-def process_sections(sections: List[str], runner: Any, prompt_loader: Any, json_loader: Any, job_description: str) -> Dict[str, str]:
-    """
-    Process each section of the resume using the provided runner and loaders.
-
-    Args:
-        sections (List[str]): List of section names to process.
-        runner (Any): The runner object for processing sections.
-        prompt_loader (Any): The prompt loader object.
-        json_loader (Any): The JSON loader object.
-        job_description (str): The job description text.
-
-    Returns:
-        Dict[str, str]: A dictionary containing processed content for each section.
-    """
-    content_dict = {}
-    iterator = tqdm(sections, desc="Processing sections") if LOG_LEVEL <= logging.DEBUG else sections
-    for section in iterator:
-        prompt = getattr(prompt_loader, f"get_{section}_prompt")()
-        data = getattr(json_loader, f"get_{section}")()
-        processed_content = runner.process_section(prompt, data, job_description)
-        content_dict[section] = processed_content
-        logger.info(f"Processed {section} section")
+def process_sections(process_section_func: Callable, job_description: str, selected_sections: Dict[str, str]) -> Dict[str, str]:
+    content_dict: Dict[str, str] = {}
+    for section, process_type in selected_sections.items():
+        content = process_section_func(section, process_type, job_description)
+        if content:
+            content_dict[section] = content
     return content_dict
 
 def write_sections_to_files(sections: List[str], content_dict: Dict[str, str], output_dir: str) -> None:

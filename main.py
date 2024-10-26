@@ -3,7 +3,7 @@ import logging
 from typing import Tuple, Optional, Dict
 import streamlit as st
 from utils.database_manager import DatabaseManager
-from utils.document_utils import check_clearance_requirement, create_output_directory, get_or_create_folder_name
+from utils.document_utils import check_clearance_requirement, create_output_directory, get_or_create_folder_name, process_sections
 from loaders.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
@@ -100,6 +100,9 @@ def main() -> None:
         else:
             ai_strategy = ClaudeStrategy(model_name, temperature, system_prompt)
         ai_runner = AIRunner(ai_strategy)
+
+        # Make sure there's no direct access to ai_runner.model
+        # If found, replace it with ai_runner.get_model_name()
 
         resume_creator = ResumeCreator(ai_runner, json_loader, prompt_loader, db_manager)
 
