@@ -22,7 +22,7 @@ def test_hardcode_sections_pdf():
     json_loader = JsonLoader(os.path.join(project_root, "files", "information.json"))
     
     # Initialize DatabaseManager with the correct path
-    db_path = os.path.join(project_root, "resumes.db")
+    db_path = os.path.join(project_root, "resumes_backup.db")
     db_manager = DatabaseManager(db_path)
     
     # Initialize TexLoader with the DatabaseManager instance

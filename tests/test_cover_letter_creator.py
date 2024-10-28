@@ -104,7 +104,7 @@ class TestCoverLetterCreator:
 
     def generate_cover_letter_with_values(self, job_description, company_name, job_title):
         # Use actual instances
-        db_manager = DatabaseManager('../resumes.db')
+        db_manager = DatabaseManager('../db/resumes.db')
         json_loader = JsonLoader('../files/information.json')
         prompt_loader = PromptLoader('../prompts')
         ai_strategy = OpenAIStrategy('gpt-3.5-turbo', 0.2, system_prompt=prompt_loader.get_system_prompt())

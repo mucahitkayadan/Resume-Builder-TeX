@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 from typing import Dict, Generator, Tuple
 from utils.database_manager import DatabaseManager
@@ -10,7 +11,6 @@ from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy
 from loaders.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
 from utils.file_operations import create_output_directory, save_job_description
-import sys
 
 logger = logging.getLogger(__name__)
 
@@ -67,9 +67,9 @@ class ResumeCreator:
             return
 
         # Set the appropriate strategy based on model_type
-        if model_type == "OpenAI":
+        if model_type in ["OpenAI", "OpenAIStrategy"]:
             self.ai_runner.set_strategy(OpenAIStrategy(model_name, temperature, self.prompt_loader.get_system_prompt()))
-        elif model_type == "Claude":
+        elif model_type in ["Claude", "ClaudeStrategy"]:
             self.ai_runner.set_strategy(ClaudeStrategy(model_name, temperature, self.prompt_loader.get_system_prompt()))
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
@@ -92,7 +92,7 @@ class ResumeCreator:
         self.logger.debug(f"Full content_dict: {content_dict}")
 
         # Create output directory and save job description
-        output_dir = create_output_directory(f"{company_name}_{job_title}")
+        output_dir = create_output_directory(company_name, job_title)
         save_job_description(job_description, output_dir)
 
         # Generate PDF

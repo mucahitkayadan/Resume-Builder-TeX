@@ -30,4 +30,3 @@ class JobApplier:
         except Exception as e:
             print(f"Failed to apply to job: {str(e)}")
             return False
-

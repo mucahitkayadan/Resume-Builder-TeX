@@ -1,15 +1,10 @@
 import os
 import logging
-import subprocess
-import json
-from typing import Optional, Any, Dict
 from utils.database_manager import DatabaseManager
-from loaders.tex_loader import TexLoader
 from utils.latex_compiler import generate_cover_letter_pdf
 from loaders.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
-import io
 
 logger = logging.getLogger(__name__)
 
@@ -21,10 +16,8 @@ class CoverLetterCreator:
     content creation, PDF generation, and database storage.
 
     Attributes:
-        runner: An instance of the AI model runner.
         json_loader (JsonLoader): An instance of JsonLoader for loading personal information.
-        prompt_loader (PromptLoader): An instance of PromptLoader for loading prompts.
-        logger (logging.Logger): A logger instance for logging operations.
+        prompt_loader (PromptLoader): An instance of PromptLoader for loading promp
         db_manager (DatabaseManager): An instance of DatabaseManager for database operations.
     """
 
@@ -33,7 +26,6 @@ class CoverLetterCreator:
         Initialize the CoverLetterCreator with necessary components.
 
         Args:
-            runner: An instance of the AI model runner.
             json_loader (JsonLoader): An instance of JsonLoader.
             prompt_loader (PromptLoader): An instance of PromptLoader.
             db_manager (DatabaseManager): An instance of DatabaseManager.
