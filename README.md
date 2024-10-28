@@ -105,7 +105,7 @@ project_root/
 
 3. Run the main script:
    ```bash
-   python main.py
+   python main_easy_applier.py
    ```
    Or, if using Docker:
    ```bash

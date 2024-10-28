@@ -1,4 +1,8 @@
 import logging
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Feature flags
 CHECK_CLEARANCE = True
@@ -28,3 +32,10 @@ MAX_SKILLS_PER_CATEGORY = 10
 # Logging configuration
 LOGGING_ENABLED = True
 LOG_LEVEL = logging.DEBUG  # Can be DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+# LinkedIn credentials
+LINKEDIN_EMAIL = os.getenv("LINKEDIN_EMAIL")
+LINKEDIN_PASSWORD = os.getenv("LINKEDIN_PASSWORD")
+
+# Database path
+DATABASE_PATH = "db/resumes.db"

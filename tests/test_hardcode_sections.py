@@ -10,7 +10,7 @@ class TestHardcodeSections(unittest.TestCase):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(current_dir)
         json_path = os.path.join(project_root, 'files', 'information.json')
-        db_path = os.path.join(project_root, 'resumes.db')
+        db_path = os.path.join(project_root, 'resumes_backup.db')
         
         self.json_loader = JsonLoader(json_path)
         self.db_manager = DatabaseManager(db_path)

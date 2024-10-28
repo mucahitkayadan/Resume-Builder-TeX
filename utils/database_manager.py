@@ -4,6 +4,7 @@ import logging
 from typing import Dict, Optional, Union, Any, List, Tuple
 import os
 from utils.logger_config import setup_logger
+from pathlib import Path
 
 logger = setup_logger(__name__)
 class DatabaseManager:
@@ -15,24 +16,59 @@ class DatabaseManager:
 
     Attributes:
         logger (logging.Logger): Logger for the DatabaseManager.
-        conn (sqlite3.Connection): SQLite database connection.
+        resumes_conn (sqlite3.Connection): SQLite database connection for resumes.
+        preambles_conn (sqlite3.Connection): SQLite database connection for preambles.
+        user_conn (sqlite3.Connection): SQLite database connection for user information.
     """
 
-    def __init__(self, db_path='resumes.db'):
+    def __init__(self, 
+                 resumes_db_path=None, 
+                 preambles_db_path=None,
+                 user_db_path=None):
         """
-        Initialize the DatabaseManager with a connection to the SQLite database.
+        Initialize database connections.
+        
+        Args:
+            resumes_db_path (str, optional): Path to the resumes database
+            preambles_db_path (str, optional): Path to the preambles database
+            user_db_path (str, optional): Path to the user database
         """
-        self.logger: logging.Logger = logging.getLogger(__name__)
-        self.conn: sqlite3.Connection = sqlite3.connect(db_path)
-        self.cursor = self.conn.cursor()
-        self.create_tables()
+        self.logger = logging.getLogger(__name__)
+        
+        # Get default paths if not provided
+        project_root = Path(__file__).parent.parent
+        db_dir = project_root / "db"
+        
+        # Use existing databases in db/
+        self.resumes_conn = sqlite3.connect(str(db_dir / "resumes_backup.db"))
+        self.preambles_conn = sqlite3.connect(str(db_dir / "preambles.db"))
+        self.user_conn = sqlite3.connect(str(db_dir / "user.db"))
+        
+        self._create_tables()
 
-    def create_tables(self) -> None:
-        """
-        Create necessary tables in the database if they don't exist.
-        """
-        cursor: sqlite3.Cursor = self.conn.cursor()
-        cursor.execute('''
+    def _create_tables(self):
+        """Create necessary tables in each database."""
+        # Preambles database tables
+        preambles_cursor = self.preambles_conn.cursor()
+        preambles_cursor.execute('''
+            CREATE TABLE IF NOT EXISTS preambles (
+                id INTEGER PRIMARY KEY,
+                name TEXT UNIQUE,
+                content TEXT
+            )
+        ''')
+        preambles_cursor.execute('''
+            CREATE TABLE IF NOT EXISTS tex_headers (
+                id INTEGER PRIMARY KEY,
+                name TEXT UNIQUE,
+                content TEXT
+            )
+        ''')
+        self.preambles_conn.commit()
+        
+        # Resumes database tables
+        resumes_cursor = self.resumes_conn.cursor()
+        resumes_cursor.execute('''
             CREATE TABLE IF NOT EXISTS resumes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 company_name TEXT,
@@ -47,61 +83,41 @@ class DatabaseManager:
                 awards TEXT,
                 publications TEXT,
                 pdf_content BLOB,
-                cover_letter TEXT,
-                cover_letter_pdf BLOB,
                 model_type TEXT,
                 model_name TEXT,
                 temperature REAL,
+                cover_letter TEXT,
+                cover_letter_pdf BLOB,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-        
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS preambles (
-                id INTEGER PRIMARY KEY,
-                content TEXT
-            )
-        ''')
-        
-        # Create tex_headers table
-        self.cursor.execute('''
-        CREATE TABLE IF NOT EXISTS tex_headers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL,
-            content TEXT NOT NULL
-        )
-        ''')
-        self.conn.commit()
-        
-        self.logger.info("Tables created/updated successfully")
+        self.resumes_conn.commit()
 
-    def insert_resume(self, company_name: str, job_title: str, job_description: str, 
-                      content_dict: Dict[str, str], pdf_content: bytes, model_type: str, 
-                      model_name: str, temperature: float, cover_letter: Optional[str] = None, 
-                      cover_letter_pdf: Optional[bytes] = None) -> int:
+    def insert_resume(self, company_name: str, job_title: str, job_description: str,
+                     content_dict: Dict[str, str], pdf_content: bytes,
+                     model_type: str, model_name: str, temperature: float,
+                     cover_letter: Optional[str] = None,
+                     cover_letter_pdf: Optional[bytes] = None) -> int:
         """
         Insert a new resume into the database.
-
+        
         Args:
-            company_name (str): Name of the company.
-            job_title (str): Title of the job.
-            job_description (str): Description of the job.
-            content_dict (Dict[str, str]): Dictionary containing resume content sections.
-            pdf_content (bytes): PDF content of the resume.
-            model_type (str): Type of the AI model used.
-            model_name (str): Name of the AI model used.
-            temperature (float): Temperature setting used for AI generation.
-            cover_letter (Optional[str]): Cover letter text, if available.
-            cover_letter_pdf (Optional[bytes]): PDF content of the cover letter, if available.
-
+            company_name (str): Name of the company
+            job_title (str): Title of the job
+            job_description (str): Description of the job
+            content_dict (Dict[str, str]): Dictionary containing resume sections
+            pdf_content (bytes): Generated PDF content
+            model_type (str): Type of AI model used
+            model_name (str): Name of AI model used
+            temperature (float): Temperature setting used for generation
+            cover_letter (Optional[str]): Cover letter content
+            cover_letter_pdf (Optional[bytes]): Generated cover letter PDF
+        
         Returns:
-            int: ID of the inserted resume.
-
-        Raises:
-            sqlite3.Error: If there's an error inserting the resume.
+            int: ID of the newly inserted resume
         """
-        cursor: sqlite3.Cursor = self.conn.cursor()
+        cursor = self.resumes_conn.cursor()
         try:
             cursor.execute('''
                 INSERT INTO resumes (
@@ -110,38 +126,39 @@ class DatabaseManager:
                     work_experience, education, projects, 
                     awards, publications, pdf_content,
                     model_type, model_name, temperature,
-                    cover_letter, cover_letter_pdf,
-                    created_at, last_updated
+                    cover_letter, cover_letter_pdf
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 company_name, job_title, job_description,
-                content_dict.get('personal_information', '').encode('utf-8'),
-                content_dict.get('career_summary', '').encode('utf-8'),
-                content_dict.get('skills', '').encode('utf-8'),
-                content_dict.get('work_experience', '').encode('utf-8'),
-                content_dict.get('education', '').encode('utf-8'),
-                content_dict.get('projects', '').encode('utf-8'),
-                content_dict.get('awards', '').encode('utf-8'),
-                content_dict.get('publications', '').encode('utf-8'),
+                content_dict.get('personal_information', ''),
+                content_dict.get('career_summary', ''),
+                content_dict.get('skills', ''),
+                content_dict.get('work_experience', ''),
+                content_dict.get('education', ''),
+                content_dict.get('projects', ''),
+                content_dict.get('awards', ''),
+                content_dict.get('publications', ''),
                 pdf_content,
                 model_type, model_name, temperature,
-                cover_letter.encode('utf-8') if cover_letter else None,
-                cover_letter_pdf,
+                cover_letter,
+                cover_letter_pdf
             ))
-            self.conn.commit()
-            resume_id: int = cursor.lastrowid
+            self.resumes_conn.commit()
+            
+            # Get the ID of the inserted resume
+            resume_id = cursor.lastrowid
             self.logger.info(f"Resume inserted successfully with ID: {resume_id}")
             return resume_id
         except sqlite3.Error as e:
-            self.logger.error(f"Error inserting resume: {str(e)}")
-            self.conn.rollback()
+            self.logger.error(f"Error inserting resume: {e}")
+            self.resumes_conn.rollback()
             raise
 
     def update_cover_letter(self, resume_id, latex_content, pdf_content):
         try:
-            with self.conn:
-                self.conn.execute(
+            with self.resumes_conn:
+                self.resumes_conn.execute(
                     "UPDATE resumes SET cover_letter = ?, cover_letter_pdf = ? WHERE id = ?",
                     (latex_content.encode('utf-8'), pdf_content, resume_id)
                 )
@@ -164,8 +181,8 @@ class DatabaseManager:
             sqlite3.Error: If there's an error executing the SQL query.
         """
         try:
-            with self.conn:
-                cursor: sqlite3.Cursor = self.conn.cursor()
+            with self.resumes_conn:
+                cursor: sqlite3.Cursor = self.resumes_conn.cursor()
                 cursor.execute("""
                     SELECT id, company_name, job_title, job_description, 
                            personal_information, career_summary, skills, 
@@ -202,8 +219,8 @@ class DatabaseManager:
             Exception: If there's an error updating the section.
         """
         try:
-            with self.conn:
-                cursor: sqlite3.Cursor = self.conn.cursor()
+            with self.resumes_conn:
+                cursor: sqlite3.Cursor = self.resumes_conn.cursor()
                 # First, check if the resume exists
                 cursor.execute('''
                     SELECT content FROM resumes
@@ -247,10 +264,10 @@ class DatabaseManager:
         Raises:
             sqlite3.Error: If there's an error inserting the preamble.
         """
-        cursor: sqlite3.Cursor = self.conn.cursor()
+        cursor: sqlite3.Cursor = self.preambles_conn.cursor()
         try:
             cursor.execute('INSERT OR REPLACE INTO preambles (id, content) VALUES (1, ?)', (content,))
-            self.conn.commit()
+            self.preambles_conn.commit()
             self.logger.info("Preamble inserted successfully")
         except sqlite3.Error as e:
             self.logger.error(f"Error inserting preamble: {e}")
@@ -270,8 +287,8 @@ class DatabaseManager:
             Exception: If there's an error retrieving the preamble.
         """
         try:
-            with self.conn:
-                cursor: sqlite3.Cursor = self.conn.cursor()
+            with self.preambles_conn:
+                cursor: sqlite3.Cursor = self.preambles_conn.cursor()
                 cursor.execute('SELECT content FROM preambles WHERE id = ?', (preamble_id,))
                 result = cursor.fetchone()
                 if result:
@@ -283,36 +300,35 @@ class DatabaseManager:
             self.logger.error(f"Error retrieving preamble: {str(e)}")
             raise
 
-    def update_preamble(self, new_content: str) -> None:
-        """
-        Update the preamble content in the database.
-
-        Args:
-            new_content (str): The new preamble content.
-
-        Raises:
-            sqlite3.Error: If there's an error updating the preamble.
-        """
-        cursor: sqlite3.Cursor = self.conn.cursor()
+    def update_preamble(self, new_content: str, template_id: int = 1) -> None:
+        """Update preamble in preambles database."""
+        cursor = self.preambles_conn.cursor()
         try:
-            cursor.execute('UPDATE preambles SET content = ? WHERE id = 1', (new_content,))
-            self.conn.commit()
+            cursor.execute('UPDATE preambles SET content = ? WHERE id = ?', 
+                         (new_content, template_id))
+            self.preambles_conn.commit()
             self.logger.info("Preamble updated successfully")
         except sqlite3.Error as e:
             self.logger.error(f"Error updating preamble: {e}")
             raise
 
+    def insert_tex_header(self, name: str, content: str) -> None:
+        """Insert or update a TeX header in preambles database."""
+        cursor = self.preambles_conn.cursor()
+        try:
+            cursor.execute('''
+            INSERT OR REPLACE INTO tex_headers (name, content)
+            VALUES (?, ?)
+            ''', (name, content))
+            self.preambles_conn.commit()
+            self.logger.info(f"TeX header '{name}' inserted/updated successfully")
+        except sqlite3.Error as e:
+            self.logger.error(f"Error inserting TeX header: {e}")
+            raise
+
     def get_latest_resume_id(self) -> Optional[int]:
-        """
-        Get the ID of the most recently inserted resume.
-
-        Returns:
-            Optional[int]: The ID of the latest resume, or None if no resumes exist.
-
-        Raises:
-            sqlite3.Error: If there's an error retrieving the latest resume ID.
-        """
-        cursor: sqlite3.Cursor = self.conn.cursor()
+        """Get the ID of the most recently inserted resume."""
+        cursor = self.resumes_conn.cursor()
         try:
             cursor.execute('SELECT MAX(id) FROM resumes')
             result = cursor.fetchone()
@@ -332,10 +348,10 @@ class DatabaseManager:
         Raises:
             sqlite3.Error: If there's an error storing the signature image.
         """
-        cursor: sqlite3.Cursor = self.conn.cursor()
+        cursor: sqlite3.Cursor = self.resumes_conn.cursor()
         query = "UPDATE users SET signature_image = ? WHERE id = ?"
         cursor.execute(query, (image_data, user_id))
-        self.conn.commit()
+        self.resumes_conn.commit()
 
     def get_signature_image(self, user_id: int) -> Optional[bytes]:
         """
@@ -350,7 +366,7 @@ class DatabaseManager:
         Raises:
             sqlite3.Error: If there's an error retrieving the signature image.
         """
-        cursor: sqlite3.Cursor = self.conn.cursor()
+        cursor: sqlite3.Cursor = self.resumes_conn.cursor()
         query = "SELECT signature_image FROM users WHERE id = ?"
         cursor.execute(query, (user_id,))
         result = cursor.fetchone()
@@ -370,8 +386,8 @@ class DatabaseManager:
             Exception: If there's an error retrieving the personal information.
         """
         try:
-            with self.conn:
-                cursor: sqlite3.Cursor = self.conn.cursor()
+            with self.resumes_conn:
+                cursor: sqlite3.Cursor = self.resumes_conn.cursor()
                 cursor.execute('SELECT personal_information FROM resumes WHERE id = ?', (resume_id,))
                 result = cursor.fetchone()
                 if result:
@@ -382,65 +398,53 @@ class DatabaseManager:
             self.logger.error(f"Error retrieving personal information: {str(e)}")
             raise
 
-    def __del__(self) -> None:
-        """
-        Close the database connection when the object is destroyed.
-        """
-        self.conn.close()
+    def __del__(self):
+        """Close all database connections when the object is destroyed."""
+        self.resumes_conn.close()
+        self.preambles_conn.close()
+        self.user_conn.close()
 
-    def get_all_resumes(self) -> List[Tuple[int, str, str, str]]:
-        """
-        Retrieve all resumes from the database.
-
-        Returns:
-            List[Tuple[int, str, str, str]]: A list of tuples containing resume information.
-                Each tuple contains (id, company_name, job_title, created_at).
-
-        Raises:
-            sqlite3.Error: If there's an error executing the SQL query.
-        """
-        cursor: sqlite3.Cursor = self.conn.cursor()
-        cursor.execute("SELECT id, company_name, job_title, created_at FROM resumes")
-        return cursor.fetchall()
+    def get_all_resumes(self) -> List[Tuple[Any, ...]]:
+        """Get all resumes from the database."""
+        cursor = self.resumes_conn.cursor()
+        try:
+            cursor.execute('''
+                SELECT id, company_name, job_title, created_at 
+                FROM resumes 
+                ORDER BY id DESC
+            ''')
+            return cursor.fetchall()
+        except sqlite3.Error as e:
+            self.logger.error(f"Error getting all resumes: {e}")
+            return []
 
     def update_resume(self, resume_id: int, updated_data: Dict[str, Any]) -> None:
-        cursor: sqlite3.Cursor = self.conn.cursor()
+        """Update resume data in resumes database."""
+        cursor = self.resumes_conn.cursor()
         try:
             set_clause = ", ".join([f"{key} = ?" for key in updated_data.keys()])
             query = f"UPDATE resumes SET {set_clause}, last_updated = CURRENT_TIMESTAMP WHERE id = ?"
             values = list(updated_data.values()) + [resume_id]
             cursor.execute(query, values)
-            self.conn.commit()
+            self.resumes_conn.commit()
             self.logger.info(f"Resume with ID {resume_id} updated successfully")
         except sqlite3.Error as e:
             self.logger.error(f"Error updating resume: {e}")
-            self.conn.rollback()
+            self.resumes_conn.rollback()
             raise
 
-    def insert_tex_header(self, name: str, content: str):
-        self.cursor.execute('''
-        INSERT OR REPLACE INTO tex_headers (name, content)
-        VALUES (?, ?)
-        ''', (name, content))
-        self.conn.commit()
-
-    def get_tex_header(self, name: str) -> Optional[str]:
-        self.cursor.execute('SELECT content FROM tex_headers WHERE name = ?', (name,))
-        result = self.cursor.fetchone()
-        return result[0] if result else None
-
-    def get_latest_resume(self):
+    def get_latest_resume(self) -> Optional[Dict[str, Any]]:
+        """Get the most recently created resume."""
         try:
-            with self.conn:
-                cursor = self.conn.cursor()
-                cursor.execute("SELECT * FROM resumes ORDER BY id DESC LIMIT 1")
-                result = cursor.fetchone()
-                if result:
-                    columns = [column[0] for column in cursor.description]
-                    return dict(zip(columns, result))
-                return None
-        except Exception as e:
-            logger.error(f"Error retrieving latest resume: {str(e)}")
+            cursor = self.resumes_conn.cursor()
+            cursor.execute("SELECT * FROM resumes ORDER BY id DESC LIMIT 1")
+            result = cursor.fetchone()
+            if result:
+                columns = [column[0] for column in cursor.description]
+                return dict(zip(columns, result))
+            return None
+        except sqlite3.Error as e:
+            self.logger.error(f"Error retrieving latest resume: {str(e)}")
             raise
 
     def get_resume_full(self, resume_id: int) -> Optional[Dict[str, Any]]:
@@ -458,8 +462,8 @@ class DatabaseManager:
             sqlite3.Error: If there's an error executing the SQL query.
         """
         try:
-            with self.conn:
-                cursor: sqlite3.Cursor = self.conn.cursor()
+            with self.resumes_conn:
+                cursor: sqlite3.Cursor = self.resumes_conn.cursor()
                 cursor.execute("""
                     SELECT id, company_name, job_title, job_description, 
                            personal_information, career_summary, skills, 
@@ -497,8 +501,8 @@ class DatabaseManager:
             sqlite3.Error: If there's an error executing the SQL query.
         """
         try:
-            with self.conn:
-                cursor: sqlite3.Cursor = self.conn.cursor()
+            with self.resumes_conn:
+                cursor: sqlite3.Cursor = self.resumes_conn.cursor()
                 cursor.execute("""
                     SELECT personal_information, career_summary, skills, 
                            work_experience, education, projects, 
@@ -517,5 +521,44 @@ class DatabaseManager:
                 return None
         except sqlite3.Error as e:
             self.logger.error(f"Error retrieving resume for cover letter: {str(e)}")
+            raise
+
+    def get_tex_header(self, name: str) -> Optional[str]:
+        """
+        Get a TeX header template from the preambles database.
+        
+        Args:
+            name (str): Name of the TeX header template
+            
+        Returns:
+            Optional[str]: The template content if found, None otherwise
+        """
+        cursor = self.preambles_conn.cursor()
+        try:
+            cursor.execute('SELECT content FROM tex_headers WHERE name = ?', (name,))
+            result = cursor.fetchone()
+            return result[0] if result else None
+        except sqlite3.Error as e:
+            self.logger.error(f"Error getting TeX header '{name}': {e}")
+            return None
+
+    def insert_tex_header(self, name: str, content: str) -> None:
+        """
+        Insert or update a TeX header template in the preambles database.
+        
+        Args:
+            name (str): Name of the TeX header template
+            content (str): Content of the template
+        """
+        cursor = self.preambles_conn.cursor()
+        try:
+            cursor.execute('''
+                INSERT OR REPLACE INTO tex_headers (name, content)
+                VALUES (?, ?)
+            ''', (name, content))
+            self.preambles_conn.commit()
+            self.logger.info(f"TeX header '{name}' inserted/updated successfully")
+        except sqlite3.Error as e:
+            self.logger.error(f"Error inserting TeX header '{name}': {e}")
             raise
 
