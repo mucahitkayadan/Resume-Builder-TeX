@@ -40,7 +40,7 @@ class DatabaseManager:
         db_dir = project_root / "db"
         
         # Use existing databases in db/
-        self.resumes_conn = sqlite3.connect(str(db_dir / "resumes_backup.db"))
+        self.resumes_conn = sqlite3.connect(str(db_dir / "resumes.db"))
         self.preambles_conn = sqlite3.connect(str(db_dir / "preambles.db"))
         self.user_conn = sqlite3.connect(str(db_dir / "user.db"))
         
@@ -449,14 +449,14 @@ class DatabaseManager:
 
     def get_resume_full(self, resume_id: int) -> Optional[Dict[str, Any]]:
         """
-        Retrieve a full resume from the database, including all fields except large binary data.
+        Retrieve a full resume from the database, including all fields.
 
         Args:
             resume_id (int): The ID of the resume to retrieve.
 
         Returns:
             Optional[Dict[str, Any]]: A dictionary containing all resume information if found,
-                                      None otherwise. Excludes PDF content.
+                                      None otherwise. Includes PDF content.
 
         Raises:
             sqlite3.Error: If there's an error executing the SQL query.
@@ -468,7 +468,7 @@ class DatabaseManager:
                     SELECT id, company_name, job_title, job_description, 
                            personal_information, career_summary, skills, 
                            work_experience, education, projects, 
-                           awards, publications, model_type, model_name, 
+                           awards, publications, pdf_content, model_type, model_name, 
                            temperature, created_at, last_updated
                     FROM resumes WHERE id = ?
                 """, (resume_id,))
@@ -476,9 +476,9 @@ class DatabaseManager:
                 values: Optional[Tuple] = cursor.fetchone()
                 if values:
                     result = dict(zip(columns, values))
-                    # Decode UTF-8 encoded text fields
+                    # Decode UTF-8 encoded text fields, skip pdf_content
                     for key, value in result.items():
-                        if isinstance(value, bytes):
+                        if isinstance(value, bytes) and key != 'pdf_content':
                             result[key] = value.decode('utf-8')
                     return result
                 return None
@@ -541,24 +541,3 @@ class DatabaseManager:
         except sqlite3.Error as e:
             self.logger.error(f"Error getting TeX header '{name}': {e}")
             return None
-
-    def insert_tex_header(self, name: str, content: str) -> None:
-        """
-        Insert or update a TeX header template in the preambles database.
-        
-        Args:
-            name (str): Name of the TeX header template
-            content (str): Content of the template
-        """
-        cursor = self.preambles_conn.cursor()
-        try:
-            cursor.execute('''
-                INSERT OR REPLACE INTO tex_headers (name, content)
-                VALUES (?, ?)
-            ''', (name, content))
-            self.preambles_conn.commit()
-            self.logger.info(f"TeX header '{name}' inserted/updated successfully")
-        except sqlite3.Error as e:
-            self.logger.error(f"Error inserting TeX header '{name}': {e}")
-            raise
-

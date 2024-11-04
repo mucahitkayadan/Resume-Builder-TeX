@@ -78,7 +78,7 @@ def initialize_databases():
     db_dir.mkdir(exist_ok=True)
     
     # Initialize resume database
-    resume_db_path = db_dir / "resumes_backup.db"
+    resume_db_path = db_dir / "resumes.db"
     initialize_resume_database(str(resume_db_path))
     print(f"Resume database initialized at {resume_db_path}")
     

@@ -1,7 +1,7 @@
 import streamlit as st
-import sqlite3
 import pandas as pd
 from utils.database_manager import DatabaseManager
+from streamlit_pdf_viewer import pdf_viewer
 
 def view_database():
     st.title("Resume Database Viewer")
@@ -28,7 +28,7 @@ def view_database():
         selected_resume_id = st.selectbox("Select a resume to view details:", df['ID'], index=0)
 
         if selected_resume_id:
-            resume_details = db_manager.get_resume(selected_resume_id)
+            resume_details = db_manager.get_resume_full(selected_resume_id)
             if resume_details:
                 st.subheader(f"Details for Resume ID: {selected_resume_id}")
                 for key, value in resume_details.items():
@@ -43,6 +43,10 @@ def view_database():
                         file_name=f"resume_{selected_resume_id}.pdf",
                         mime="application/pdf"
                     )
+                    
+                    # Display the PDF using streamlit-pdf-viewer
+                    pdf_viewer(resume_details['pdf_content'])
+
                 if resume_details.get('cover_letter_pdf'):
                     st.download_button(
                         label="Download Cover Letter PDF",

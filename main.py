@@ -102,9 +102,13 @@ def main() -> None:
 
         # Create AIRunner with the selected strategy
         if model_type == "OpenAI":
-            ai_strategy = OpenAIStrategy(model_name, temperature, system_prompt)
+            ai_strategy = OpenAIStrategy(system_prompt)
         else:
-            ai_strategy = ClaudeStrategy(model_name, temperature, system_prompt)
+            ai_strategy = ClaudeStrategy(system_prompt)
+
+        # Set the temperature using the setter
+        ai_strategy.temperature = temperature
+        ai_strategy.model = model_name
         ai_runner = AIRunner(ai_strategy)
 
         # Make sure there's no direct access to ai_runner.model

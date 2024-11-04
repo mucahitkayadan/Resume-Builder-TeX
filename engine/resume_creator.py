@@ -68,11 +68,17 @@ class ResumeCreator:
 
         # Set the appropriate strategy based on model_type
         if model_type in ["OpenAI", "OpenAIStrategy"]:
-            self.ai_runner.set_strategy(OpenAIStrategy(model_name, temperature, self.prompt_loader.get_system_prompt()))
+            strategy = OpenAIStrategy(self.prompt_loader.get_system_prompt())
         elif model_type in ["Claude", "ClaudeStrategy"]:
-            self.ai_runner.set_strategy(ClaudeStrategy(model_name, temperature, self.prompt_loader.get_system_prompt()))
+            strategy = ClaudeStrategy(self.prompt_loader.get_system_prompt())
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
+
+        # Set the model and temperature using the setters
+        strategy.model = model_name
+        strategy.temperature = temperature
+
+        self.ai_runner.set_strategy(strategy)
 
         self.logger.info(f"Set strategy to {self.ai_runner.strategy.__class__.__name__} with model: {self.ai_runner.get_model_name()}")
 
