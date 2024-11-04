@@ -18,14 +18,36 @@ class AIStrategy(ABC):
         pass
 
 class OpenAIStrategy(AIStrategy):
-    def __init__(self, model: str, temperature: float, system_prompt: str):
-        self.model = model
-        self.temperature = temperature
+    def __init__(self, system_prompt: str):
+        self._model = "gpt4o-mini"  # Default model
+        self._temperature = 0.1  # Default temperature
         self.system_prompt = system_prompt
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY not found in environment variables")
         self.client = OpenAI(api_key=api_key)
+
+    @property
+    def model(self) -> str:
+        return self._model
+
+    @model.setter
+    def model(self, value: str):
+        if value:  # Add any specific validation for model names if needed
+            self._model = value
+        else:
+            raise ValueError("Model name cannot be empty")
+
+    @property
+    def temperature(self) -> float:
+        return self._temperature
+
+    @temperature.setter
+    def temperature(self, value: float):
+        if 0.0 <= value <= 1.0:
+            self._temperature = value
+        else:
+            raise ValueError("Temperature must be between 0.0 and 1.0")
 
     def process_section(self, prompt: str, data: str, job_description: str) -> str:
         try:
@@ -83,14 +105,36 @@ class OpenAIStrategy(AIStrategy):
             return "Error_Company|Error_Position"
 
 class ClaudeStrategy(AIStrategy):
-    def __init__(self, model: str, temperature: float, system_prompt: str):
-        self.model = model
-        self.temperature = temperature
+    def __init__(self, system_prompt: str):
+        self._model = "claude-3-5-sonnet-latest"  # Default model
+        self._temperature = 0.5  # Default temperature
         self.system_prompt = system_prompt
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise ValueError("ANTHROPIC_API_KEY not found in environment variables")
         self.client = Anthropic(api_key=api_key)
+
+    @property
+    def model(self) -> str:
+        return self._model
+
+    @model.setter
+    def model(self, value: str):
+        if value:  # Add any specific validation for model names if needed
+            self._model = value
+        else:
+            raise ValueError("Model name cannot be empty")
+
+    @property
+    def temperature(self) -> float:
+        return self._temperature
+
+    @temperature.setter
+    def temperature(self, value: float):
+        if 0.0 <= value <= 1.0:
+            self._temperature = value
+        else:
+            raise ValueError("Temperature must be between 0.0 and 1.0")
 
     def process_section(self, prompt: str, data: str, job_description: str) -> str:
         try:

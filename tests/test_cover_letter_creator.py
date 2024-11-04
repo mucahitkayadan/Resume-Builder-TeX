@@ -140,7 +140,7 @@ class TestCoverLetterCreator:
         )
 
         # Check the database for the generated cover letter
-        updated_resume = db_manager.get_resume(resume_id)
+        updated_resume = db_manager.get_resume_for_cover_letter(resume_id)
         if updated_resume and updated_resume.get('cover_letter'):
             logger.info("Cover letter LaTeX content found in database")
             latex_content = updated_resume['cover_letter']
