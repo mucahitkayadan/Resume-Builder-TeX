@@ -5,7 +5,7 @@ import streamlit as st
 from utils.database_manager import DatabaseManager
 from utils.document_utils import check_clearance_requirement, create_output_directory, get_or_create_folder_name, \
     process_sections
-from loaders.json_loader import JsonLoader
+from loaders.mongo_loader import MongoLoader
 from loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
 from engine.resume_creator import ResumeCreator
@@ -96,7 +96,7 @@ def main() -> None:
         temperature: float = st.slider("Set temperature:", min_value=0.0, max_value=1.0, value=0.1, step=0.1)
 
         # Initialize common components
-        json_loader: JsonLoader = JsonLoader("files/information.json")
+        mongo_loader: MongoLoader = MongoLoader()
         prompt_loader: PromptLoader = PromptLoader('prompts/')
         system_prompt: str = prompt_loader.get_system_prompt()
 
@@ -114,7 +114,7 @@ def main() -> None:
         # Make sure there's no direct access to ai_runner.model
         # If found, replace it with ai_runner.get_model_name()
 
-        resume_creator = ResumeCreator(ai_runner, json_loader, prompt_loader, db_manager)
+        resume_creator = ResumeCreator(ai_runner, mongo_loader, prompt_loader, db_manager)
 
         selected_sections = get_user_section_selection()
 
@@ -171,7 +171,7 @@ def main() -> None:
                         st.error("Please generate a resume first.")
                     else:
                         try:
-                            cover_letter_creator: CoverLetterCreator = CoverLetterCreator(ai_runner, json_loader,
+                            cover_letter_creator: CoverLetterCreator = CoverLetterCreator(ai_runner, mongo_loader,
                                                                                           prompt_loader, db_manager)
                             cover_letter_result: str = cover_letter_creator.generate_cover_letter(
                                 job_description,

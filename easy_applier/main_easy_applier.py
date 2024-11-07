@@ -1,13 +1,8 @@
 import sys
 import os
 import logging
-import requests
-import re
-import subprocess
-import zipfile
 import psutil
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 
 # Add the project root to the Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -21,8 +16,7 @@ from utils.database_manager import DatabaseManager
 from loaders.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
-from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy
-from utils.file_operations import create_output_directory
+from engine.ai_strategies import OpenAIStrategy
 from easy_applier.linkedin_job_manager import LinkedInJobManager
 
 logging.basicConfig(level=logging.DEBUG)
@@ -61,7 +55,7 @@ async def main():
     prompt_loader = PromptLoader("../prompts/")
 
     # Choose AI strategy
-    ai_strategy = OpenAIStrategy("gpt-4o", 0.1, system_prompt=prompt_loader.get_system_prompt())
+    ai_strategy = OpenAIStrategy(system_prompt=prompt_loader.get_system_prompt())
     ai_runner = AIRunner(ai_strategy)
 
     resume_generator = ResumeGenerator(db_manager, json_loader, prompt_loader, ai_runner)

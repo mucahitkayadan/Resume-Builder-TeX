@@ -1,6 +1,6 @@
 import unittest
 from engine.hardcode_sections import HardcodeSections
-from loaders.json_loader import JsonLoader
+from loaders.mongo_loader import MongoLoader
 from loaders.tex_loader import TexLoader
 from utils.database_manager import DatabaseManager
 import os
@@ -9,13 +9,11 @@ class TestHardcodeSections(unittest.TestCase):
     def setUp(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(current_dir)
-        json_path = os.path.join(project_root, 'files', 'information.json')
         db_path = os.path.join(project_root, 'resumes.db')
         
-        self.json_loader = JsonLoader(json_path)
         self.db_manager = DatabaseManager(db_path)
         self.tex_loader = TexLoader(self.db_manager)
-        self.hardcoder = HardcodeSections(self.json_loader, self.tex_loader)
+        self.hardcoder = HardcodeSections(self.db_manager, self.tex_loader)
 
     def test_hardcode_personal_information(self):
         result = self.hardcoder.hardcode_personal_information()

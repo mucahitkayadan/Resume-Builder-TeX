@@ -1,0 +1,38 @@
+erDiagram
+    Resume {
+        int id PK
+        string company_name
+        string job_title
+        text job_description
+        text personal_information
+        text career_summary
+        text skills
+        text work_experience
+        text education
+        text projects
+        text awards
+        text publications
+        blob pdf_content
+        string model_type
+        string model_name
+        float temperature
+        text cover_letter
+        blob cover_letter_pdf
+        datetime created_at
+        datetime last_updated
+    }
+
+    Preamble {
+        int id PK
+        string name UK
+        text content
+    }
+
+    TexHeader {
+        int id PK
+        string name UK
+        text content
+    }
+
+    Resume ||--o{ Preamble : "uses"
+    Resume ||--o{ TexHeader : "uses"
