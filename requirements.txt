@@ -16,3 +16,5 @@ reportlab~=4.2.2
 PyYAML~=6.0.2
 click~=8.1.7
 lib_resume_builder_AIHawk~=0.1
+SQLAlchemy~=2.0.34
+psutil~=6.1.0

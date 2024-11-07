@@ -1,6 +1,7 @@
 import logging
 import os
 from dotenv import load_dotenv
+from pymongo import MongoClient
 
 load_dotenv()
 
@@ -39,3 +40,17 @@ LINKEDIN_PASSWORD = os.getenv("LINKEDIN_PASSWORD")
 
 # Database path
 DATABASE_PATH = "db/resumes.db"
+
+# MongoDB Configuration
+MONGODB_URI = "mongodb://localhost:27017/"
+MONGODB_DATABASE = "user_information"
+MONGODB_COLLECTION = "portfolio"
+
+# Initialize MongoDB client
+try:
+    mongo_client = MongoClient(MONGODB_URI)
+    db = mongo_client[MONGODB_DATABASE]
+    portfolio_collection = db[MONGODB_COLLECTION]
+except Exception as e:
+    logging.error(f"Failed to connect to MongoDB: {e}")
+    raise
