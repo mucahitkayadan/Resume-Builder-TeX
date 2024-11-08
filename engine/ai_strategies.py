@@ -5,6 +5,7 @@ from openai import OpenAIError
 from anthropic import Anthropic
 import os
 import logging
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -181,6 +182,87 @@ class ClaudeStrategy(AIStrategy):
                 return response.content[0].text
             else:
                 logger.warning("Received empty content from Claude API for folder name")
+                return "Unknown_Company|Unknown_Position"
+        except Exception as e:
+            logger.error(f"Error in create_folder_name: {str(e)}")
+            return "Error_Company|Error_Position"
+
+class OllamaStrategy(AIStrategy):
+    def __init__(self, system_prompt: str):
+        self._model = "llama3.1"  # Default model
+        self._temperature = 0.1  # Default temperature
+        self.system_prompt = system_prompt
+        self.base_url = os.getenv("OLLAMA_URI", "http://localhost:11434")
+
+    @property
+    def model(self) -> str:
+        return self._model
+
+    @model.setter
+    def model(self, value: str):
+        if value:
+            self._model = value
+        else:
+            raise ValueError("Model name cannot be empty")
+
+    @property
+    def temperature(self) -> float:
+        return self._temperature
+
+    @temperature.setter
+    def temperature(self, value: float):
+        if 0.0 <= value <= 1.0:
+            self._temperature = value
+        else:
+            raise ValueError("Temperature must be between 0.0 and 1.0")
+
+    def process_section(self, prompt: str, data: str, job_description: str) -> str:
+        try:
+            logger.info(f"Sending request to Ollama API with model: {self.model}")
+            response = requests.post(
+                f"{self.base_url}/api/generate",
+                json={
+                    "model": self.model,
+                    "system": self.system_prompt,
+                    "prompt": f"{prompt}\n\n"
+                             f"Here is the personal information in JSON format:\n"
+                             f"<data> \n{data}\n </data>\n\n"
+                             f"And here is the job description:\n"
+                             f"<job_description> \n{job_description}\n </job_description>\n\n",
+                    "temperature": self.temperature,
+                }
+            )
+            response.raise_for_status()
+            logger.info("Received response from Ollama API")
+            result = response.json()
+            if "response" in result:
+                return result["response"]
+            else:
+                logger.warning("Received empty content from Ollama API")
+                return ""
+        except Exception as e:
+            logger.error(f"Ollama API error: {e}")
+            return f"Error: {str(e)}"
+
+    def create_folder_name(self, prompt: str, job_description: str) -> str:
+        try:
+            response = requests.post(
+                f"{self.base_url}/api/generate",
+                json={
+                    "model": self.model,
+                    "system": self.system_prompt,
+                    "prompt": f"{prompt}\n\n"
+                             f"Job Description:\n"
+                             f"<job_description> \n{job_description}\n </job_description>\n\n",
+                    "temperature": self.temperature,
+                }
+            )
+            response.raise_for_status()
+            result = response.json()
+            if "response" in result:
+                return result["response"]
+            else:
+                logger.warning("Received empty content from Ollama API for folder name")
                 return "Unknown_Company|Unknown_Position"
         except Exception as e:
             logger.error(f"Error in create_folder_name: {str(e)}")

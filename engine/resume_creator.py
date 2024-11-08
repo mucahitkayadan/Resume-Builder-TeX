@@ -7,7 +7,7 @@ from utils.latex_compiler import generate_resume_pdf
 from engine.hardcode_sections import HardcodeSections
 from loaders.tex_loader import TexLoader
 from engine.runners import AIRunner
-from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy
+from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy, OllamaStrategy
 from loaders.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
 from utils.file_operations import create_output_directory, save_job_description
@@ -71,6 +71,8 @@ class ResumeCreator:
             strategy = OpenAIStrategy(self.prompt_loader.get_system_prompt())
         elif model_type in ["Claude", "ClaudeStrategy"]:
             strategy = ClaudeStrategy(self.prompt_loader.get_system_prompt())
+        elif model_type in ["Ollama", "OllamaStrategy"]:
+            strategy = OllamaStrategy(self.prompt_loader.get_system_prompt())
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
 

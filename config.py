@@ -46,6 +46,9 @@ MONGODB_URI = "mongodb://localhost:27017/"
 MONGODB_DATABASE = "user_information"
 MONGODB_COLLECTION = "portfolio"
 
+# Ollama Configuration
+OLLAMA_URI = "http://localhost:11434"
+
 # Initialize MongoDB client
 try:
     mongo_client = MongoClient(MONGODB_URI)

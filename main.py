@@ -13,7 +13,7 @@ from engine.cover_letter_creator import CoverLetterCreator
 from utils.logger_config import setup_logger
 from utils.view_database import view_database
 
-from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy
+from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy, OllamaStrategy
 import traceback
 
 # Configure logging
@@ -80,17 +80,20 @@ def main() -> None:
         clearance_required: bool = check_clearance_requirement(job_description)
 
         # Add model selection
-        model_type: str = st.selectbox("Select AI model type:", ["OpenAI", "Claude"])
+        model_type: str = st.selectbox("Select AI model type:", ["OpenAI", "Claude", "Ollama"])
         if model_type == "OpenAI":
             model_name: str = st.selectbox("Select OpenAI model:",
                                            ["gpt-4o", "gpt-4o-mini", "gpt-4o-2024-08-06", "o1-mini",
                                             "gpt-4o-2024-05-13"])
-        else:
+        elif model_type == "Claude":
             model_name: str = st.selectbox("Select Claude model:", ["claude-3-5-sonnet-latest", "claude-3-opus-latest",
                                                                     "claude-3-5-sonnet-20241022",
                                                                     "claude-3-5-sonnet-20240620",
                                                                     "claude-3-opus-20240229",
                                                                     "claude-3-sonnet-20240229"])
+        else:
+            model_name: str = st.selectbox("Select Ollama model:", ["llama3.1", "llama2", "llama2-uncensored", "mistral", 
+                                                                   "mixtral", "codellama", "neural-chat"])
 
         # Add temperature slider
         temperature: float = st.slider("Set temperature:", min_value=0.0, max_value=1.0, value=0.1, step=0.1)
@@ -103,8 +106,10 @@ def main() -> None:
         # Create AIRunner with the selected strategy
         if model_type == "OpenAI":
             ai_strategy = OpenAIStrategy(system_prompt)
-        else:
+        elif model_type == "Claude":
             ai_strategy = ClaudeStrategy(system_prompt)
+        else:
+            ai_strategy = OllamaStrategy(system_prompt)
 
         # Set the temperature using the setter
         ai_strategy.temperature = temperature
