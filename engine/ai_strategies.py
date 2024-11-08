@@ -230,16 +230,21 @@ class OllamaStrategy(AIStrategy):
                              f"And here is the job description:\n"
                              f"<job_description> \n{job_description}\n </job_description>\n\n",
                     "temperature": self.temperature,
+                    "stream": False  # Add this to prevent streaming
                 }
             )
             response.raise_for_status()
             logger.info("Received response from Ollama API")
-            result = response.json()
-            if "response" in result:
-                return result["response"]
-            else:
-                logger.warning("Received empty content from Ollama API")
-                return ""
+            
+            # Handle the response content
+            content = response.text.strip()
+            try:
+                result = response.json()
+                return result.get("response", "")
+            except:
+                # If JSON parsing fails, return the raw content
+                return content if content else ""
+                
         except Exception as e:
             logger.error(f"Ollama API error: {e}")
             return f"Error: {str(e)}"
@@ -255,15 +260,20 @@ class OllamaStrategy(AIStrategy):
                              f"Job Description:\n"
                              f"<job_description> \n{job_description}\n </job_description>\n\n",
                     "temperature": self.temperature,
+                    "stream": False
                 }
             )
             response.raise_for_status()
-            result = response.json()
-            if "response" in result:
-                return result["response"]
-            else:
-                logger.warning("Received empty content from Ollama API for folder name")
-                return "Unknown_Company|Unknown_Position"
+            
+            # Handle the response content
+            content = response.text.strip()
+            try:
+                result = response.json()
+                return result.get("response", "Unknown_Company|Unknown_Position")
+            except:
+                # If JSON parsing fails, return the raw content
+                return content if content else "Unknown_Company|Unknown_Position"
+                
         except Exception as e:
             logger.error(f"Error in create_folder_name: {str(e)}")
             return "Error_Company|Error_Position"
