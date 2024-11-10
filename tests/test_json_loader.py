@@ -1,10 +1,10 @@
 import unittest
-from loaders.json_loader import JsonLoader
+from __legacy__.json_loader import JsonLoader
 
 class TestJsonLoader(unittest.TestCase):
 
     def setUp(self):
-        self.json_loader = JsonLoader("../files/information.json")
+        self.json_loader = JsonLoader("../__legacy__/files/information.json")
 
     def test_get_personal_information(self):
         personal_info = self.json_loader.get_personal_information()

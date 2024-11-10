@@ -4,6 +4,7 @@ from core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
 from utils.latex_compiler import generate_cover_letter_pdf
 from loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
+from typing import Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,8 @@ class CoverLetterCreator:
                 self.uow,
                 cover_letter_content,
                 output_dir,
-                resume.user_id
+                resume.user_id,
+                resume_id
             )
             with self.uow:
                 self.uow.update_cover_letter(resume_id, latex_content, pdf_content)

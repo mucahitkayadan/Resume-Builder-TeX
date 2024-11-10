@@ -14,6 +14,10 @@ class User(BaseModel):
     created_at: datetime
     updated_at: datetime
     preferences: Dict[str, Any] = {}
+    signature_image: Optional[bytes] = None
+    signature_filename: Optional[str] = None
+    signature_content_type: Optional[str] = None
+    user_id: Optional[str] = None
 
     class Config:
         arbitrary_types_allowed = True

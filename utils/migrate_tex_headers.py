@@ -1,5 +1,5 @@
 import os
-from utils.database_manager import DatabaseManager
+from __legacy__.database_manager import DatabaseManager
 
 def migrate_tex_headers_to_db():
     db_manager = DatabaseManager()

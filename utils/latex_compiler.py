@@ -59,25 +59,47 @@ def generate_cover_letter_pdf(
     uow: MongoUnitOfWork,
     cover_letter_content: str,
     output_dir: str,
-    user_id: str
+    user_id: str,
+    resume_id: str
 ) -> Tuple[Optional[bytes], str]:
     """Generate a PDF cover letter from the given content."""
     logger.info("Starting cover letter PDF generation process")
     
     with uow:
-        # Get preamble
+        # Get preamble and resume
         preamble = uow.get_cover_letter_preamble()
-        if preamble:
-            tex_content = preamble.content
-        else:
-            logger.error("Cover letter preamble not found in database")
+        resume = uow.resumes.get_by_id(resume_id)
+        if not preamble or not resume:
+            logger.error("Cover letter preamble or resume not found")
             return None, ""
             
-        # Get user's portfolio for personal information
+        # Get user's portfolio and signature
         portfolio = uow.portfolio.get_by_user_id(user_id)
+        signature = uow.get_user_signature(user_id)  # This now uses get_by_user_id internally
+        
         if not portfolio:
             logger.error("Portfolio not found for user")
             return None, ""
+
+        # Save signature image if exists
+        signature_path = os.path.join(output_dir, "signature.jpg")
+        if signature:
+            try:
+                with open(signature_path, 'wb') as f:
+                    f.write(signature)
+                logger.info(f"Signature saved to {signature_path}")
+                
+                # Modify tex_content to include graphicspath
+                tex_content = preamble.content
+                tex_content = tex_content.replace(
+                    '\\usepackage{graphicx}',
+                    f'\\usepackage{{graphicx}}\n\\graphicspath{{{{{output_dir}/}}}}'
+                )
+            except Exception as e:
+                logger.error(f"Error saving signature: {str(e)}")
+                return None, ""
+        else:
+            tex_content = preamble.content
 
         personal_info = portfolio.personal_information
         
@@ -88,17 +110,18 @@ def generate_cover_letter_pdf(
         tex_content = tex_content.replace('{{LINKEDIN}}', personal_info.get('linkedin', ''))
         tex_content = tex_content.replace('{{GITHUB}}', personal_info.get('github', ''))
         tex_content = tex_content.replace('{{ADDRESS}}', personal_info.get('address', ''))
+        tex_content = tex_content.replace('{{COMPANY_NAME}}', resume.company_name)
+        tex_content = tex_content.replace('{{JOB_TITLE}}', resume.job_title)
         tex_content = tex_content.replace('{{COVER_LETTER_CONTENT}}', cover_letter_content)
 
-    # Write to .tex file
-    tex_path = os.path.join(output_dir, 'cover_letter.tex')
-    with open(tex_path, 'w', encoding='utf-8') as f:
-        f.write(tex_content)
+        # Write to .tex file
+        tex_path = os.path.join(output_dir, 'cover_letter.tex')
+        with open(tex_path, 'w', encoding='utf-8') as f:
+            f.write(tex_content)
 
-    # Compile the PDF
-    pdf_content = _compile_pdf(tex_path, output_dir)
-    
-    return pdf_content, tex_content
+        # Compile the PDF
+        pdf_content = _compile_pdf(tex_path, output_dir)
+        return pdf_content, tex_content
 
 def _compile_pdf(tex_path: str, output_dir: str) -> Optional[bytes]:
     """Helper function to compile LaTeX to PDF"""

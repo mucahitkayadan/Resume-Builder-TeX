@@ -82,8 +82,34 @@ class MongoUserRepository(BaseRepository[User]):
         except Exception as e:
             raise DatabaseError(f"Error checking user existence: {str(e)}")
 
-    def _map_to_entity(self, doc: dict) -> User:
-        if doc:
+    def get_by_user_id(self, user_id: str) -> Optional[User]:
+        """Get user by user_id field"""
+        try:
+            result = self.collection.find_one({'user_id': user_id})
+            return self._map_to_entity(result) if result else None
+        except Exception as e:
+            raise DatabaseError(f"Error retrieving user by user_id: {str(e)}")
+
+    def _map_to_entity(self, doc: dict) -> Optional[User]:
+        if not doc:
+            return None
+        
+        try:
+            # Handle ID conversion
             doc['id'] = str(doc.pop('_id'))
+            
+            # Handle binary data
+            if 'signature_image' in doc and doc['signature_image']:
+                doc['signature_image'] = doc['signature_image']
+                
+            # Set default values
+            doc.setdefault('signature_filename', None)
+            doc.setdefault('signature_content_type', None)
+            doc.setdefault('created_at', datetime.utcnow())
+            doc.setdefault('updated_at', datetime.utcnow())
+            doc.setdefault('last_login', None)
+            
             return User(**doc)
-        return None
+        except Exception as e:
+            print(f"Error mapping user entity: {str(e)}")
+            return None

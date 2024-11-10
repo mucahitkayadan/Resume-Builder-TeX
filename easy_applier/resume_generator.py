@@ -1,6 +1,6 @@
 from engine.resume_creator import ResumeCreator
-from utils.database_manager import DatabaseManager
-from loaders.json_loader import JsonLoader
+from __legacy__.database_manager import DatabaseManager
+from __legacy__.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
 from typing import Dict, Generator, Tuple

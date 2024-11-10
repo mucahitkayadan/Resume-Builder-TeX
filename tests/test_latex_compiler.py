@@ -1,7 +1,7 @@
 import unittest
 import os
 from utils.latex_compiler import generate_resume_pdf
-from utils.database_manager import DatabaseManager
+from __legacy__.database_manager import DatabaseManager
 
 class TestLatexCompiler(unittest.TestCase):
 

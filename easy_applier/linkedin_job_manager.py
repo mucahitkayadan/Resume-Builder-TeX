@@ -3,15 +3,8 @@ import os
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from easy_applier.linkedin_scraper import LinkedInScraper
-from easy_applier.job_applier import JobApplier
-from easy_applier.resume_generator import ResumeGenerator
 from utils.file_operations import create_output_directory
-from utils.database_manager import DatabaseManager
-from loaders.json_loader import JsonLoader
-from loaders.prompt_loader import PromptLoader
-from engine.runners import AIRunner
+
 
 class LinkedInJobManager:
     def __init__(self, scraper, job_applier, resume_generator):

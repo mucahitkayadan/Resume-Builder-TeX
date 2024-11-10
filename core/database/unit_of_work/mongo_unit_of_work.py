@@ -14,21 +14,20 @@ import os
 class MongoUnitOfWork:
     def __init__(self, connection: MongoConnection):
         self.connection = connection
-        self.portfolio: Optional[MongoPortfolioRepository] = None
-        self.users: Optional[MongoUserRepository] = None
-        self.resumes: Optional[MongoResumeRepository] = None
-        self.preambles: Optional[MongoPreambleRepository] = None
-        self.tex_headers: Optional[MongoTexHeaderRepository] = None
-        self._session = None
-        self._is_mock = isinstance(self.connection.client, mongomock.MongoClient)
+        self.portfolio = None
+        self.users = None
+        self.resumes = None
+        self.preambles = None
+        self.tex_headers = None
+        self._in_transaction = False
 
     def __enter__(self):
-        self._session = self.connection.start_session()
         self.portfolio = MongoPortfolioRepository(self.connection)
         self.users = MongoUserRepository(self.connection)
         self.resumes = MongoResumeRepository(self.connection)
         self.preambles = MongoPreambleRepository(self.connection)
         self.tex_headers = MongoTexHeaderRepository(self.connection)
+        self._in_transaction = True
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -36,13 +35,15 @@ class MongoUnitOfWork:
             self.rollback()
         else:
             self.commit()
-        self.connection.end_session()
+        self._in_transaction = False
 
     def commit(self):
-        self.connection.commit_transaction()
+        if self._in_transaction:
+            self.connection.commit_transaction()
 
     def rollback(self):
-        self.connection.abort_transaction()
+        if self._in_transaction:
+            self.connection.abort_transaction()
 
     def get_resume_preamble(self) -> Optional[Preamble]:
         """Get the resume preamble"""
@@ -124,8 +125,8 @@ class MongoUnitOfWork:
             raise ValueError("User repository not initialized")
         
         try:
-            user = self.users.get_by_id(user_id)
-            if user and user.signature_image:
+            user = self.users.get_by_user_id(user_id)
+            if user and hasattr(user, 'signature_image'):
                 return user.signature_image
             return None
         except Exception as e:

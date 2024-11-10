@@ -39,7 +39,7 @@ LINKEDIN_EMAIL = os.getenv("LINKEDIN_EMAIL")
 LINKEDIN_PASSWORD = os.getenv("LINKEDIN_PASSWORD")
 
 # Database path
-DATABASE_PATH = "db/resumes.db"
+DATABASE_PATH = "__legacy__/db/resumes.db"
 
 # MongoDB Configuration
 MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")

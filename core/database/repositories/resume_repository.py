@@ -102,27 +102,50 @@ class MongoResumeRepository(BaseRepository[Resume]):
             raise DatabaseError(f"Error retrieving resumes by user ID: {str(e)}")
 
     def _map_to_entity(self, doc: dict) -> Resume:
-        if doc:
-            try:
-                # Handle ID conversion
-                doc['id'] = str(doc.pop('_id'))
+        if not doc:
+            return None
+        
+        try:
+            # Handle ID conversion
+            doc['id'] = str(doc.pop('_id'))
+            
+            # Set default user_id if missing
+            doc.setdefault('user_id', 'default_user')
+            
+            # Set default values for required fields
+            doc.setdefault('company_name', '')
+            doc.setdefault('job_title', '')
+            doc.setdefault('job_description', '')
+            
+            # Set default values for optional fields
+            doc.setdefault('personal_information', '')
+            doc.setdefault('career_summary', '')
+            doc.setdefault('skills', '')
+            doc.setdefault('work_experience', '')
+            doc.setdefault('education', '')
+            doc.setdefault('projects', '')
+            doc.setdefault('awards', '')
+            doc.setdefault('publications', '')
+            
+            # Ensure model information is present
+            doc.setdefault('model_type', None)
+            doc.setdefault('model_name', None)
+            doc.setdefault('temperature', 0.1)
+            
+            # Set default timestamps
+            doc.setdefault('created_at', datetime.utcnow())
+            doc.setdefault('updated_at', datetime.utcnow())
+            
+            # Handle binary data
+            if 'resume_pdf' in doc and doc['resume_pdf']:
+                doc['resume_pdf'] = doc['resume_pdf']
+            if 'cover_letter_pdf' in doc and doc['cover_letter_pdf']:
+                doc['cover_letter_pdf'] = doc['cover_letter_pdf']
                 
-                # Ensure model information is present
-                doc.setdefault('model_type', None)
-                doc.setdefault('model_name', None)
-                doc.setdefault('temperature', 0.1)
-                
-                # Handle binary data
-                if 'resume_pdf' in doc and doc['resume_pdf']:
-                    doc['resume_pdf'] = doc['resume_pdf']
-                if 'cover_letter_pdf' in doc and doc['cover_letter_pdf']:
-                    doc['cover_letter_pdf'] = doc['cover_letter_pdf']
-                    
-                return Resume(**doc)
-            except Exception as e:
-                print(f"Error mapping entity: {str(e)}")
-                return None
-        return None
+            return Resume(**doc)
+        except Exception as e:
+            print(f"Error mapping entity: {str(e)}")
+            return None
 
     def get_latest_resume(self) -> Optional[Resume]:
         """Get the most recently created resume"""

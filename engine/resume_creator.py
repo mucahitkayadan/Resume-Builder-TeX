@@ -4,13 +4,11 @@ import logging
 from typing import Dict, Generator, Tuple
 from core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
 from core.database.models.resume import Resume
-from datetime import datetime
 from utils.latex_compiler import generate_resume_pdf
 from engine.hardcode_sections import HardcodeSections
 from loaders.tex_loader import TexLoader
 from engine.runners import AIRunner
 from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy, OllamaStrategy
-from loaders.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
 from utils.file_operations import create_output_directory, save_job_description
 

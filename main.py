@@ -1,11 +1,6 @@
-import os
-import logging
-from typing import Tuple, Optional, Dict
+from typing import Optional, Dict
 import streamlit as st
-from utils.database_manager import DatabaseManager
-from utils.document_utils import check_clearance_requirement, create_output_directory, get_or_create_folder_name, \
-    process_sections
-from loaders.mongo_loader import MongoLoader
+from utils.document_utils import check_clearance_requirement, get_or_create_folder_name
 from loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
 from engine.resume_creator import ResumeCreator
@@ -107,7 +102,6 @@ def main() -> None:
         temperature: float = st.slider("Set temperature:", min_value=0.0, max_value=1.0, value=0.1, step=0.1)
 
         # Initialize common components
-        mongo_loader: MongoLoader = MongoLoader()
         prompt_loader: PromptLoader = PromptLoader('prompts/')
         system_prompt: str = prompt_loader.get_system_prompt()
 

@@ -2,13 +2,13 @@ import unittest
 from unittest.mock import Mock, patch
 from engine.runners import AIRunner
 from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy
-from loaders.json_loader import JsonLoader
+from __legacy__.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
-from loaders.job_description_loader import JobDescriptionLoader
+from __legacy__.job_description_loader import JobDescriptionLoader
 
 class TestProcessSection(unittest.TestCase):
     def setUp(self):
-        self.json_loader = JsonLoader("../files/information.json")
+        self.json_loader = JsonLoader("../__legacy__/files/information.json")
         self.prompt_loader = PromptLoader("../prompts")
         self.job_description_loader = JobDescriptionLoader(
             "../created_resumes/akraya_machine_learning_engineer/job_description.txt")

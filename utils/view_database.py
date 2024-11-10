@@ -1,59 +1,79 @@
 import streamlit as st
 import pandas as pd
-from utils.database_manager import DatabaseManager
+from core.database.factory import get_unit_of_work
 from streamlit_pdf_viewer import pdf_viewer
+from datetime import datetime
 
 def view_database():
     st.title("Resume Database Viewer")
 
-    # Initialize DatabaseManager
-    db_manager = DatabaseManager()
+    # Initialize UnitOfWork
+    uow = get_unit_of_work()
 
-    # Fetch all resumes from the database
-    resumes = db_manager.get_all_resumes()
+    with uow:
+        # Fetch all resumes from the database
+        resumes = uow.resumes.get_all()
 
-    if not resumes:
-        st.write("No resumes found in the database.")
-    else:
-        # Convert the resumes data to a pandas DataFrame
-        df = pd.DataFrame(resumes, columns=['ID', 'Company Name', 'Job Title', 'Creation Date'])
-        
-        # Sort the DataFrame by ID in descending order
-        df = df.sort_values('ID', ascending=False)
+        if not resumes:
+            st.write("No resumes found in the database.")
+        else:
+            # Convert resumes to DataFrame format
+            df_data = [
+                {
+                    'ID': resume.id,
+                    'Company Name': resume.company_name,
+                    'Job Title': resume.job_title,
+                    'Creation Date': resume.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                }
+                for resume in resumes
+            ]
+            df = pd.DataFrame(df_data)
+            
+            # Sort by creation date in descending order
+            df = df.sort_values('Creation Date', ascending=False)
 
-        # Display the DataFrame
-        st.dataframe(df)
+            # Display the DataFrame
+            st.dataframe(df)
 
-        # Allow user to select a resume to view details
-        selected_resume_id = st.selectbox("Select a resume to view details:", df['ID'], index=0)
+            # Allow user to select a resume
+            selected_resume_id = st.selectbox("Select a resume to view details:", df['ID'].tolist(), index=0)
 
-        if selected_resume_id:
-            resume_details = db_manager.get_resume_full(selected_resume_id)
-            if resume_details:
-                st.subheader(f"Details for Resume ID: {selected_resume_id}")
-                for key, value in resume_details.items():
-                    if key not in ['pdf_content', 'cover_letter_pdf']:
-                        st.text_area(key, value, height=100)
-                
-                # Add buttons to download PDF content
-                if resume_details.get('pdf_content'):
-                    st.download_button(
-                        label="Download Resume PDF",
-                        data=resume_details['pdf_content'],
-                        file_name=f"resume_{selected_resume_id}.pdf",
-                        mime="application/pdf"
-                    )
+            if selected_resume_id:
+                resume = uow.resumes.get_by_id(selected_resume_id)
+                if resume:
+                    st.subheader(f"Details for Resume ID: {selected_resume_id}")
                     
-                    # Display the PDF using streamlit-pdf-viewer
-                    pdf_viewer(resume_details['pdf_content'])
+                    # Display resume sections
+                    sections = [
+                        'personal_information', 'career_summary', 'skills',
+                        'work_experience', 'education', 'projects',
+                        'awards', 'publications'
+                    ]
+                    
+                    for section in sections:
+                        content = getattr(resume, section)
+                        if content:
+                            st.text_area(section.replace('_', ' ').title(), content, height=100)
 
-                if resume_details.get('cover_letter_pdf'):
-                    st.download_button(
-                        label="Download Cover Letter PDF",
-                        data=resume_details['cover_letter_pdf'],
-                        file_name=f"cover_letter_{selected_resume_id}.pdf",
-                        mime="application/pdf"
-                    )
+                    # Handle PDF content
+                    if resume.resume_pdf:
+                        st.download_button(
+                            label="Download Resume PDF",
+                            data=resume.resume_pdf,
+                            file_name=f"resume_{selected_resume_id}.pdf",
+                            mime="application/pdf"
+                        )
+                        
+                        # Display PDF using streamlit-pdf-viewer
+                        pdf_viewer(resume.resume_pdf)
+
+                    if resume.cover_letter_pdf:
+                        st.download_button(
+                            label="Download Cover Letter PDF",
+                            data=resume.cover_letter_pdf,
+                            file_name=f"cover_letter_{selected_resume_id}.pdf",
+                            mime="application/pdf"
+                        )
 
 if __name__ == "__main__":
     view_database()

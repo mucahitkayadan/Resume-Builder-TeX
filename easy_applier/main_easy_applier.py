@@ -12,8 +12,8 @@ from dotenv import load_dotenv
 from easy_applier.resume_generator import ResumeGenerator
 from easy_applier.job_applier import JobApplier
 from easy_applier.linkedin_scraper import LinkedInScraper
-from utils.database_manager import DatabaseManager
-from loaders.json_loader import JsonLoader
+from __legacy__.database_manager import DatabaseManager
+from __legacy__.json_loader import JsonLoader
 from loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
 from engine.ai_strategies import OpenAIStrategy
@@ -51,7 +51,7 @@ async def main():
 
     # Initialize components
     db_manager = DatabaseManager()
-    json_loader = JsonLoader("../files/information.json")
+    json_loader = JsonLoader("../__legacy__/files/information.json")
     prompt_loader = PromptLoader("../prompts/")
 
     # Choose AI strategy
