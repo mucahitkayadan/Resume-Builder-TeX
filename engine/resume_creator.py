@@ -2,7 +2,9 @@ import os
 import sys
 import logging
 from typing import Dict, Generator, Tuple
-from utils.database_manager import DatabaseManager
+from core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
+from core.database.models.resume import Resume
+from datetime import datetime
 from utils.latex_compiler import generate_resume_pdf
 from engine.hardcode_sections import HardcodeSections
 from loaders.tex_loader import TexLoader
@@ -22,42 +24,44 @@ class ResumeCreator:
     content creation, PDF generation, and database storage.
 
     Attributes:
-        json_loader: An instance of JsonLoader for loading personal information.
         prompt_loader: An instance of PromptLoader for loading prompts.
-        db_manager: An instance of DatabaseManager for database operations.
+        uow: An instance of MongoUnitOfWork for database operations.
         logger: A logger instance for logging operations.
     """
 
-    def __init__(self, ai_runner: AIRunner, json_loader: JsonLoader, prompt_loader: PromptLoader, db_manager: DatabaseManager):
+    def __init__(self, ai_runner: AIRunner, prompt_loader: PromptLoader, uow: MongoUnitOfWork):
         """
         Initialize the ResumeCreator with necessary components.
 
         Args:
-            json_loader: An instance of JsonLoader.
+            ai_runner: An instance of AIRunner.
             prompt_loader: An instance of PromptLoader.
-            db_manager: An instance of DatabaseManager.
+            uow: An instance of MongoUnitOfWork.
         """
         self.ai_runner = ai_runner
-        self.json_loader = json_loader
         self.prompt_loader = prompt_loader
-        self.db_manager = db_manager
+        self.uow = uow
         self.logger = logging.getLogger(__name__)
-        self.tex_loader = TexLoader(db_manager)
-        self.hardcoder = HardcodeSections(json_loader, self.tex_loader)
+        self.tex_loader = TexLoader(uow)
+        self.hardcoder = HardcodeSections(uow, self.tex_loader)
 
-    def process_section(self, section: str, process_type: str, job_description: str) -> str:
+    def process_section(self, section: str, process_type: str, job_description: str, user_id: str) -> str:
         if process_type == "skip":
             return ""
         elif process_type == "hardcode":
-            return self.hardcoder.hardcode_section(section)
+            return self.hardcoder.hardcode_section(section, user_id)
         else:  # "process"
             prompt = getattr(self.prompt_loader, f"get_{section}_prompt")()
-            data = getattr(self.json_loader, f"get_{section}")()
+            with self.uow:
+                portfolio = self.uow.portfolio.get_by_user_id(user_id)
+                if not portfolio:
+                    raise ValueError(f"Portfolio not found for user {user_id}")
+                data = getattr(portfolio, section)
             return self.ai_runner.process_section(prompt, data, job_description)
 
     def generate_resume(self, job_description: str, company_name: str, job_title: str, 
                         model_type: str, model_name: str, temperature: float,
-                        selected_sections: Dict[str, str]) -> Generator[Tuple[str, float], None, None]:
+                        selected_sections: Dict[str, str], user_id: str) -> Generator[Tuple[str, float], None, None]:
         self.logger.info("Starting resume generation process")
         self.logger.info(f"Generating resume with {self.ai_runner.__class__.__name__} using strategy: {self.ai_runner.strategy.__class__.__name__}")
         
@@ -87,7 +91,7 @@ class ResumeCreator:
         # Process sections
         content_dict: Dict[str, str] = {}
         for i, (section, process_type) in enumerate(selected_sections.items()):
-            content = self.process_section(section, process_type, job_description)
+            content = self.process_section(section, process_type, job_description, user_id)
             if content:
                 content_dict[section] = content
                 self.logger.info(f"Processed {section} section")
@@ -105,7 +109,7 @@ class ResumeCreator:
 
         # Generate PDF
         try:
-            pdf_content = generate_resume_pdf(self.db_manager, content_dict, output_dir)
+            generated_pdf = generate_resume_pdf(self.uow, content_dict, output_dir)
             self.logger.info("PDF generation successful")
         except Exception as e:
             self.logger.error(f"PDF generation failed: {str(e)}")
@@ -118,16 +122,23 @@ class ResumeCreator:
 
         # Insert into database
         try:
-            latex_content = generate_resume_pdf(self.db_manager, content_dict, output_dir)
-            resume_id = self.db_manager.insert_resume(
-                company_name, job_title, job_description,
-                content_dict, pdf_content,
-                self.ai_runner.get_strategy_info()['type'],
-                self.ai_runner.get_strategy_info()['model'],
-                self.ai_runner.get_strategy_info()['temperature']
-            )
-            self.logger.info(f"Resume {company_name}_{job_title} generated successfully with ID: {resume_id}")
-            yield f"Resume {company_name}_{job_title} generated successfully with ID: {resume_id}", 1
+            with self.uow:
+                # generated_pdf is already in bytes format from _compile_pdf
+                resume = Resume(
+                    id=None,
+                    user_id=user_id,
+                    company_name=company_name,
+                    job_title=job_title,
+                    job_description=job_description,
+                    **content_dict,
+                    model_type=self.ai_runner.get_strategy_info()['type'],
+                    model_name=self.ai_runner.get_strategy_info()['model'],
+                    temperature=self.ai_runner.get_strategy_info()['temperature'],
+                    resume_pdf=generated_pdf  # Use the bytes directly from the compiler
+                )
+                saved_resume = self.uow.resumes.add(resume)
+                self.logger.info(f"Resume {company_name}_{job_title} generated successfully with ID: {saved_resume.id}")
+                yield f"Resume {company_name}_{job_title} generated successfully with ID: {saved_resume.id}", 1
         except Exception as e:
             self.logger.error(f"Database insertion failed: {str(e)}")
             yield f"Resume generation completed but database insertion failed: {str(e)}", 1

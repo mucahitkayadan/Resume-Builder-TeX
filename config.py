@@ -42,18 +42,11 @@ LINKEDIN_PASSWORD = os.getenv("LINKEDIN_PASSWORD")
 DATABASE_PATH = "db/resumes.db"
 
 # MongoDB Configuration
-MONGODB_URI = "mongodb://localhost:27017/"
-MONGODB_DATABASE = "user_information"
-MONGODB_COLLECTION = "portfolio"
+MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
+MONGODB_DATABASE = os.getenv("MONGODB_DATABASE", "user_information")
+MONGODB_COLLECTION = os.getenv("MONGODB_COLLECTION", "portfolio")
+
 
 # Ollama Configuration
 OLLAMA_URI = "http://localhost:11434"
 
-# Initialize MongoDB client
-try:
-    mongo_client = MongoClient(MONGODB_URI)
-    db = mongo_client[MONGODB_DATABASE]
-    portfolio_collection = db[MONGODB_COLLECTION]
-except Exception as e:
-    logging.error(f"Failed to connect to MongoDB: {e}")
-    raise

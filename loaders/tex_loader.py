@@ -1,67 +1,69 @@
-import os
-from typing import List, Dict, Union
-import re
+from typing import Optional
+from core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
+from core.exceptions.database_exceptions import DatabaseError
 import logging
-from utils.latex_utils import escape_latex  # Import the escape_latex function
-from utils.database_manager import DatabaseManager
+from datetime import datetime, UTC
 
 class TexLoader:
-    """
-    A class for loading LaTeX template files.
-    """
+    """A class for loading LaTeX template files from MongoDB."""
 
-    def __init__(self, db_manager: DatabaseManager):
+    def __init__(self, uow: MongoUnitOfWork):
         """
-        Initialize the TexLoader with a database manager.
+        Initialize the TexLoader with a MongoDB UnitOfWork.
 
         Args:
-            db_manager (DatabaseManager): The database manager to use for loading templates.
+            uow (MongoUnitOfWork): The unit of work for database operations.
         """
-        self.db_manager = db_manager
+        self.uow = uow
         self.logger = logging.getLogger(__name__)
-
-    def load_file(self, filename: str) -> str:
-        """
-        Load the content of a file from the base path.
-
-        Args:
-            filename (str): The name of the file to load.
-
-        Returns:
-            str: The content of the loaded file.
-        """
-        with open(f"{self.base_path}/{filename}", "r") as file:
-            return file.read()
-
-    def get_section_content(self, section_name: str) -> str:
-        """
-        Get the content of a specific section LaTeX template file.
-
-        Args:
-            section_name (str): The name of the section file to load.
-
-        Returns:
-            str: The content of the section file.
-        """
-        return self.load_file(f"{section_name}.tex")
-
-    # Existing methods for specific sections can be removed or kept as needed
-
-    def load_template(self, template_name):
-        with open(f"{self.template_dir}/{template_name}.tex", "r") as file:
-            return file.read()
-
-    def format_template(self, template_name, **kwargs):
-        template = self.load_template(template_name)
-        return template.format(**kwargs)
+        self._cached_templates = {}
 
     def get_template(self, name: str) -> str:
-        content = self.db_manager.get_tex_header(name)
-        if content is None:
-            raise ValueError(f"Template '{name}' not found in the database")
-        return content
+        """
+        Get a template from MongoDB by name.
+
+        Args:
+            name (str): The name of the template to retrieve.
+
+        Returns:
+            str: The content of the template.
+
+        Raises:
+            ValueError: If the template is not found.
+        """
+        try:
+            # Use cached template if available
+            if name in self._cached_templates:
+                return self._cached_templates[name]
+
+            with self.uow:
+                headers = self.uow.tex_headers.get_all()
+                for header in headers:
+                    if header.name == name:
+                        # Cache the template for future use
+                        self._cached_templates[name] = header.content
+                        self.uow.commit()
+                        return header.content
+                self.uow.commit()
+                raise ValueError(f"Template '{name}' not found in the database")
+        except DatabaseError as e:
+            self.logger.error(f"Database error while retrieving template '{name}': {str(e)}")
+            raise ValueError(f"Error retrieving template '{name}': {str(e)}")
 
     def safe_format_template(self, template_name: str, **kwargs) -> str:
+        """
+        Safely format a template with the given parameters.
+
+        Args:
+            template_name (str): The name of the template to format.
+            **kwargs: The parameters to format the template with.
+
+        Returns:
+            str: The formatted template.
+
+        Raises:
+            ValueError: If the template is not found or formatting fails.
+        """
         template = self.get_template(template_name)
         try:
             return template.format(**kwargs)

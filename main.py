@@ -15,6 +15,7 @@ from utils.view_database import view_database
 
 from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy, OllamaStrategy
 import traceback
+from core.database.factory import get_unit_of_work
 
 # Configure logging
 logger = setup_logger(__name__)
@@ -63,6 +64,13 @@ def main() -> None:
     and orchestrates the generation of resumes and cover letters based on
     the user's selections.
     """
+    # Initialize session state variables
+    if 'user_id' not in st.session_state:
+        st.session_state['user_id'] = "mujakayadan"
+        
+    if 'portfolio_initialized' not in st.session_state:
+        st.session_state['portfolio_initialized'] = False
+
     logger.info("Starting Resume and Cover Letter Generator")
     st.title("Resume and Cover Letter Generator")
 
@@ -70,8 +78,8 @@ def main() -> None:
     page = st.sidebar.radio("Go to", ["Resume Generator", "Database Viewer"])
 
     if page == "Resume Generator":
-        # Initialize database manager
-        db_manager: DatabaseManager = DatabaseManager()
+        # Initialize unit of work
+        uow = get_unit_of_work()
 
         # Get job description from user
         job_description: str = st.text_area("Enter the job description:", height=200)
@@ -119,7 +127,7 @@ def main() -> None:
         # Make sure there's no direct access to ai_runner.model
         # If found, replace it with ai_runner.get_model_name()
 
-        resume_creator = ResumeCreator(ai_runner, mongo_loader, prompt_loader, db_manager)
+        resume_creator = ResumeCreator(ai_runner, prompt_loader, uow)
 
         selected_sections = get_user_section_selection()
 
@@ -132,7 +140,7 @@ def main() -> None:
             else:
                 progress_bar = st.progress(0)
                 status_area = st.empty()
-                resume_id: Optional[int] = None
+                resume_id: Optional[str] = None
                 generation_completed: bool = False
 
                 # Extract company name and job title from job description
@@ -149,12 +157,14 @@ def main() -> None:
                                 model_type,
                                 model_name,
                                 temperature,
-                                selected_sections
+                                selected_sections,
+                                st.session_state.user_id
                         ):
                             progress_bar.progress(progress * 0.5 if generation_option == "Both" else progress)
                             status_area.info(update)
 
-                        resume_id = db_manager.get_latest_resume_id()
+                        latest_resume = uow.resumes.get_latest_resume()
+                        resume_id = str(latest_resume.id) if latest_resume else None
                         generation_completed = True
                     except UnicodeEncodeError as e:
                         st.error(f"Error encoding characters: {str(e)}")
@@ -176,8 +186,7 @@ def main() -> None:
                         st.error("Please generate a resume first.")
                     else:
                         try:
-                            cover_letter_creator: CoverLetterCreator = CoverLetterCreator(ai_runner, mongo_loader,
-                                                                                          prompt_loader, db_manager)
+                            cover_letter_creator: CoverLetterCreator = CoverLetterCreator(ai_runner, prompt_loader, uow)
                             cover_letter_result: str = cover_letter_creator.generate_cover_letter(
                                 job_description,
                                 resume_id,
