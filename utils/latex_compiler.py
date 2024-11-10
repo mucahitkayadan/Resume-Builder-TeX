@@ -81,33 +81,24 @@ def generate_cover_letter_pdf(
 
         personal_info = portfolio.personal_information
         
-        # Create the complete LaTeX document
-        full_content = f"""{tex_content}
-
-\\begin{{document}}
-\\begin{{letter}}{{Company}}
-
-\\personalinfo{{{personal_info.get('name', '')}}}
-           {{{personal_info.get('phone', '')}}}
-           {{{personal_info.get('email', '')}}}
-           {{{personal_info.get('linkedin', '')}}}
-           {{{personal_info.get('github', '')}}}
-           {{{personal_info.get('address', '')}}}
-
-{cover_letter_content}
-
-\\end{{letter}}
-\\end{{document}}"""
+        # Replace placeholders in the preamble
+        tex_content = tex_content.replace('{{NAME}}', personal_info.get('name', ''))
+        tex_content = tex_content.replace('{{PHONE}}', personal_info.get('phone', ''))
+        tex_content = tex_content.replace('{{EMAIL}}', personal_info.get('email', ''))
+        tex_content = tex_content.replace('{{LINKEDIN}}', personal_info.get('linkedin', ''))
+        tex_content = tex_content.replace('{{GITHUB}}', personal_info.get('github', ''))
+        tex_content = tex_content.replace('{{ADDRESS}}', personal_info.get('address', ''))
+        tex_content = tex_content.replace('{{COVER_LETTER_CONTENT}}', cover_letter_content)
 
     # Write to .tex file
     tex_path = os.path.join(output_dir, 'cover_letter.tex')
     with open(tex_path, 'w', encoding='utf-8') as f:
-        f.write(full_content)
+        f.write(tex_content)
 
     # Compile the PDF
     pdf_content = _compile_pdf(tex_path, output_dir)
     
-    return pdf_content, full_content
+    return pdf_content, tex_content
 
 def _compile_pdf(tex_path: str, output_dir: str) -> Optional[bytes]:
     """Helper function to compile LaTeX to PDF"""

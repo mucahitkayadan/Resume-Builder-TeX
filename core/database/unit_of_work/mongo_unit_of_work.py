@@ -9,6 +9,7 @@ from ..models.preamble import Preamble
 from ..models.resume import Resume
 import mongomock
 from datetime import datetime
+import os
 
 class MongoUnitOfWork:
     def __init__(self, connection: MongoConnection):
@@ -94,3 +95,39 @@ class MongoUnitOfWork:
         except Exception as e:
             print(f"Error updating cover letter: {str(e)}")
             return False
+
+    def update_user_signature(self, user_id: str, signature_path: str) -> bool:
+        """Update user's signature with an image file"""
+        if not self.users:
+            raise ValueError("User repository not initialized")
+        
+        try:
+            user = self.users.get_by_id(user_id)
+            if user:
+                with open(signature_path, 'rb') as f:
+                    signature_image = f.read()
+                
+                user.signature_image = signature_image
+                user.signature_filename = os.path.basename(signature_path)
+                user.signature_content_type = 'image/jpeg'  # Assuming it's always jpg
+                user.updated_at = datetime.utcnow()
+                
+                return self.users.update(user)
+            return False
+        except Exception as e:
+            print(f"Error updating user signature: {str(e)}")
+            return False
+
+    def get_user_signature(self, user_id: str) -> Optional[bytes]:
+        """Get user's signature image"""
+        if not self.users:
+            raise ValueError("User repository not initialized")
+        
+        try:
+            user = self.users.get_by_id(user_id)
+            if user and user.signature_image:
+                return user.signature_image
+            return None
+        except Exception as e:
+            print(f"Error retrieving user signature: {str(e)}")
+            return None
