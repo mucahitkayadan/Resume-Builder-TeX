@@ -1,16 +1,8 @@
-import os
-import re
 import logging
-from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional
 from dotenv import load_dotenv
 
-from openai import OpenAI, OpenAIError
-from openai.types.chat import ChatCompletion
-from anthropic import Anthropic, APIError
-
-from loaders.tex_loader import TexLoader
-from engine.ai_strategies import AIStrategy, OpenAIStrategy, ClaudeStrategy
+from engine.ai_strategies import AIStrategy
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
