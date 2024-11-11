@@ -1,8 +1,8 @@
 import pytest
 from datetime import datetime
-from core.database.factory import get_unit_of_work
-from core.database.models.preamble import Preamble
-from core.database.models.resume import Resume
+from src.core.database.factory import get_unit_of_work
+from src.core.database.models.preamble import Preamble
+from src.core.database.models.resume import Resume
 
 @pytest.fixture
 def uow():

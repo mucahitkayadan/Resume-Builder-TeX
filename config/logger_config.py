@@ -1,5 +1,5 @@
 import logging
-from config import LOG_LEVEL, LOGGING_ENABLED
+from config.settings import LOGGING_CONFIG
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -8,12 +8,12 @@ class NullHandler(logging.Handler):
 def setup_logger(name):
     logger = logging.getLogger(name)
     
-    if LOGGING_ENABLED:
-        logger.setLevel(LOG_LEVEL)
+    if LOGGING_CONFIG['enabled']:
+        logger.setLevel(LOGGING_CONFIG['level'])
         
         if not logger.handlers:
             handler = logging.StreamHandler()
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            formatter = logging.Formatter(LOGGING_CONFIG['format'])
             handler.setFormatter(formatter)
             logger.addHandler(handler)
     else:

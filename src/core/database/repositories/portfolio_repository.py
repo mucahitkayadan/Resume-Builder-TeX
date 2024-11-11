@@ -2,7 +2,7 @@ from typing import Optional, List
 from bson import ObjectId
 from ...exceptions.database_exceptions import DatabaseError
 from ..interfaces.repository_interface import BaseRepository
-from ..models.portfolio import Portfolio
+from ..models.portfolio import Portfolio, CareerSummary
 from datetime import datetime
 
 class MongoPortfolioRepository(BaseRepository[Portfolio]):
@@ -63,9 +63,13 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
             # Convert _id to string id
             doc['id'] = str(doc.pop('_id'))
             
-            # Ensure required fields exist with proper types
+            # Handle career_summary mapping
             if 'career_summary' in doc and isinstance(doc['career_summary'], dict):
-                doc['career_summary'] = str(doc['career_summary'].get('summary', ''))
+                doc['career_summary'] = CareerSummary(
+                    job_titles=doc['career_summary'].get('job_titles', []),
+                    years_of_experience=doc['career_summary'].get('years_of_experience', ''),
+                    default_summary=doc['career_summary'].get('default_summary', '')
+                )
                 
             if 'skills' in doc and isinstance(doc['skills'], dict):
                 # Convert skills dict to list of dicts format
@@ -92,3 +96,16 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
             return self._map_to_entity(result) if result else None
         except Exception as e:
             raise DatabaseError(f"Error retrieving portfolio by user ID: {str(e)}") 
+    
+    def update_career_summary(self, portfolio_id: str, career_summary: CareerSummary) -> bool:
+        try:
+            result = self.collection.update_one(
+                {'_id': ObjectId(portfolio_id)},
+                {'$set': {
+                    'career_summary': career_summary.dict(),
+                    'updated_at': datetime.utcnow()
+                }}
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            raise DatabaseError(f"Error updating career summary: {str(e)}")

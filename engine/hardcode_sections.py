@@ -1,5 +1,4 @@
-from typing import Dict, Any, List
-from core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
+from src.core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
 from loaders.tex_loader import TexLoader
 import logging
 from utils.latex_utils import escape_latex

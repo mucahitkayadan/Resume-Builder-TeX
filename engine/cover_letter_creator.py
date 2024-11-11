@@ -1,10 +1,9 @@
 import os
 import logging
-from core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
+from src.core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
 from utils.latex_compiler import generate_cover_letter_pdf
 from loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
-from typing import Optional, Tuple
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,6 @@
 from typing import Optional, ContextManager
-import mongomock
 from pymongo import MongoClient, database
-from config import MONGODB_URI, MONGODB_DATABASE
+from config.config import MONGODB_URI, MONGODB_DATABASE
 
 class MongoConnection(ContextManager[database.Database]):
     def __init__(self, uri: str = MONGODB_URI, db_name: str = MONGODB_DATABASE):

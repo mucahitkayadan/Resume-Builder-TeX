@@ -1,9 +1,8 @@
 import sqlite3
 import json
 import logging
-from typing import Dict, Optional, Union, Any, List, Tuple
-import os
-from utils.logger_config import setup_logger
+from typing import Dict, Optional, Any, List, Tuple
+from config.config import setup_logger
 from pathlib import Path
 
 logger = setup_logger(__name__)

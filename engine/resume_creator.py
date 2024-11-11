@@ -2,8 +2,8 @@ import os
 import sys
 import logging
 from typing import Dict, Generator, Tuple
-from core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
-from core.database.models.resume import Resume
+from src.core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
+from src.core.database.models.resume import Resume
 from utils.latex_compiler import generate_resume_pdf
 from engine.hardcode_sections import HardcodeSections
 from loaders.tex_loader import TexLoader

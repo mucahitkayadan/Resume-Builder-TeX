@@ -38,14 +38,10 @@ LOG_LEVEL = logging.DEBUG  # Can be DEBUG, INFO, WARNING, ERROR, CRITICAL
 LINKEDIN_EMAIL = os.getenv("LINKEDIN_EMAIL")
 LINKEDIN_PASSWORD = os.getenv("LINKEDIN_PASSWORD")
 
-# Database path
-DATABASE_PATH = "__legacy__/db/resumes.db"
-
 # MongoDB Configuration
 MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
 MONGODB_DATABASE = os.getenv("MONGODB_DATABASE", "user_information")
 MONGODB_COLLECTION = os.getenv("MONGODB_COLLECTION", "portfolio")
-
 
 # Ollama Configuration
 OLLAMA_URI = "http://localhost:11434"

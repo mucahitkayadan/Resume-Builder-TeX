@@ -1,8 +1,7 @@
-from typing import Optional
-from core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
-from core.exceptions.database_exceptions import DatabaseError
+from src.core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
+from src.core.exceptions.database_exceptions import DatabaseError
 import logging
-from datetime import datetime, UTC
+
 
 class TexLoader:
     """A class for loading LaTeX template files from MongoDB."""

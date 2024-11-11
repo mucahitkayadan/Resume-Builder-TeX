@@ -1,6 +1,6 @@
 import pytest
-from core.database.factory import get_unit_of_work
-from core.database.models.tex_header import TexHeader
+from src.core.database.factory import get_unit_of_work
+from src.core.database.models.tex_header import TexHeader
 from loaders.tex_loader import TexLoader
 from datetime import datetime
 

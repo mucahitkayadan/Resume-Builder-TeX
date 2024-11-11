@@ -5,12 +5,12 @@ from loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
 from engine.resume_creator import ResumeCreator
 from engine.cover_letter_creator import CoverLetterCreator
-from utils.logger_config import setup_logger
+from config.logger_config import setup_logger
 from utils.view_database import view_database
 
 from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy, OllamaStrategy
 import traceback
-from core.database.factory import get_unit_of_work
+from src.core.database.factory import get_unit_of_work
 
 # Configure logging
 logger = setup_logger(__name__)

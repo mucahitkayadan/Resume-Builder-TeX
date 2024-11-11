@@ -1,15 +1,9 @@
 import os
-import logging
 from typing import List, Dict, Tuple, Any, Callable
-from tqdm import tqdm
 import streamlit as st
-from loaders.tex_loader import TexLoader
 import re
-from config import CHECK_CLEARANCE, CLEARANCE_KEYWORDS
-from config import LOG_LEVEL
-from utils.logger_config import setup_logger
-from tqdm import tqdm
-import logging
+from config.config import CHECK_CLEARANCE, CLEARANCE_KEYWORDS
+from config.logger_config import setup_logger
 
 logger = setup_logger(__name__)
 

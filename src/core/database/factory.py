@@ -1,7 +1,6 @@
-from pymongo import MongoClient
 import os
-from core.database.connections.mongo_connection import MongoConnection
-from config import MONGODB_URI, MONGODB_DATABASE
+from src.core.database.connections.mongo_connection import MongoConnection
+
 
 def get_database_connection():
     uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
@@ -11,5 +10,5 @@ def get_database_connection():
 def get_unit_of_work():
     connection = get_database_connection()
     # Import here to avoid circular import
-    from core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
+    from src.core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
     return MongoUnitOfWork(connection) 

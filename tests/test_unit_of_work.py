@@ -1,7 +1,5 @@
-import pytest
 from datetime import datetime
-from core.database.models.user import User
-from core.exceptions.database_exceptions import DatabaseError
+from src.core.database.models.user import User
 
 
 def test_mongo_uow_transaction_commit(mongo_uow):

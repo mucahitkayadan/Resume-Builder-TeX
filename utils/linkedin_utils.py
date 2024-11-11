@@ -4,12 +4,10 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
 import os
 from dotenv import load_dotenv
-from utils.logger_config import setup_logger
-import time
+from config.logger_config import setup_logger
 
 logger = setup_logger(__name__)
 

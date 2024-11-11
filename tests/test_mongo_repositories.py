@@ -1,15 +1,15 @@
 import pytest
 from datetime import datetime
 
-from core.database.models.user import User
-from core.database.models.portfolio import Portfolio
-from core.database.models.resume import Resume
+from src.core.database.models.user import User
+from src.core.database.models.portfolio import Portfolio
+from src.core.database.models.resume import Resume
 
 @pytest.fixture
 def mongo_connection():
     """Create a mock MongoDB connection"""
     import mongomock
-    from core.database.connections.mongo_connection import MongoConnection
+    from src.core.database.connections.mongo_connection import MongoConnection
     
     connection = MongoConnection()
     connection._client = mongomock.MongoClient()
@@ -20,7 +20,7 @@ def mongo_connection():
 @pytest.fixture
 def mongo_uow(mongo_connection):
     """Create MongoDB Unit of Work"""
-    from core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
+    from src.core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
     return MongoUnitOfWork(mongo_connection)
 
 def test_portfolio_repository_crud(mongo_uow):

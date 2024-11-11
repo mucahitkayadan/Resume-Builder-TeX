@@ -1,5 +1,4 @@
-from fastapi import Depends
-from core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
+from src.core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
 from ..models.user import User
 
 class UserService:

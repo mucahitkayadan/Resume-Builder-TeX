@@ -1,5 +1,5 @@
+import os
 from pathlib import Path
-from typing import Dict, Any
 
 class DatabaseConfig:
     # Base paths
@@ -14,8 +14,8 @@ class DatabaseConfig:
     
     # MongoDB configuration
     MONGODB = {
-        'uri': "mongodb://localhost:27017/",
-        'database': "user_information",
+        'uri': os.getenv("MONGODB_URI", "mongodb://localhost:27017/"),
+        'database': os.getenv("MONGODB_DATABASE", "user_information"),
         'collections': {
             'portfolio': "portfolio",
             'users': "users",
@@ -33,5 +33,5 @@ class DatabaseConfig:
         return cls.SQLITE.get(db_name)
     
     @classmethod
-    def get_mongodb_config(cls) -> Dict[str, Any]:
+    def get_mongodb_config(cls):
         return cls.MONGODB

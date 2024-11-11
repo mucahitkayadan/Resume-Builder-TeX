@@ -1,6 +1,6 @@
 from typing import Dict, List, Any, Optional
 from pymongo import MongoClient
-from config import MONGODB_URI, MONGODB_DATABASE, MONGODB_COLLECTION
+from config.config import MONGODB_URI, MONGODB_DATABASE, MONGODB_COLLECTION
 import logging
 
 class MongoLoader:

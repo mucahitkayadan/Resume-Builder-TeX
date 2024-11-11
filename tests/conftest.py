@@ -1,7 +1,7 @@
 import pytest
 import mongomock
-from core.database.connections.mongo_connection import MongoConnection
-from core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
+from src.core.database.connections.mongo_connection import MongoConnection
+from src.core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
 
 @pytest.fixture
 def mongo_connection():
