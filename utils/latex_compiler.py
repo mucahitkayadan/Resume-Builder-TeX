@@ -7,7 +7,10 @@ from src.core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
 
 logger = logging.getLogger(__name__)
 
-def generate_resume_pdf(uow: MongoUnitOfWork, content_dict: Dict[str, str], output_dir: str, filename: str = 'resume.tex') -> Optional[bytes]:
+def generate_resume_pdf(uow: MongoUnitOfWork,
+                        content_dict: Dict[str, str],
+                        output_dir: str,
+                        filename: str = 'resume.tex') -> Optional[bytes]:
     """
     Generate a PDF resume from the given content dictionary.
     """
