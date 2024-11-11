@@ -1,7 +1,7 @@
 import logging
 import os
 from engine.hardcode_sections import HardcodeSections
-from loaders.tex_loader import TexLoader
+from src.loaders.tex_loader import TexLoader
 from src.core.database.factory import get_unit_of_work
 from utils.latex_compiler import generate_resume_pdf
 

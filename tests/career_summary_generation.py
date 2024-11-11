@@ -8,8 +8,8 @@ sys.path.insert(0, project_root)
 
 from engine.resume_creator import ResumeCreator
 from engine.runners import AIRunner
-from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy
-from loaders.prompt_loader import PromptLoader
+from engine.ai_strategies import ClaudeStrategy
+from src.loaders.prompt_loader import PromptLoader
 from src.core.database.factory import get_unit_of_work
 
 # Reference to config.py for logging setup

@@ -2,7 +2,7 @@ import os
 from anthropic import Anthropic
 from .base import LLMStrategy
 from config.llm_config import LLMConfig
-from ..utils.logger import setup_logger
+from config.logger_config import setup_logger
 from ..utils.errors import APIError, ConfigurationError
 from ..utils.response import process_api_response
 

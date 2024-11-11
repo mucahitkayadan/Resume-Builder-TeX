@@ -9,7 +9,7 @@ sys.path.insert(0, project_root)
 
 from engine.hardcode_sections import HardcodeSections
 from __legacy__.json_loader import JsonLoader
-from loaders.tex_loader import TexLoader
+from src.loaders.tex_loader import TexLoader
 from __legacy__.database_manager import DatabaseManager
 from utils.latex_compiler import generate_resume_pdf
 

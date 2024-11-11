@@ -14,7 +14,7 @@ from easy_applier.job_applier import JobApplier
 from easy_applier.linkedin_scraper import LinkedInScraper
 from __legacy__.database_manager import DatabaseManager
 from __legacy__.json_loader import JsonLoader
-from loaders.prompt_loader import PromptLoader
+from src.loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
 from engine.ai_strategies import OpenAIStrategy
 from easy_applier.linkedin_job_manager import LinkedInJobManager

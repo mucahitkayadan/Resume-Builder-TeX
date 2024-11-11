@@ -2,7 +2,7 @@ import os
 from engine.cover_letter_creator import CoverLetterCreator
 from __legacy__.database_manager import DatabaseManager
 from __legacy__.json_loader import JsonLoader
-from loaders.prompt_loader import PromptLoader
+from src.loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
 from engine.ai_strategies import OpenAIStrategy  # Import the actual AI strategy you're using
 import logging

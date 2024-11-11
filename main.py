@@ -1,7 +1,7 @@
 from typing import Optional, Dict
 import streamlit as st
 from __legacy__.document_utils import check_clearance_requirement, get_or_create_folder_name
-from loaders.prompt_loader import PromptLoader
+from src.loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
 from engine.resume_creator import ResumeCreator
 from engine.cover_letter_creator import CoverLetterCreator

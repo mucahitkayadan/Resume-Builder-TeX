@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional
 from .errors import ResponseError
-from .logger import setup_logger
+from config.logger_config import setup_logger
 
 logger = setup_logger(__name__)
 

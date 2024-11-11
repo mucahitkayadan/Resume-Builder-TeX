@@ -1,7 +1,7 @@
 from engine.resume_creator import ResumeCreator
 from __legacy__.database_manager import DatabaseManager
 from __legacy__.json_loader import JsonLoader
-from loaders.prompt_loader import PromptLoader
+from src.loaders.prompt_loader import PromptLoader
 from engine.runners import AIRunner
 from typing import Dict, Generator, Tuple
 

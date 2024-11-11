@@ -6,10 +6,10 @@ from src.core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
 from src.core.database.models.resume import Resume
 from utils.latex_compiler import generate_resume_pdf
 from engine.hardcode_sections import HardcodeSections
-from loaders.tex_loader import TexLoader
+from src.loaders.tex_loader import TexLoader
 from engine.runners import AIRunner
 from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy, OllamaStrategy
-from loaders.prompt_loader import PromptLoader
+from src.loaders.prompt_loader import PromptLoader
 from utils.file_operations import create_output_directory, save_job_description
 
 logger = logging.getLogger(__name__)
