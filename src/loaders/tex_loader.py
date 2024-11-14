@@ -1,19 +1,16 @@
-from src.core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
+# Testing is done - Successful
 from src.core.exceptions.database_exceptions import DatabaseError
 import logging
-
+from src.core.database.factory import get_unit_of_work
 
 class TexLoader:
     """A class for loading LaTeX template files from MongoDB."""
 
-    def __init__(self, uow: MongoUnitOfWork):
+    def __init__(self):
         """
         Initialize the TexLoader with a MongoDB UnitOfWork.
-
-        Args:
-            uow (MongoUnitOfWork): The unit of work for database operations.
         """
-        self.uow = uow
+        self.uow = get_unit_of_work()
         self.logger = logging.getLogger(__name__)
         self._cached_templates = {}
 
@@ -72,3 +69,7 @@ class TexLoader:
         except ValueError as e:
             self.logger.error(f"ValueError in template '{template_name}': {e}")
             raise ValueError(f"Error formatting template '{template_name}': {e}")
+
+# if __name__ == '__main__':
+#     tex_loader = TexLoader()
+#     print(tex_loader.get_template("career_summary"))

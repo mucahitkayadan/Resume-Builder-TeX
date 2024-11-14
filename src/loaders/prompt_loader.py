@@ -1,64 +1,55 @@
-import os
-from typing import Optional
+# Testing is done - Successful
+from config.settings import PROMPTS_FOLDER
+
 
 class PromptLoader:
     """
-    A class for loading prompt files from a specified base path.
+    A class to load prompts from a specified directory.
     """
 
-    def __init__(self, prompt_dir):
+    def __init__(self):
         """
-        Initialize the PromptLoader with a base path.
+        Initialize the PromptLoader with a base directory path.
+        """
+        self.prompt_dir = PROMPTS_FOLDER
 
+    def _load_prompt(self, filename: str) -> str:
+        """Load the content of a prompt file.
         Args:
-            prompt_dir (str): The base directory path where prompt files are stored.
+            filename (str): The name of the file to load.
+        Returns:
+            str: The content of the prompt file.
         """
-        self.prompt_dir = prompt_dir
-
-    def _load_prompt(self, filename):
-        with open(os.path.join(self.prompt_dir, filename), 'r', encoding='utf-8') as f:
+        prompt_path = self.prompt_dir / filename
+        if not prompt_path.exists():
+            raise FileNotFoundError(f"Prompt file not found at {prompt_path}")
+        with open(prompt_path, 'r', encoding='utf-8') as f:
             prompt = f.read().strip()
         return prompt
 
-    def get_career_summary_prompt(self) -> str:
-        """Get the prompt for the career summary section."""
-        return self._load_prompt("career_summary_prompt.txt")
-
-    def get_skills_prompt(self) -> str:
-        """Get the prompt for the skills section."""
-        return self._load_prompt("skills_prompt.txt")
-
-    def get_work_experience_prompt(self) -> str:
-        """Get the prompt for the work experience section."""
-        return self._load_prompt("work_experience_prompt.txt")
-
-    def get_education_prompt(self) -> str:
-        """Get the prompt for the education section."""
-        return self._load_prompt("education_prompt.txt")
-
-    def get_projects_prompt(self) -> str:
-        """Get the prompt for the projects section."""
-        return self._load_prompt("projects_prompt.txt")
-
-    def get_awards_prompt(self) -> str:
-        """Get the prompt for the awards section."""
-        return self._load_prompt("awards_prompt.txt")
-
-    def get_publications_prompt(self) -> str:
-        """Get the prompt for the publications section."""
-        return self._load_prompt("publications_prompt.txt")
-
-    def get_personal_information_prompt(self):
-        return self._load_prompt('personal_information_prompt.txt')
-
-    def get_job_titles_prompt(self):
-        return self._load_prompt('job_titles_prompt.txt')
+    def get_section_prompt(self, section: str) -> str:
+        """
+        Get the prompt for a specific section.
+        
+        Args:
+            section (str): The section name (e.g. 'career_summary', 'skills')
+            
+        Returns:
+            str: The prompt text for the specified section
+        """
+        filename = f"{section.lower()}_prompt.txt"
+        return self._load_prompt(filename)
 
     def get_system_prompt(self):
         return self._load_prompt('system_prompt.txt')
-    
+
     def get_folder_name_prompt(self):
         return self._load_prompt('folder_name_prompt.txt')
-    
+
     def get_cover_letter_prompt(self):
         return self._load_prompt('cover_letter_prompt.txt')
+
+if __name__ == '__main__':
+    prompt_loader = PromptLoader()
+    print(f"Resolved PROMPTS_FOLDER: {PROMPTS_FOLDER}")
+    print(prompt_loader.get_section_prompt('career_summary'))
