@@ -5,6 +5,8 @@ from config.llm_config import LLMConfig
 from config.logger_config import setup_logger
 from ..utils.errors import APIError, ConfigurationError
 from ..utils.response import process_api_response
+from typing import Tuple
+from src.resume.utils.string_utils import sanitize_filename
 
 logger = setup_logger(__name__)
 
@@ -36,7 +38,7 @@ class OpenAIStrategy(LLMStrategy):
             logger.error(f"OpenAI API error: {e}")
             raise APIError(f"OpenAI API error: {e}")
 
-    def create_folder_name(self, prompt: str, job_description: str) -> str:
+    def create_folder_name(self, prompt: str, job_description: str)  -> str:
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -49,7 +51,8 @@ class OpenAIStrategy(LLMStrategy):
                 **LLMConfig.OPENAI_MODEL.default_options
             )
             result = process_api_response(response, "OpenAI")
-            return result if result else LLMConfig.UNKNOWN_FOLDER_NAME
+            return result
+
         except Exception as e:
             logger.error(f"Error in create_folder_name: {e}")
-            return LLMConfig.ERROR_FOLDER_NAME
+            return "error_company_name|error_job_title"

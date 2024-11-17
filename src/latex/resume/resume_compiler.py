@@ -1,27 +1,37 @@
 from typing import Dict, Optional
 from pathlib import Path
-from src.core.database.unit_of_work import MongoUnitOfWork
-from ..base_compiler import LatexCompiler
+from ..latex_compiler import LatexCompiler
 from ..utils import LatexEscaper, LatexPlaceholder
+import logging
+from src.core.database.factory import get_unit_of_work
+
+logger = logging.getLogger(__name__)
 
 class ResumeLatexCompiler(LatexCompiler):
-    def __init__(self, uow: MongoUnitOfWork, output_dir: Path):
-        super().__init__(output_dir)
-        self.uow = uow
+    def __init__(self):
+        super().__init__()
+        self.uow = get_unit_of_work()
         self.escaper = LatexEscaper()
         self.placeholder = LatexPlaceholder()
-    
-    def generate_pdf(self, content_dict: Dict[str, str], 
-                    filename: str = 'resume.tex') -> Optional[bytes]:
-        tex_path = self.output_dir / filename
-        
-        with self.uow:
-            preamble = self.uow.get_resume_preamble()
-            if not preamble:
-                return None
+
+    def generate_pdf(self, content_dict: Dict[str, str], output_dir: Path) -> Optional[bytes]:
+        """Generate PDF from resume content."""
+        try:
+            # Create tex file path
+            tex_path = output_dir / 'resume.tex'
+            
+            with self.uow:
+                preamble = self.uow.get_resume_preamble()
+                if not preamble:
+                    logger.error("Preamble not found in database")
+                    return None
+
+                tex_content = self._generate_tex_content(preamble.content, content_dict)
+                return self.compile_pdf(tex_path, tex_content)
                 
-            tex_content = self._generate_tex_content(preamble.content, content_dict)
-            return self.compile_pdf(tex_path, tex_content)
+        except Exception as e:
+            logger.error(f"Failed to generate PDF: {e}")
+            return None
     
     def _generate_tex_content(self, preamble: str, content_dict: Dict[str, str]) -> str:
         """Generate LaTeX content for resume."""

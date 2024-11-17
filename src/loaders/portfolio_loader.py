@@ -56,6 +56,6 @@ class PortfolioLoader:
 
         return section_mapping[section]
 
-# if __name__ == '__main__':
-#     portfolio_loader = PortfolioLoader("mujakayadan")
-#     print(portfolio_loader.data)
+if __name__ == '__main__':
+    portfolio_loader = PortfolioLoader("mujakayadan")
+    print(portfolio_loader.data)

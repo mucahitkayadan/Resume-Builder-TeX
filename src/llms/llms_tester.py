@@ -10,18 +10,20 @@ from src.llms.strategies.openai_strategy import OpenAIStrategy
 from src.llms.strategies.claude_strategy import ClaudeStrategy
 from src.llms.strategies.ollama_strategy import OllamaStrategy
 from src.llms.utils.errors import APIError, ConfigurationError
+from config.llm_config import LLMConfig
 
-def llm_strategy_tester(strategy_name: str, strategy_class, api_key: str):
+def llm_strategy_tester(strategy_name: str, strategy_class, api_key_env: str):
     print(f"\n=== Testing {strategy_name} Strategy ===")
     
     # Test initialization
     print("\nTesting initialization...")
     try:
-        # Special handling for Ollama URL
-        if strategy_name == "Ollama":
-            os.environ[api_key] = "http://localhost:11434"
-        else:
-            os.environ[api_key] = "test_key"
+        config = LLMConfig.get_provider_config(strategy_name)
+        if not config:
+            if LLMConfig.PROVIDER_CONFIG[strategy_name]["is_uri"]:
+                print(f"! Using default URI: {LLMConfig.OLLAMA_DEFAULT_URI}")
+            else:
+                raise ConfigurationError(LLMConfig.MISSING_API_KEY_ERROR.format(strategy_name))
             
         strategy = strategy_class("You are a helpful assistant.")
         print(f"✓ Successfully initialized {strategy_name}")
@@ -70,8 +72,8 @@ def main():
         ("Ollama", OllamaStrategy, "OLLAMA_URI")
     ]
 
-    for strategy_name, strategy_class, api_key in strategies:
-        llm_strategy_tester(strategy_name, strategy_class, api_key)
+    for strategy_name, strategy_class, api_key_env in strategies:
+        llm_strategy_tester(strategy_name, strategy_class, api_key_env)
         print("\n" + "="*50)
 
 if __name__ == "__main__":

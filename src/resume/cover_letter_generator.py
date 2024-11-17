@@ -1,28 +1,30 @@
 import logging
-from pathlib import Path
-from typing import Optional
 
-from src.core.database.unit_of_work import MongoUnitOfWork
 from src.llms.runner import LLMRunner
 from src.latex.cover_letter.cover_letter_compiler import CoverLetterLatexCompiler
 from src.loaders.prompt_loader import PromptLoader
 from .utils.string_utils import ensure_string
 from .utils.file_ops import create_output_directory
+from src.core.database.factory import get_unit_of_work
 
 logger = logging.getLogger(__name__)
 
 class CoverLetterGenerator:
     """A class for generating cover letters based on job descriptions and resume data."""
 
-    def __init__(self, llm_runner: LLMRunner, prompt_loader: PromptLoader, uow: MongoUnitOfWork):
-        """Initialize the CoverLetterGenerator with necessary components."""
+    def __init__(self, llm_runner: LLMRunner, user_id: str):
+        """Initialize the CoverLetterGenerator with necessary parts."""
         self.llm_runner = llm_runner
-        self.prompt_loader = prompt_loader
-        self.uow = uow
-        self.latex_compiler = CoverLetterLatexCompiler(uow)
+        self.user_id = user_id
+        self.prompt_loader = PromptLoader()
+        self.uow = get_unit_of_work()
+        self.latex_compiler = CoverLetterLatexCompiler()
 
-    def generate_cover_letter(self, job_description: str, resume_id: str, 
-                            company_name: str, job_title: str) -> str:
+    def generate_cover_letter(self,
+                              job_description: str,
+                              resume_id: str,
+                              company_name: str,
+                              job_title: str) -> str:
         """
         Generate a cover letter based on the given job description and resume data.
         
@@ -76,7 +78,7 @@ class CoverLetterGenerator:
         """Generate cover letter content using AI."""
         resume_data = ensure_string(resume_data)
         cover_letter_prompt = self.prompt_loader.get_cover_letter_prompt()
-        return self.llm_runner.process_section(
+        return self.llm_runner.generate_content(
             cover_letter_prompt, resume_data, job_description
         )
 
@@ -84,10 +86,13 @@ class CoverLetterGenerator:
                               job_title: str, user_id: str, resume_id: str) -> str:
         """Generate PDF and save to database."""
         output_dir = create_output_directory(company_name, job_title)
-
+        
         try:
             pdf_content, latex_content = self.latex_compiler.generate_pdf(
-                content, output_dir, user_id, resume_id
+                content=content,
+                output_dir=output_dir,
+                user_id=user_id,
+                resume_id=resume_id
             )
             
             with self.uow:

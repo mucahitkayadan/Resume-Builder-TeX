@@ -40,26 +40,49 @@ class ResumeCreator:
         self.prompt_loader = prompt_loader
         self.uow = uow
         self.logger = logging.getLogger(__name__)
-        self.tex_loader = TexLoader(uow)
-        self.hardcoder = HardcodeSections(uow, self.tex_loader)
+        self.tex_loader = TexLoader()
+        self.hardcoder = HardcodeSections(self.tex_loader)
 
-    def process_section(self, section: str, process_type: str, job_description: str, user_id: str) -> str:
+    # def process_section(self, section: str, process_type: str, job_description: str, user_id: str) -> str:
+    #     if process_type == "skip":
+    #         return ""
+    #     elif process_type == "hardcode":
+    #         return self.hardcoder.hardcode_section(section, user_id)
+    #     else:  # "process"
+    #         prompt = getattr(self.prompt_loader, f"get_{section}_prompt")()
+    #         with self.uow:
+    #             portfolio = self.uow.portfolio.get_by_user_id(user_id)
+    #             if not portfolio:
+    #                 raise ValueError(f"Portfolio not found for user {user_id}")
+    #             data = getattr(portfolio, section)
+    #         return self.ai_runner.process_section(prompt, data, job_description)
+
+    def process_section(self,
+                        section: str,
+                        process_type: str,
+                        job_description: str,
+                        user_id: str) -> str:
+        """Process a single section based on the process type."""
         if process_type == "skip":
             return ""
         elif process_type == "hardcode":
             return self.hardcoder.hardcode_section(section, user_id)
-        else:  # "process"
-            prompt = getattr(self.prompt_loader, f"get_{section}_prompt")()
-            with self.uow:
-                portfolio = self.uow.portfolio.get_by_user_id(user_id)
-                if not portfolio:
-                    raise ValueError(f"Portfolio not found for user {user_id}")
-                data = getattr(portfolio, section)
+        elif process_type == "process":
+            prompt = self.prompt_loader.get_section_prompt(section)
+            data = self.prompt_loader.get_section_prompt(section)
             return self.ai_runner.process_section(prompt, data, job_description)
+        else:
+            raise ValueError(f"Invalid process type: {process_type}")
 
-    def generate_resume(self, job_description: str, company_name: str, job_title: str, 
-                        model_type: str, model_name: str, temperature: float,
-                        selected_sections: Dict[str, str], user_id: str) -> Generator[Tuple[str, float], None, None]:
+    def generate_resume(self,
+                        job_description: str,
+                        company_name: str,
+                        job_title: str,
+                        model_type: str,
+                        model_name: str,
+                        temperature: float,
+                        selected_sections: Dict[str, str],
+                        user_id: str) -> Generator[Tuple[str, float], None, None]:
         self.logger.info("Starting resume generation process")
         self.logger.info(f"Generating resume with {self.ai_runner.__class__.__name__} using strategy: {self.ai_runner.strategy.__class__.__name__}")
         

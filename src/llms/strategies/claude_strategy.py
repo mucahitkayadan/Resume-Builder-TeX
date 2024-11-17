@@ -1,4 +1,3 @@
-import os
 from anthropic import Anthropic
 from .base import LLMStrategy
 from config.llm_config import LLMConfig
@@ -13,9 +12,9 @@ class ClaudeStrategy(LLMStrategy):
         super().__init__(system_instruction)
         self._model = LLMConfig.CLAUDE_MODEL.name
         self._temperature = LLMConfig.CLAUDE_MODEL.default_temperature
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        api_key = LLMConfig.get_provider_config("Claude")
         if not api_key:
-            raise ConfigurationError(LLMConfig.MISSING_API_KEY_ERROR.format("Anthropic"))
+            raise ConfigurationError(LLMConfig.MISSING_API_KEY_ERROR.format("Claude"))
         self.client = Anthropic(api_key=api_key)
 
     def generate_content(self, prompt: str, data: str, job_description: str) -> str:
@@ -47,7 +46,7 @@ class ClaudeStrategy(LLMStrategy):
                 ]
             )
             result = process_api_response(response, "Claude")
-            return result if result else LLMConfig.UNKNOWN_FOLDER_NAME
+            return result
         except Exception as e:
             logger.error(f"Error in create_folder_name: {e}")
-            return LLMConfig.ERROR_FOLDER_NAME
+            return "error_company_name|error_job_title"

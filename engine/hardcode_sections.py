@@ -2,12 +2,13 @@ from src.core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
 from src.loaders.tex_loader import TexLoader
 import logging
 from utils.latex_utils import escape_latex
+from src.core.database.factory import get_unit_of_work
 
 logger = logging.getLogger(__name__)
 
 class HardcodeSections:
-    def __init__(self, uow: MongoUnitOfWork, tex_loader: TexLoader):
-        self.uow = uow
+    def __init__(self, tex_loader: TexLoader):
+        self.uow = get_unit_of_work()
         self.tex_loader = tex_loader
 
     def hardcode_section(self, section: str, user_id: str) -> str:
@@ -30,13 +31,17 @@ class HardcodeSections:
 
     def hardcode_career_summary(self, user_id: str) -> str:
         portfolio = self.get_portfolio(user_id)
-        personal_info = portfolio.personal_information
+        
+        # Access attributes directly from the CareerSummary object
+        first_job_title = portfolio.career_summary.job_titles[0] if portfolio.career_summary.job_titles else "Professional"
+        years_of_experience = portfolio.career_summary.years_of_experience
+        default_summary = portfolio.career_summary.default_summary
         
         return self.tex_loader.safe_format_template(
-            'career_summary', 
-            summary=escape_latex(portfolio.career_summary),
-            job_title=escape_latex(personal_info.get('job_title', 'Professional')),
-            years_of_experience=escape_latex(str(personal_info.get('years_of_experience', '5+')))
+            'career_summary',
+            job_title=first_job_title,
+            years_of_experience=years_of_experience,
+            summary=default_summary
         )
 
     def hardcode_skills(self, user_id: str) -> str:

@@ -1,17 +1,15 @@
 import logging
-import sys
 from typing import Dict, Generator, Tuple
-from pathlib import Path
 
-from src.core.database.unit_of_work import MongoUnitOfWork
 from src.core.database.models.resume import Resume
-from src.llms.runner import AIRunner
-from src.llms.strategies import OpenAIStrategy, ClaudeStrategy, OllamaStrategy
+from src.llms.runner import LLMRunner
 from src.latex.resume.resume_compiler import ResumeLatexCompiler
 from src.loaders.prompt_loader import PromptLoader
 from src.loaders.tex_loader import TexLoader
-from .hardcode_sections import HardcodeSections
-from .utils.file_ops import create_output_directory, save_job_description
+from src.resume.hardcode_sections import HardcodeSections
+from src.resume.utils.file_ops import create_output_directory, save_job_description
+from src.loaders.portfolio_loader import PortfolioLoader
+from src.core.database.factory import get_unit_of_work
 
 logger = logging.getLogger(__name__)
 
@@ -23,117 +21,165 @@ class ResumeGenerator:
     content creation, PDF generation, and database storage.
     """
 
-    def __init__(self, ai_runner: AIRunner, prompt_loader: PromptLoader, uow: MongoUnitOfWork):
-        """Initialize the ResumeGenerator with necessary components."""
-        self.ai_runner = ai_runner
-        self.prompt_loader = prompt_loader
-        self.uow = uow
-        self.tex_loader = TexLoader(uow)
-        self.hardcoder = HardcodeSections(uow, self.tex_loader)
-        self.latex_compiler = ResumeLatexCompiler(uow)
+    def __init__(self, llm_runner: LLMRunner, user_id: str):
+        """Initialize the ResumeGenerator with necessary parts."""
+        self.llm_runner = llm_runner
+        self.uow = get_unit_of_work()
+        self.user_id = user_id
+        self.prompt_loader = PromptLoader()
+        self.tex_loader = TexLoader()
+        self.portfolio_loader = PortfolioLoader(self.user_id)
+        self.hardcoder = HardcodeSections()
+        self.latex_compiler = ResumeLatexCompiler()
 
-    def generate_resume(self, job_description: str, company_name: str, job_title: str, 
-                       model_type: str, model_name: str, temperature: float,
-                       selected_sections: Dict[str, str], user_id: str) -> Generator[Tuple[str, float], None, None]:
+    def generate_resume(self,
+                        job_description: str,
+                        selected_sections: Dict[str, str]) -> Generator[Tuple[str, float], None, Resume]:
         """
-        Generate a resume based on the provided job description and settings.
+        Generate a résumé based on the provided job description and settings.
         
         Args:
             job_description: Job description text
-            company_name: Target company name
-            job_title: Target job title
-            model_type: AI model type (OpenAI, Claude, Ollama)
-            model_name: Specific model name
-            temperature: Model temperature setting
             selected_sections: Dictionary of sections to process
-            user_id: User identifier
             
         Yields:
             Tuple of (status message, progress percentage)
+        Returns:
+            Resume: The generated resume object
         """
         logger.info("Starting resume generation process")
+        logger.info(f"Using LLM strategy: {self.llm_runner.strategy.__class__.__name__}")
+        logger.info(f"Selected sections: {selected_sections}")
         
-        # Set AI strategy
-        strategy = self._get_ai_strategy(model_type)
-        strategy.model = model_name
-        strategy.temperature = temperature
-        self.ai_runner.set_strategy(strategy)
+        progress = 0.0  # Initialize progress here
         
-        # Process sections
-        content_dict = self._process_sections(selected_sections, job_description, user_id)
-        
-        # Generate and save resume
         try:
-            resume = self._generate_and_save_resume(
-                content_dict, job_description, company_name, 
-                job_title, user_id, model_type, model_name, temperature
+            # Initial progress
+            yield "Starting resume generation...", progress
+            
+            company_name, job_title = self.llm_runner.create_company_name_and_job_title(
+                self.prompt_loader.get_folder_name_prompt(), 
+                job_description
             )
-            yield f"Resume generated and saved successfully (ID: {resume.id})", 1
+            logger.info(f"Generated company name: {company_name}, job title: {job_title}")
+            progress = 0.2
+            yield f"Created folder for {company_name} - {job_title}", progress
+            
+            # Process sections
+            content_dict = {}
+            total_sections = len(selected_sections)
+            for i, (section, process_type) in enumerate(selected_sections.items(), 1):
+                try:
+                    content = self.process_section(section, process_type, job_description)
+                    if content:
+                        content_dict[section] = content
+                        logger.info(f"Processed {section} section")
+                    progress = 0.2 + (0.6 * (i / total_sections))  # Progress from 20% to 80%
+                    yield f"Processed {section} section", progress
+                except Exception as e:
+                    logger.error(f"Failed to process section {section}: {e}")
+                    yield f"Error processing {section}", progress
+            
+            # Generate and save resume
+            yield "Generating final PDF...", 0.9
+            resume = self._generate_and_save_resume(
+                content_dict=content_dict,
+                job_description=job_description,
+                company_name=company_name,
+                job_title=job_title
+            )
+            logger.info(f"Resume generated and saved with ID: {resume.id}")
+            yield "Resume generation complete!", 1.0
+            return resume
+            
         except Exception as e:
             logger.error(f"Resume generation failed: {str(e)}", exc_info=True)
-            yield f"Resume generation failed: {str(e)}", 1
+            yield f"Error: {str(e)}", 1.0
+            raise
 
-    def _get_ai_strategy(self, model_type: str):
-        """Get appropriate AI strategy based on model type."""
-        strategy_map = {
-            "OpenAI": OpenAIStrategy,
-            "Claude": ClaudeStrategy,
-            "Ollama": OllamaStrategy
-        }
-        strategy_class = strategy_map.get(model_type)
-        if not strategy_class:
-            raise ValueError(f"Unsupported model type: {model_type}")
-        return strategy_class(self.prompt_loader.get_system_prompt())
-
-    def _process_sections(self, selected_sections: Dict[str, str], 
-                         job_description: str, user_id: str) -> Dict[str, str]:
+    def _process_sections(self,
+                          selected_sections: Dict[str, str],
+                          job_description: str) -> Dict[str, str]:
         """Process each selected section."""
         content_dict = {}
-        for section, process_type in selected_sections.items():
+
+        for i, (section, process_type) in enumerate(selected_sections.items()):
             try:
-                content = self.process_section(section, process_type, job_description, user_id)
+                content = self.process_section(section, process_type, job_description)
                 if content:
                     content_dict[section] = content
                     logger.info(f"Processed {section} section")
+                yield f"Processed {section} section", (i + 1) / len(selected_sections)
             except Exception as e:
                 logger.error(f"Failed to process section {section}: {e}")
         return content_dict
 
-    def _generate_and_save_resume(self, content_dict: Dict[str, str], 
-                                job_description: str, company_name: str, 
-                                job_title: str, user_id: str, model_type: str,
-                                model_name: str, temperature: float) -> Resume:
+    def _generate_and_save_resume(self,
+                                  content_dict: Dict[str, str],
+                                  job_description: str,
+                                  company_name: str,
+                                  job_title: str) -> Resume:
         """Generate PDF and save resume to database."""
-        output_dir = create_output_directory(company_name, job_title)
-        save_job_description(job_description, output_dir)
+        try:
+            # Create output directory and save job description
+            output_dir = create_output_directory(company_name, job_title)
+            save_job_description(job_description, output_dir)
+            
+            # Generate PDF
+            generated_pdf = self.latex_compiler.generate_pdf(content_dict, output_dir)
+            if not generated_pdf:
+                raise Exception("PDF generation failed")
 
-        generated_pdf = self.latex_compiler.generate_pdf(content_dict, output_dir)
-        if not generated_pdf:
-            raise Exception("PDF generation failed")
+            # Create resume object
+            resume = Resume(
+                id=None,
+                user_id=self.user_id,
+                company_name=company_name,
+                job_title=job_title,
+                job_description=job_description,
+                **content_dict,
+                resume_pdf=generated_pdf,
+                model_type=self.llm_runner.get_config().get('type'),
+                model_name=self.llm_runner.strategy.__class__.__name__,
+                temperature=self.llm_runner.get_config().get('temperature')
+            )
 
-        resume = Resume(
-            id=None,
-            user_id=user_id,
-            company_name=company_name,
-            job_title=job_title,
-            job_description=job_description,
-            **content_dict,
-            model_type=model_type,
-            model_name=model_name,
-            temperature=temperature,
-            resume_pdf=generated_pdf
-        )
+            # Save to database
+            with self.uow:
+                self.uow.resumes.add(resume)
+                self.uow.commit()
 
-        with self.uow:
-            return self.uow.resumes.add(resume)
+            return resume
+            
+        except Exception as e:
+            logger.error(f"Failed to generate and save resume: {e}")
+            raise
 
-    def process_section(self, section: str, process_type: str, 
-                       job_description: str, user_id: str) -> str:
+    def process_section(self,
+                        section: str,
+                        process_type: str,
+                        job_description: str) -> str:
         """Process a single section based on the process type."""
-        if process_type == "hardcode":
-            return self.hardcoder.hardcode_section(section, user_id)
-        elif process_type == "ai":
+        if process_type == "skip":
+            return ""
+        elif process_type == "hardcode":
+            return self.hardcoder.hardcode_section(section, self.user_id)
+        elif process_type == "process":
+            # Get the prompt template for this section
             prompt = self.prompt_loader.get_section_prompt(section)
-            return self.ai_runner.process_section(prompt, job_description)
+            
+            # Get the portfolio data for this section
+            with self.uow:
+                portfolio = self.uow.portfolio.get_by_user_id(self.user_id)
+                if not portfolio:
+                    raise ValueError(f"Portfolio not found for user {self.user_id}")
+                
+                # Get the specific section data from portfolio
+                section_data = getattr(portfolio, section, None)
+                if section_data is None:
+                    raise ValueError(f"Section {section} not found in portfolio")
+                
+            # Generate content using the prompt and portfolio data
+            return self.llm_runner.generate_content(prompt, str(section_data), job_description)
         else:
             raise ValueError(f"Invalid process type: {process_type}") 

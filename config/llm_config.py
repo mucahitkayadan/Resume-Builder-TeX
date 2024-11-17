@@ -1,49 +1,75 @@
-from typing import Dict, Any
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Dict, Any, Optional
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 @dataclass
 class ModelConfig:
     name: str
     default_temperature: float
-    max_tokens: int
-    default_options: Dict[str, Any]
+    max_tokens: Optional[int] = None
+    default_options: Dict[str, Any] = field(default_factory=dict)
 
 class LLMConfig:
-    # Default model configurations
+    # Provider configurations
+    PROVIDER_CONFIG = {
+        "OpenAI": {"env_var": "OPENAI_API_KEY", "is_uri": False},
+        "Claude": {"env_var": "ANTHROPIC_API_KEY", "is_uri": False},
+        "Ollama": {"env_var": "OLLAMA_URI", "is_uri": True}
+    }
+
+    # Model configurations
     OPENAI_MODEL = ModelConfig(
-        name="gpt4o-mini",
+        name="gpt-4",
         default_temperature=0.1,
-        max_tokens=1000,
-        default_options={
-            "presence_penalty": 0,
-            "frequency_penalty": 0.3,
-        }
+        max_tokens=4000
     )
 
     CLAUDE_MODEL = ModelConfig(
-        name="claude-3-5-sonnet-latest",
+        name="claude-3-sonnet-20240229",
         default_temperature=0.1,
-        max_tokens=1000,
-        default_options={}
+        max_tokens=4000
     )
 
     OLLAMA_MODEL = ModelConfig(
         name="llama3.1",
         default_temperature=0.1,
-        max_tokens=1000,
         default_options={
-            "stream": False
+            "num_predict": 2048,
+            "top_k": 40,
+            "top_p": 0.9,
+            "repeat_penalty": 1.1
         }
     )
 
-    # API endpoints
+    # Default URIs and folder names
     OLLAMA_DEFAULT_URI = "http://localhost:11434"
 
     # Error messages
-    MISSING_API_KEY_ERROR = "{} API key not found in environment variables"
-    EMPTY_RESPONSE_ERROR = "Received empty content from {} API"
-    UNKNOWN_FOLDER_NAME = "Unknown_Company|Unknown_Position"
-    ERROR_FOLDER_NAME = "Error_Company|Error_Position"
+    MISSING_API_KEY_ERROR = "Missing API key for {} service. Please set the appropriate environment variable."
+    MISSING_URI_ERROR = "Missing URI for {} service. Using default: {}"
+
+    @classmethod
+    def get_api_key(cls, provider: str) -> Optional[str]:
+        """Get API key from environment variables."""
+        config = cls.PROVIDER_CONFIG.get(provider)
+        if not config:
+            return None
+        return os.getenv(config["env_var"])
+
+    @classmethod
+    def get_provider_config(cls, provider: str) -> Optional[str]:
+        """Get provider configuration (API key or URI)."""
+        config = cls.PROVIDER_CONFIG.get(provider)
+        if not config:
+            return None
+            
+        value = os.getenv(config["env_var"])
+        if config["is_uri"]:
+            return value or cls.OLLAMA_DEFAULT_URI
+        return value
 
     # Prompt templates
     SECTION_PROMPT_TEMPLATE = """

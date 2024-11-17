@@ -6,8 +6,6 @@ from ..repositories.resume_repository import MongoResumeRepository
 from ..repositories.preamble_repository import MongoPreambleRepository
 from ..repositories.tex_header_repository import MongoTexHeaderRepository
 from ..models.preamble import Preamble
-from ..models.resume import Resume
-import mongomock
 from datetime import datetime
 import os
 

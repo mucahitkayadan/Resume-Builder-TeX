@@ -1,19 +1,18 @@
-from pathlib import Path
 from typing import Optional, Tuple
 
-from src.core.database.unit_of_work import MongoUnitOfWork
 from config.logger_config import setup_logger
-from ..base_compiler import LatexCompiler
-from ..utils.escaper import LatexEscaper
+from ..latex_compiler import LatexCompiler
+from ..utils.latex_escaper import LatexEscaper
+from src.core.database.factory import get_unit_of_work
 
 logger = setup_logger(__name__)
 
 class CoverLetterLatexCompiler(LatexCompiler):
     """Compiler for cover letter LaTeX documents."""
 
-    def __init__(self, uow: MongoUnitOfWork, output_dir: Path):
-        super().__init__(output_dir)
-        self.uow = uow
+    def __init__(self):
+        super().__init__()
+        self.uow = get_unit_of_work()
 
     def generate_pdf(self, content: str, user_id: str, resume_id: str) -> Tuple[Optional[bytes], str]:
         """Generate PDF from cover letter content."""

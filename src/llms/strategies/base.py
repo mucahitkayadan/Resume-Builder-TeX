@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import logging
+from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -45,5 +46,5 @@ class LLMStrategy(ABC):
         pass
 
     @abstractmethod
-    def create_folder_name(self, prompt: str, job_description: str) -> str:
+    def create_folder_name(self, prompt: str, job_description: str)  -> str:
         pass

@@ -1,5 +1,8 @@
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, Tuple
 import unicodedata
+import logging
+
+logger = logging.getLogger(__name__)
 
 def ensure_string(data: Any) -> Union[str, Dict[str, Any]]:
     """
@@ -29,9 +32,27 @@ def sanitize_filename(filename: str) -> str:
     Returns:
         Sanitized filename
     """
-    # Remove invalid characters
-    valid_chars = "-_.() %s%s" % (unicodedata.normalize('NFKD', filename), '')
-    filename = ''.join(c for c in valid_chars if c.isprintable())
+    # Convert to lowercase and normalize unicode characters
+    filename = filename.lower()
+    filename = unicodedata.normalize('NFKD', filename)
     
-    # Replace spaces with underscores
-    return filename.replace(' ', '_') 
+    # Remove all special characters except alphanumeric and spaces
+    filename = ''.join(c for c in filename if c.isalnum() or c.isspace())
+    
+    # Replace spaces with underscores and remove multiple underscores
+    filename = filename.replace(' ', '_')
+    filename = '_'.join(filter(None, filename.split('_')))
+    
+    return filename
+
+def get_company_name_and_job_title(folder_name: str) -> Tuple[str, str]:
+    """
+    Extract company name and job title from folder name.
+    """
+    try:
+        company_name, job_title = folder_name.split('|')
+        company_name = sanitize_filename(company_name.strip())
+        job_title = sanitize_filename(job_title.strip())
+        return company_name, job_title
+    except ValueError:
+        return "Unknown_Company", "Unknown_Job_Title"

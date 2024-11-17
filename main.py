@@ -11,6 +11,7 @@ from utils.view_database import view_database
 from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy, OllamaStrategy
 import traceback
 from src.core.database.factory import get_unit_of_work
+from config.settings import PROMPTS_FOLDER
 
 # Configure logging
 logger = setup_logger(__name__)
@@ -102,7 +103,7 @@ def main() -> None:
         temperature: float = st.slider("Set temperature:", min_value=0.0, max_value=1.0, value=0.1, step=0.1)
 
         # Initialize common components
-        prompt_loader: PromptLoader = PromptLoader('prompts/')
+        prompt_loader: PromptLoader = PromptLoader()
         system_prompt: str = prompt_loader.get_system_prompt()
 
         # Create AIRunner with the selected strategy
@@ -117,9 +118,6 @@ def main() -> None:
         ai_strategy.temperature = temperature
         ai_strategy.model = model_name
         ai_runner = AIRunner(ai_strategy)
-
-        # Make sure there's no direct access to ai_runner.model
-        # If found, replace it with ai_runner.get_model_name()
 
         resume_creator = ResumeCreator(ai_runner, prompt_loader, uow)
 

@@ -1,6 +1,7 @@
 import os
 import logging
 from dotenv import load_dotenv
+from pathlib import Path
 
 load_dotenv()
 
@@ -38,3 +39,9 @@ CREDENTIALS = {
     'linkedin_password': os.getenv("LINKEDIN_PASSWORD"),
     'ollama_uri': "http://localhost:11434"
 }
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROMPTS_FOLDER = PROJECT_ROOT / "prompts"
+OUTPUT_FOLDER = PROJECT_ROOT / "created_resumes"
+# Create output directory if it doesn't exist
+OUTPUT_FOLDER.mkdir(parents=True, exist_ok=True)

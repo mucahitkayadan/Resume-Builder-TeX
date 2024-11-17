@@ -72,7 +72,7 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
                 )
                 
             if 'skills' in doc and isinstance(doc['skills'], dict):
-                # Convert skills dict to list of dicts format
+                # Convert skill dict to a list of dicts format
                 doc['skills'] = [
                     {category: skills_list} 
                     for category, skills_list in doc['skills'].items()

@@ -1,11 +1,11 @@
 from src.latex.utils import LatexEscaper
 from src.loaders.tex_loader import TexLoader
-from src.core.database.unit_of_work import MongoUnitOfWork
+from src.core.database.factory import get_unit_of_work
 
 class HardcodeSections:
-    def __init__(self, uow: MongoUnitOfWork, tex_loader: TexLoader):
-        self.uow = uow
-        self.tex_loader = tex_loader
+    def __init__(self):
+        self.uow = get_unit_of_work()
+        self.tex_loader = TexLoader()
         self.latex_escaper = LatexEscaper()
         
     def hardcode_section(self, section: str, user_id: str) -> str:
@@ -23,17 +23,21 @@ class HardcodeSections:
 
     def hardcode_personal_information(self, user_id: str) -> str:
         portfolio = self.get_portfolio(user_id)
-        return self.tex_loader.safe_format_template('personal_information', **portfolio.personal_information)
+        return self.tex_loader.safe_format_template('personal_information', 
+            escape_latex=False, 
+            **portfolio.personal_information
+        )
 
     def hardcode_career_summary(self, user_id: str) -> str:
         portfolio = self.get_portfolio(user_id)
         personal_info = portfolio.personal_information
         
         return self.tex_loader.safe_format_template(
-            'career_summary', 
-            summary=self.latex_escaper.escape_text(portfolio.career_summary),
+            'career_summary',
+            escape_latex=False,
             job_title=self.latex_escaper.escape_text(personal_info.get('job_title', 'Professional')),
-            years_of_experience=self.latex_escaper.escape_text(str(personal_info.get('years_of_experience', '5+')))
+            years_of_experience=str(personal_info.get('years_of_experience', '5+')),
+            summary=self.latex_escaper.escape_text(portfolio.career_summary)
         )
 
     def hardcode_skills(self, user_id: str) -> str:

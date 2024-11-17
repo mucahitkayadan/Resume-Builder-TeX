@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from .escaper import LatexEscaper
+from .latex_escaper import LatexEscaper
 from .placeholder import LatexPlaceholder
 
 class PlaceholderMixin:
