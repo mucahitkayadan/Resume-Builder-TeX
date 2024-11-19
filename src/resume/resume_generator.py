@@ -10,6 +10,7 @@ from src.resume.hardcode_sections import HardcodeSections
 from src.resume.utils.file_ops import create_output_directory, save_job_description
 from src.loaders.portfolio_loader import PortfolioLoader
 from src.core.database.factory import get_unit_of_work
+from src.resume.utils.output_manager import OutputManager
 
 logger = logging.getLogger(__name__)
 
@@ -134,13 +135,19 @@ class ResumeGenerator:
                                   job_title: str) -> Resume:
         """Generate PDF and save resume to database."""
         try:
-            # Create output directory and save job description
-            output_dir = create_output_directory(company_name, job_title)
-            save_job_description(job_description, output_dir)
+            # Create output manager
+            output_manager = OutputManager(company_name, job_title)
+            
+            # Save job description
+            output_manager.save_job_description(job_description)
             
             # Generate PDF
-            generated_pdf = self.latex_compiler.generate_pdf(content_dict, output_dir)
+            generated_pdf = self.latex_compiler.generate_pdf(
+                content_dict, 
+                output_manager.output_dir
+            )
             if not generated_pdf:
+                output_manager.cleanup()
                 raise Exception("PDF generation failed")
 
             # Create resume object
@@ -166,6 +173,8 @@ class ResumeGenerator:
             
         except Exception as e:
             logger.error(f"Failed to generate and save resume: {e}")
+            if 'output_manager' in locals():
+                output_manager.cleanup()
             raise
 
     def process_section(self,

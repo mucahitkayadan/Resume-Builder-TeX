@@ -4,8 +4,8 @@ from src.llms.runner import LLMRunner
 from src.latex.cover_letter.cover_letter_compiler import CoverLetterLatexCompiler
 from src.loaders.prompt_loader import PromptLoader
 from .utils.string_utils import ensure_string
-from .utils.file_ops import create_output_directory
 from src.core.database.factory import get_unit_of_work
+from src.resume.utils.output_manager import OutputManager
 
 logger = logging.getLogger(__name__)
 
@@ -85,12 +85,12 @@ class CoverLetterGenerator:
     def _generate_and_save_pdf(self, content: str, company_name: str, 
                               job_title: str, user_id: str, resume_id: str) -> str:
         """Generate PDF and save to database."""
-        output_dir = create_output_directory(company_name, job_title)
+        output_manager = OutputManager(company_name, job_title)
         
         try:
             pdf_content, latex_content = self.latex_compiler.generate_pdf(
                 content=content,
-                output_dir=output_dir,
+                output_dir=output_manager.output_dir,
                 user_id=user_id,
                 resume_id=resume_id
             )
@@ -100,6 +100,7 @@ class CoverLetterGenerator:
             return "Cover letter generated and saved successfully."
         except Exception as e:
             logger.error(f"Failed to generate PDF: {e}")
+            output_manager.cleanup()
             with self.uow:
                 self.uow.update_cover_letter(resume_id, content, None)
             return "Cover letter content saved, but PDF generation failed." 
