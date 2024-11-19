@@ -13,6 +13,8 @@ def process_api_response(response: Any, provider: str) -> str:
             return response.content[0].text if response.content else ""
         elif isinstance(response, Dict):  # Ollama
             return response.get("response", "")
+        elif provider == "Gemini":  # Add Gemini support
+            return response.text if response else ""
         else:
             logger.warning(f"Unknown response format from {provider}")
             return ""

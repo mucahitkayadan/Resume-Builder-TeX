@@ -8,13 +8,7 @@ __legacy__/files/
 .idea/
 created_resumes/
 .env
-/linkedin_applier/
-# Ignore databases with personal information
-__legacy__/db/resumes.db
-__legacy__/db/user.db
 
-# Don't ignore preambles database (contains only LaTeX templates)
-!__legacy__/db/preambles.db
 .cadence
 /easy_applier/linkedin_cookies.pkl
 /easy_applier/chrome_profile/

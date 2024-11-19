@@ -9,6 +9,7 @@ sys.path.append(project_root)
 from src.llms.strategies.openai_strategy import OpenAIStrategy
 from src.llms.strategies.claude_strategy import ClaudeStrategy
 from src.llms.strategies.ollama_strategy import OllamaStrategy
+from src.llms.strategies.gemini_strategy import GeminiStrategy
 from src.llms.utils.errors import APIError, ConfigurationError
 from config.llm_config import LLMConfig
 
@@ -69,7 +70,8 @@ def main():
     strategies = [
         ("OpenAI", OpenAIStrategy, "OPENAI_API_KEY"),
         ("Claude", ClaudeStrategy, "ANTHROPIC_API_KEY"),
-        ("Ollama", OllamaStrategy, "OLLAMA_URI")
+        ("Ollama", OllamaStrategy, "OLLAMA_URI"),
+        ("Gemini", GeminiStrategy, "GEMINI_API_KEY")
     ]
 
     for strategy_name, strategy_class, api_key_env in strategies:

@@ -17,7 +17,8 @@ class LLMConfig:
     PROVIDER_CONFIG = {
         "OpenAI": {"env_var": "OPENAI_API_KEY", "is_uri": False},
         "Claude": {"env_var": "ANTHROPIC_API_KEY", "is_uri": False},
-        "Ollama": {"env_var": "OLLAMA_URI", "is_uri": True}
+        "Ollama": {"env_var": "OLLAMA_URI", "is_uri": True},
+        "Gemini": {"env_var": "GEMINI_API_KEY", "is_uri": False}
     }
 
     # Model configurations
@@ -41,6 +42,16 @@ class LLMConfig:
             "top_k": 40,
             "top_p": 0.9,
             "repeat_penalty": 1.1
+        }
+    )
+
+    GEMINI_MODEL = ModelConfig(
+        name="gemini-1.5-flash",
+        default_temperature=0.7,
+        max_tokens=8192,
+        default_options={
+            "top_p": 0.95,
+            "top_k": 40,
         }
     )
 
