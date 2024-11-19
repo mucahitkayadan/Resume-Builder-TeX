@@ -35,11 +35,6 @@ class ResumeLatexCompiler(LatexCompiler):
     
     def _generate_tex_content(self, preamble: str, content_dict: Dict[str, str]) -> str:
         """Generate LaTeX content for resume."""
-        escaped_content = {
-            k: self.escaper.escape_text(v)
-            for k, v in content_dict.items()
-        }
-        
         tex_content = [preamble, '\\begin{document}']
         
         section_order = [
@@ -49,9 +44,9 @@ class ResumeLatexCompiler(LatexCompiler):
         ]
         
         for section in section_order:
-            if section in escaped_content:
+            if section in content_dict:
                 tex_content.append(f'\n% {section.replace("_", " ").title()}')
-                tex_content.append(escaped_content[section])
+                tex_content.append(content_dict[section])
         
         tex_content.append('\\end{document}')
         return '\n'.join(tex_content) 

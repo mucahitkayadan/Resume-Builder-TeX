@@ -29,7 +29,7 @@ class ResumeGenerator:
         self.prompt_loader = PromptLoader()
         self.tex_loader = TexLoader()
         self.portfolio_loader = PortfolioLoader(self.user_id)
-        self.hardcoder = HardcodeSections()
+        self.hardcoder = HardcodeSections(self.user_id)
         self.latex_compiler = ResumeLatexCompiler()
 
     def generate_resume(self,
@@ -99,8 +99,19 @@ class ResumeGenerator:
 
     def _process_sections(self,
                           selected_sections: Dict[str, str],
-                          job_description: str) -> Dict[str, str]:
-        """Process each selected section."""
+                          job_description: str) -> Generator[Tuple[str, float], None, Dict[str, str]]:
+        """Process each selected section.
+        
+        Args:
+            selected_sections: Dictionary mapping section names to their process type
+            job_description: The job description text
+            
+        Yields:
+            Tuple[str, float]: Status message and progress percentage
+            
+        Returns:
+            Dict[str, str]: Dictionary of processed section content
+        """
         content_dict = {}
 
         for i, (section, process_type) in enumerate(selected_sections.items()):
@@ -112,6 +123,8 @@ class ResumeGenerator:
                 yield f"Processed {section} section", (i + 1) / len(selected_sections)
             except Exception as e:
                 logger.error(f"Failed to process section {section}: {e}")
+                yield f"Error processing {section}: {str(e)}", (i + 1) / len(selected_sections)
+        
         return content_dict
 
     def _generate_and_save_resume(self,
@@ -163,23 +176,27 @@ class ResumeGenerator:
         if process_type == "skip":
             return ""
         elif process_type == "hardcode":
-            return self.hardcoder.hardcode_section(section, self.user_id)
+            return self.hardcoder.hardcode_section(section)
         elif process_type == "process":
             # Get the prompt template for this section
             prompt = self.prompt_loader.get_section_prompt(section)
             
-            # Get the portfolio data for this section
-            with self.uow:
-                portfolio = self.uow.portfolio.get_by_user_id(self.user_id)
-                if not portfolio:
-                    raise ValueError(f"Portfolio not found for user {self.user_id}")
-                
-                # Get the specific section data from portfolio
-                section_data = getattr(portfolio, section, None)
-                if section_data is None:
-                    raise ValueError(f"Section {section} not found in portfolio")
-                
+            # Get the section data using portfolio_loader
+            section_data = self.portfolio_loader.get_section_data(section)
+            if not section_data:
+                raise ValueError(f"Section {section} not found in portfolio")
+            
+            # Format skills data if this is the skills section
+            if section == 'skills':
+                formatted_data = []
+                for skill_category in section_data:
+                    for category, skills in skill_category.items():
+                        formatted_data.append(f"{category}:\n- {', '.join(skills)}")
+                section_data = "\n\n".join(formatted_data)
+            else:
+                section_data = str(section_data)
+            
             # Generate content using the prompt and portfolio data
-            return self.llm_runner.generate_content(prompt, str(section_data), job_description)
+            return self.llm_runner.generate_content(prompt, section_data, job_description)
         else:
-            raise ValueError(f"Invalid process type: {process_type}") 
+            raise ValueError(f"Invalid process type: {process_type}")

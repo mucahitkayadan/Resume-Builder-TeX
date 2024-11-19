@@ -12,8 +12,8 @@ from easy_applier.linkedin_job_manager import LinkedInJobManager
 from __legacy__.database_manager import DatabaseManager
 from __legacy__.json_loader import JsonLoader
 from src.loaders.prompt_loader import PromptLoader
-from engine.runners import AIRunner
-from engine.ai_strategies import ClaudeStrategy
+from __legacy__.engine import AIRunner
+from __legacy__.engine import ClaudeStrategy
 
 def test_linkedin_scraper():
     print("\n=== Testing LinkedIn Scraper ===")

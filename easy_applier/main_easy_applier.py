@@ -15,8 +15,8 @@ from easy_applier.linkedin_scraper import LinkedInScraper
 from __legacy__.database_manager import DatabaseManager
 from __legacy__.json_loader import JsonLoader
 from src.loaders.prompt_loader import PromptLoader
-from engine.runners import AIRunner
-from engine.ai_strategies import OpenAIStrategy
+from __legacy__.engine import AIRunner
+from __legacy__.engine import OpenAIStrategy
 from easy_applier.linkedin_job_manager import LinkedInJobManager
 
 logging.basicConfig(level=logging.DEBUG)

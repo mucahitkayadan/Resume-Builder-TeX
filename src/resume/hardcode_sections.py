@@ -1,138 +1,123 @@
 from src.latex.utils import LatexEscaper
 from src.loaders.tex_loader import TexLoader
 from src.core.database.factory import get_unit_of_work
+from src.core.dto.portfolio.portfolio import PortfolioDTO
 
 class HardcodeSections:
-    def __init__(self):
+    def __init__(self, user_id: str):
         self.uow = get_unit_of_work()
         self.tex_loader = TexLoader()
         self.latex_escaper = LatexEscaper()
-        
-    def hardcode_section(self, section: str, user_id: str) -> str:
+        with self.uow:
+            raw_portfolio = self.uow.portfolio.get_by_user_id(user_id)
+            if not raw_portfolio:
+                raise ValueError(f"Portfolio not found for user {user_id}")
+            self.portfolio = PortfolioDTO.from_db_model(raw_portfolio, self.latex_escaper)
+
+    def hardcode_section(self, section: str) -> str:
         method = getattr(self, f"hardcode_{section}", None)
         if not method:
             raise ValueError(f"No hardcode method for section: {section}")
-        return method(user_id)
+        return method()
 
-    def get_portfolio(self, user_id: str):
-        with self.uow:
-            portfolio = self.uow.portfolio.get_by_user_id(user_id)
-            if not portfolio:
-                raise ValueError(f"Portfolio not found for user {user_id}")
-            return portfolio
-
-    def hardcode_personal_information(self, user_id: str) -> str:
-        portfolio = self.get_portfolio(user_id)
+    def hardcode_personal_information(self) -> str:
         return self.tex_loader.safe_format_template('personal_information', 
             escape_latex=False, 
-            **portfolio.personal_information
+            **self.portfolio.personal_information
         )
 
-    def hardcode_career_summary(self, user_id: str) -> str:
-        portfolio = self.get_portfolio(user_id)
-        personal_info = portfolio.personal_information
+    def hardcode_career_summary(self) -> str:
+        # Get the first job title from the list or use default
+        job_title = self.portfolio.career_summary.job_titles[0] if self.portfolio.career_summary.job_titles else 'Professional'
         
         return self.tex_loader.safe_format_template(
             'career_summary',
             escape_latex=False,
-            job_title=self.latex_escaper.escape_text(personal_info.get('job_title', 'Professional')),
-            years_of_experience=str(personal_info.get('years_of_experience', '5+')),
-            summary=self.latex_escaper.escape_text(portfolio.career_summary)
+            job_title=self.latex_escaper.escape_text(job_title),
+            years_of_experience=str(self.portfolio.career_summary.years_of_experience),
+            summary=self.latex_escaper.escape_text(self.portfolio.career_summary.default_summary)
         )
 
-    def hardcode_skills(self, user_id: str) -> str:
-        portfolio = self.get_portfolio(user_id)
+    def hardcode_skills(self) -> str:
         skills_content = ""
-        for skill_category in portfolio.skills:
+        for skill_category in self.portfolio.skills:
             for category, skill_list in skill_category.items():
                 escaped_category = self.latex_escaper.escape_text(category)
                 escaped_skills = ', '.join(map(self.latex_escaper.escape_text, skill_list))
                 skills_content += f"    \\resumeSkillHeading{{{escaped_category}}}{{{escaped_skills}}}\n"
         return self.tex_loader.safe_format_template('skills', skills_content=skills_content)
 
-    def hardcode_work_experience(self, user_id: str) -> str:
-        portfolio = self.get_portfolio(user_id)
+    def hardcode_work_experience(self) -> str:
         experience_content = ""
-        for exp in portfolio.work_experience:
-            responsibilities = exp.get('responsibilities', [])
+        for exp in self.portfolio.work_experience:
+            responsibilities = exp.responsibilities
             responsibilities_content = "\n".join([
-                f"        \\resumeItem{{{self.latex_escaper.escape_text(r)}}}"
+                f"        \\resumeItem{{{r}}}"
                 for r in responsibilities
             ])
             exp_data = {
-                'job_title': self.latex_escaper.escape_text(exp.get('job_title', '')),
-                'time': self.latex_escaper.escape_text(exp.get('time', '')),
-                'company': self.latex_escaper.escape_text(exp.get('company', '')),
-                'location': self.latex_escaper.escape_text(exp.get('location', '')),
+                'job_title': exp.job_title,
+                'time': exp.time,
+                'company': exp.company,
+                'location': exp.location,
                 'responsibilities': responsibilities_content
             }
             exp_content = self.tex_loader.safe_format_template('work_experience_item', **exp_data)
             experience_content += exp_content
         return self.tex_loader.safe_format_template('work_experience', experience_content=experience_content)
 
-    def hardcode_education(self, user_id: str) -> str:
-        portfolio = self.get_portfolio(user_id)
+    def hardcode_education(self) -> str:
         education_content = "\\resumeSubHeadingListStart\n"
-        for edu in portfolio.education:
+        for edu in self.portfolio.education:
             edu_data = {
-                'university': self.latex_escaper.escape_text(edu.get('university_name', 'University Name')),
-                'location': self.latex_escaper.escape_text(edu.get('location', '')),
-                'degree': self.latex_escaper.escape_text(f"{edu.get('degree_type', '')} in {edu.get('degree', '')}".strip()),
-                'time': self.latex_escaper.escape_text(edu.get('time', '')),
-                'key_courses': self.latex_escaper.escape_text(f"Key Courses: {', '.join(edu.get('transcript', []))}")
+                'university': edu.university_name,
+                'location': edu.location,
+                'degree': f"{edu.degree_type} in {edu.degree}".strip(),
+                'time': edu.time,
+                'key_courses': f"Key Courses: {', '.join(edu.transcript)}"
             }
             education_content += self.tex_loader.safe_format_template('education_item', **edu_data)
         education_content += "\\resumeSubHeadingListEnd"
         return self.tex_loader.safe_format_template('education', education_content=education_content)
 
-    def hardcode_projects(self, user_id: str) -> str:
-        portfolio = self.get_portfolio(user_id)
+    def hardcode_projects(self) -> str:
         projects_content = "\\resumeSubHeadingListStart\n"
-        for project in portfolio.projects:
-            bullet_points = project.get('bullet_points', [])
+        for project in self.portfolio.projects:
             bullet_points_content = "\n".join([
-                f"    \\resumeItem{{{self.latex_escaper.escape_text(point)}}}"
-                for point in bullet_points
+                f"    \\resumeItem{{{point}}}"
+                for point in project.bullet_points
             ])
             
-            name = self.latex_escaper.escape_text(project.get('name', ''))
-            technologies = self.latex_escaper.escape_text(project.get('technologies', ''))
-            
-            # Separate name and technologies
-            name_and_tech = f"{name}" + (f" \\textbullet{{}} {technologies}" if technologies else "")
+            name_and_tech = f"{project.name}" + (f" \\textbullet{{}} {project.technologies}" if project.technologies else "")
             
             project_data = {
                 'name_and_tech': name_and_tech,
-                'date': self.latex_escaper.escape_text(project.get('date', '')),
+                'date': project.date,
                 'bullet_points': bullet_points_content
             }
             project_content = self.tex_loader.safe_format_template('project_item', **project_data)
             projects_content += project_content
         projects_content += "\\resumeSubHeadingListEnd"
-        return self.tex_loader.safe_format_template('projects', projects_content=projects_content)
+        return projects_content
 
-    def hardcode_awards(self, user_id: str) -> str:
-        portfolio = self.get_portfolio(user_id)
+    def hardcode_awards(self) -> str:
         awards_content = ""
-        for award in portfolio.awards:
+        for award in self.portfolio.awards:
             award_data = {
-                'name': self.latex_escaper.escape_text(award['name']),
-                'explanation': self.latex_escaper.escape_text(award['explanation'])
+                'name': award.name,
+                'explanation': award.explanation
             }
             awards_content += self.tex_loader.safe_format_template('award_item', **award_data)
         return self.tex_loader.safe_format_template('awards', awards_content=awards_content)
 
-    def hardcode_publications(self, user_id: str) -> str:
-        portfolio = self.get_portfolio(user_id)
+    def hardcode_publications(self) -> str:
         publications_content = ""
-        for pub in portfolio.publications:
+        for pub in self.portfolio.publications:
             pub_data = {
-                'name': self.latex_escaper.escape_text(pub['name']),
-                'publisher': self.latex_escaper.escape_text(pub['publisher']),
-                'Year': self.latex_escaper.escape_text(pub['Year']),
-                'link': self.latex_escaper.escape_text(pub['link'])
+                'name': pub.name,
+                'publisher': pub.publisher,
+                'Year': pub.date,
+                'link': pub.description
             }
             publications_content += self.tex_loader.safe_format_template('publication_item', **pub_data)
         return self.tex_loader.safe_format_template('publications', publications_content=publications_content)
-
-    # ... continue with other methods following the same pattern

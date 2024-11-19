@@ -3,7 +3,7 @@ import os
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from utils.file_operations import create_output_directory
+from __legacy__.utils import create_output_directory
 
 
 class LinkedInJobManager:

@@ -6,9 +6,9 @@ import logging
 project_root = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(0, project_root)
 
-from engine.resume_creator import ResumeCreator
-from engine.runners import AIRunner
-from engine.ai_strategies import ClaudeStrategy
+from __legacy__.engine import ResumeCreator
+from __legacy__.engine import AIRunner
+from __legacy__.engine import ClaudeStrategy
 from src.loaders.prompt_loader import PromptLoader
 from src.core.database.factory import get_unit_of_work
 

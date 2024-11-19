@@ -52,4 +52,4 @@ class PromptLoader:
 if __name__ == '__main__':
     prompt_loader = PromptLoader()
     print(f"Resolved PROMPTS_FOLDER: {PROMPTS_FOLDER}")
-    print(prompt_loader.get_section_prompt('cover_letter'))
+    print(prompt_loader.get_section_prompt('skills'))

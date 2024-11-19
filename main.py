@@ -2,16 +2,15 @@ from typing import Optional, Dict
 import streamlit as st
 from __legacy__.document_utils import check_clearance_requirement, get_or_create_folder_name
 from src.loaders.prompt_loader import PromptLoader
-from engine.runners import AIRunner
-from engine.resume_creator import ResumeCreator
-from engine.cover_letter_creator import CoverLetterCreator
+from __legacy__.engine import AIRunner
+from __legacy__.engine import ResumeCreator
+from __legacy__.engine import CoverLetterCreator
 from config.logger_config import setup_logger
-from utils.view_database import view_database
+from __legacy__.utils import view_database
 
-from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy, OllamaStrategy
+from __legacy__.engine import OpenAIStrategy, ClaudeStrategy, OllamaStrategy
 import traceback
 from src.core.database.factory import get_unit_of_work
-from config.settings import PROMPTS_FOLDER
 
 # Configure logging
 logger = setup_logger(__name__)

@@ -22,13 +22,13 @@ class LLMConfig:
 
     # Model configurations
     OPENAI_MODEL = ModelConfig(
-        name="gpt-4",
+        name="gpt-4o",
         default_temperature=0.1,
         max_tokens=4000
     )
 
     CLAUDE_MODEL = ModelConfig(
-        name="claude-3-sonnet-20240229",
+        name="claude-3-sonnet-latest",
         default_temperature=0.1,
         max_tokens=4000
     )

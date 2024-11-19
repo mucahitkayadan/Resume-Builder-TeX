@@ -30,7 +30,7 @@ class LatexEscaper:
             '}': '\\}',
             '~': '\\textasciitilde{}',
             '^': '\\textasciicircum{}',
-            '\\': '\\textbackslash{}',
+            # '\\': '\\textbackslash{}',
             '<': '\\textless{}',
             '>': '\\textgreater{}'
         }
