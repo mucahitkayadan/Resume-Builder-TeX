@@ -3,13 +3,13 @@ from typing import List, Dict, Any
 from src.latex.utils.latex_escaper import LatexEscaper
 from .sections import (
     CareerSummaryDTO, EducationItemDTO, ProjectDTO, 
-    WorkExperienceDTO, AwardDTO, PublicationDTO
+    WorkExperienceDTO, AwardDTO, PublicationDTO, PersonalInformationDTO
 )
 from .base import BaseDTO
 
 @dataclass
 class PortfolioDTO(BaseDTO):
-    personal_information: Dict[str, str]
+    personal_information: PersonalInformationDTO
     career_summary: CareerSummaryDTO
     education: List[EducationItemDTO]
     skills: List[Dict[str, List[str]]]
@@ -21,10 +21,14 @@ class PortfolioDTO(BaseDTO):
     @classmethod
     def from_db_model(cls, data: Dict[str, Any], escaper: LatexEscaper) -> 'PortfolioDTO':
         return cls(
-            personal_information={
-                k: cls.escape_text(v, escaper) 
-                for k, v in data.personal_information.items()
-            },
+            personal_information=PersonalInformationDTO(
+                name=cls.escape_text(data.personal_information.get('name', ''), escaper),
+                email=cls.escape_text(data.personal_information.get('email', ''), escaper),
+                phone=cls.escape_text(data.personal_information.get('phone', ''), escaper),
+                address=cls.escape_text(data.personal_information.get('address', ''), escaper),
+                linkedin=cls.escape_text(data.personal_information.get('linkedin', ''), escaper),
+                github=cls.escape_text(data.personal_information.get('github', ''), escaper)
+            ),
             career_summary=CareerSummaryDTO(
                 job_titles=[cls.escape_text(title, escaper) for title in data.career_summary.job_titles],
                 years_of_experience=str(data.career_summary.years_of_experience),

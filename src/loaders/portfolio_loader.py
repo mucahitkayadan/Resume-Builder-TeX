@@ -58,4 +58,4 @@ class PortfolioLoader:
 
 if __name__ == '__main__':
     portfolio_loader = PortfolioLoader("mujakayadan")
-    print(portfolio_loader.data)
+    print(portfolio_loader.get_section_data('personal_information'))

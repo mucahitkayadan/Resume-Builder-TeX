@@ -15,3 +15,4 @@ created_resumes/
 /easy_applier/chrome-data/
 /easy_applier/chromedriver-win64/
 /__legacy__/
+**.coverage

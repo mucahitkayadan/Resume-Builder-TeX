@@ -60,25 +60,23 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
             return None
         
         try:
-            # Convert _id to string id
+            # Handle ID conversion
             doc['id'] = str(doc.pop('_id'))
             
-            # Handle career_summary mapping
-            if 'career_summary' in doc and isinstance(doc['career_summary'], dict):
-                doc['career_summary'] = CareerSummary(
-                    job_titles=doc['career_summary'].get('job_titles', []),
-                    years_of_experience=doc['career_summary'].get('years_of_experience', ''),
-                    default_summary=doc['career_summary'].get('default_summary', '')
-                )
-                
-            if 'skills' in doc and isinstance(doc['skills'], dict):
-                # Convert skill dict to a list of dicts format
-                doc['skills'] = [
-                    {category: skills_list} 
-                    for category, skills_list in doc['skills'].items()
-                ]
-                
-            # Add missing required fields with default values
+            # Set default values for all required fields
+            doc.setdefault('user_id', 'default_user')
+            doc.setdefault('personal_information', {})
+            doc.setdefault('career_summary', {
+                'job_titles': [],
+                'years_of_experience': '',
+                'default_summary': ''
+            })
+            doc.setdefault('skills', [])
+            doc.setdefault('work_experience', [])
+            doc.setdefault('education', [])
+            doc.setdefault('projects', [])
+            doc.setdefault('awards', [])
+            doc.setdefault('publications', [])
             doc.setdefault('certifications', [])
             doc.setdefault('languages', [])
             doc.setdefault('created_at', datetime.utcnow())

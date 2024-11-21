@@ -43,3 +43,12 @@ class PublicationDTO(BaseDTO):
     publisher: str
     date: str
     description: str
+
+@dataclass
+class PersonalInformationDTO(BaseDTO):
+    name: str
+    email: str
+    phone: str
+    address: str
+    linkedin: str
+    github: str

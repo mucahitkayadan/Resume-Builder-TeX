@@ -21,9 +21,17 @@ class HardcodeSections:
         return method()
 
     def hardcode_personal_information(self) -> str:
+        personal_info = {
+            'name': self.portfolio.personal_information.name,
+            'email': self.portfolio.personal_information.email,
+            'phone': self.portfolio.personal_information.phone,
+            'address': self.portfolio.personal_information.address,
+            'LinkedIn': self.portfolio.personal_information.linkedin,
+            'GitHub': self.portfolio.personal_information.github
+        }
         return self.tex_loader.safe_format_template('personal_information', 
             escape_latex=False, 
-            **self.portfolio.personal_information
+            **personal_info
         )
 
     def hardcode_career_summary(self) -> str:
