@@ -2,7 +2,7 @@ import streamlit as st
 
 class ModelSelector:
     def __init__(self):
-        self.model_types = ["OpenAI", "Claude", "Ollama"]
+        self.model_types = ["OpenAI", "Claude", "Ollama", "Gemini"]
         self.model_options = {
             "OpenAI": ["gpt-4o", "gpt-4o-mini", "gpt-4o-2024-08-06", "o1-mini",
                                             "gpt-4o-2024-05-13"],
@@ -12,7 +12,8 @@ class ModelSelector:
                                                                     "claude-3-opus-20240229",
                                                                     "claude-3-sonnet-20240229"],
             "Ollama": ["llama3.1", "llama2", "llama2-uncensored", "mistral", 
-                                                                   "mixtral", "codellama", "neural-chat"]
+                                                                   "mixtral", "codellama", "neural-chat"],
+            "Gemini": ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.5-pro-exp-0801"]
         }
 
     def get_model_settings(self):

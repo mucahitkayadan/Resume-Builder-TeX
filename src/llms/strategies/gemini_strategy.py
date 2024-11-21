@@ -11,7 +11,7 @@ logger = setup_logger(__name__)
 class GeminiStrategy(LLMStrategy):
     def __init__(self, system_instruction: str):
         super().__init__(system_instruction)
-        self._model = LLMConfig.GEMINI_MODEL.name
+        self._model_name = LLMConfig.GEMINI_MODEL.name
         self._temperature = LLMConfig.GEMINI_MODEL.default_temperature
         
         api_key = LLMConfig.get_provider_config("Gemini")
@@ -19,8 +19,28 @@ class GeminiStrategy(LLMStrategy):
             raise ConfigurationError(LLMConfig.MISSING_API_KEY_ERROR.format("Gemini"))
             
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(
-            model_name=self.model,
+        self._model = genai.GenerativeModel(
+            model_name=self._model_name,
+            generation_config={
+                "temperature": self.temperature,
+                "top_p": 0.95,
+                "top_k": 40,
+                "max_output_tokens": 8192,
+            }
+        )
+
+    @property
+    def model(self) -> str:
+        return self._model_name
+
+    @model.setter 
+    def model(self, value: str):
+        if not value:
+            raise ValueError("Model name cannot be empty")
+        self._model_name = value
+        # Recreate the model instance with new name
+        self._model = genai.GenerativeModel(
+            model_name=self._model_name,
             generation_config={
                 "temperature": self.temperature,
                 "top_p": 0.95,
@@ -32,7 +52,7 @@ class GeminiStrategy(LLMStrategy):
     def generate_content(self, prompt: str, data: str, job_description: str) -> str:
         try:
             logger.info(f"Sending request to Gemini API with model: {self.model}")
-            response = self.model.generate_content(
+            response = self._model.generate_content(
                 self._format_prompt(prompt, data, job_description)
             )
             return process_api_response(response, "Gemini")
@@ -42,7 +62,7 @@ class GeminiStrategy(LLMStrategy):
 
     def create_folder_name(self, prompt: str, job_description: str) -> str:
         try:
-            response = self.model.generate_content(
+            response = self._model.generate_content(
                 self._format_prompt(prompt, job_description=job_description)
             )
             result = process_api_response(response, "Gemini")

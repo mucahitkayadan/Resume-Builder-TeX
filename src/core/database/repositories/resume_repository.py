@@ -4,6 +4,10 @@ from ...exceptions.database_exceptions import DatabaseError
 from ..interfaces.repository_interface import BaseRepository
 from ..models.resume import Resume
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class MongoResumeRepository(BaseRepository[Resume]):
     def __init__(self, connection):
@@ -38,14 +42,14 @@ class MongoResumeRepository(BaseRepository[Resume]):
                 try:
                     resume_dict['resume_pdf'] = resume.resume_pdf
                 except Exception as e:
-                    print(f"Error handling resume PDF: {e}")
+                    logger.info(f"Error handling resume PDF: {e}")
                     resume_dict['resume_pdf'] = None
                     
             if resume.cover_letter_pdf:
                 try:
                     resume_dict['cover_letter_pdf'] = resume.cover_letter_pdf
                 except Exception as e:
-                    print(f"Error handling cover letter PDF: {e}")
+                    logger.info(f"Error handling cover letter PDF: {e}")
                     resume_dict['cover_letter_pdf'] = None
             
             # Ensure model information is explicitly set
@@ -58,7 +62,7 @@ class MongoResumeRepository(BaseRepository[Resume]):
             resume.id = str(result.inserted_id)
             return resume
         except Exception as e:
-            print(f"Full error details: {str(e)}")
+            logger.info(f"Full error details: {str(e)}")
             raise DatabaseError(f"Error adding resume: {str(e)}")
 
     def update(self, resume: Resume) -> bool:
@@ -144,7 +148,7 @@ class MongoResumeRepository(BaseRepository[Resume]):
                 
             return Resume(**doc)
         except Exception as e:
-            print(f"Error mapping entity: {str(e)}")
+            logger.info(f"Error mapping entity: {str(e)}")
             return None
 
     def get_latest_resume(self) -> Optional[Resume]:
