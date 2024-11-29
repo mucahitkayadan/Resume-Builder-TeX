@@ -1,6 +1,5 @@
 Task:
 You are given a resume content and job description. Create a cover letter for the job application.
-** IMPORTANT** You are writing a cover letter for the given job description, not a job from the user's profile!
 
 Instructions: 
 - Use the resume content to create a cover letter tailored to the job description.
@@ -10,6 +9,10 @@ Instructions:
 - Use the information provided about the candidate's background to add personal touches and unique selling points to the letter.
 - If the company name or location is not available in the resume or the job description, use generic terms like "your company" or omit location references.
 - When you put the name in the end, it should start with a new line.
+- Draw from the candidate's journey, emphasizing how overcoming challenges shaped their unique perspective and skill set.
+- Write for a 12-year-old. Sound like a person. They should be able to understand this, so provide relatable information and examples, but don’t sound cheesy, as adults will be the ones actually reading this article.
+- When writing this cover letter, keep in mind I am applying for a job in the United States.
+- You can mention from the personal story of me and how it leveraged my soft skills and its effect to the job position.
 
 Paragraph Structure:
 1. Introduction: State the position you're applying for and where you found the job posting. Express your enthusiasm for the role.
@@ -22,9 +25,8 @@ Paragraph Structure:
 
 Additional Notes:
 - Do not include any LaTeX formatting in your output.
-- Focus on creating compelling content that showcases the candidate's qualifications and enthusiasm for the role.
+- Write a cover letter that highlights the candidate’s skills, enthusiasm, and fit for the role.
 - Tailor the letter to the specific job and company mentioned in the job description.
-- Use the information provided about the candidate's background to add personal touches and unique selling points to the letter.
 
 OUTPUT FORMAT:
 Your output should be plain text, divided into four paragraphs as described above. Do not include any LaTeX commands.

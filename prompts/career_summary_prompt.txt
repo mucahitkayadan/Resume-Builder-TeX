@@ -6,7 +6,8 @@ Instructions for the Job Title:
 - Select the most suitable job title from the provided options that best fits the job description.
 
 Instructions for the Career Summary Content:
-- Analyze the user profile provided. Write a career summary that reflects the exact technologies, skills, and achievements from the user's resume. Do NOT add, invent, or assume any technology or skill not explicitly mentioned.
+- Analyze the candidate’s resume data **only**. Do NOT introduce or assume any information, technologies, or skills not explicitly mentioned in the provided data.
+For example, if the user does not have experience or skills in front end development and it is a must in the job description, you will not write it. Career summary cannot have a content that my data does not have.
 - Use strong action verbs and quantify achievements where applicable.
 - Ensure the summary is aligned with the job description and showcases the candidate’s most relevant skills and experiences.
 - Begin the career summary with a lowercase word, as it continues a sentence.
