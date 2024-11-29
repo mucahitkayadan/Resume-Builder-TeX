@@ -20,21 +20,42 @@ logger = setup_logger(__name__, level=logging.INFO)
 
 class StreamlitApp:
     def __init__(self):
-        logger.info("Initializing StreamlitApp")
+        # Always initialize session state first
         self.setup_session_state()
-        self.model_selector = ModelSelector()
-        self.section_selector = SectionSelector()
-        self.prompt_loader = PromptLoader()
+        
+        # Initialize components if not already in session state
+        if 'components_initialized' not in st.session_state:
+            logger.info("Initializing StreamlitApp components")
+            self._initialize_components()
+            st.session_state['components_initialized'] = True
+        
+        # Get components from session state
+        self._get_components()
+
+    def _initialize_components(self):
+        """Initialize all components and store in session state"""
+        st.session_state['model_selector'] = ModelSelector()
+        st.session_state['section_selector'] = SectionSelector()
+        st.session_state['prompt_loader'] = PromptLoader()
         
         logger.info("Creating LLMRunner with default OpenAI configuration")
-        self.llm_runner = LLMRunner.create_with_config(
+        st.session_state['llm_runner'] = LLMRunner.create_with_config(
             model_type="OpenAI",
             model_name=LLMConfig.OPENAI_MODEL.name,
             temperature=LLMConfig.OPENAI_MODEL.default_temperature,
-            prompt_loader=self.prompt_loader
+            prompt_loader=st.session_state['prompt_loader']
         )
 
-    def setup_session_state(self):
+    def _get_components(self):
+        """Get components from session state"""
+        self.model_selector = st.session_state['model_selector']
+        self.section_selector = st.session_state['section_selector']
+        self.prompt_loader = st.session_state['prompt_loader']
+        self.llm_runner = st.session_state['llm_runner']
+
+    @staticmethod
+    @st.cache_resource
+    def setup_session_state():
         logger.info("Setting up session state")
         if 'user_id' not in st.session_state:
             st.session_state['user_id'] = "mujakayadan"
@@ -59,15 +80,18 @@ class StreamlitApp:
         logger.info("Showing resume generator interface")
         try:
             # Get model settings
-            logger.info("Getting model settings")
             model_type, model_name, temperature = self.model_selector.get_model_settings()
             
-            logger.info(f"Updating LLM configuration: {model_type}, {model_name}, {temperature}")
-            self.llm_runner.update_config(
-                model_type=model_type,
-                model_name=model_name,
-                temperature=temperature
-            )
+            # Only log when configuration actually changes
+            if ('last_model_config' not in st.session_state or 
+                st.session_state['last_model_config'] != (model_type, model_name, temperature)):
+                logger.info(f"Updating LLM configuration: {model_type}, {model_name}, {temperature}")
+                st.session_state['last_model_config'] = (model_type, model_name, temperature)
+                self.llm_runner.update_config(
+                    model_type=model_type,
+                    model_name=model_name,
+                    temperature=temperature
+                )
             
             # Get job description
             job_description = st.text_area("Enter the job description:", height=200)
@@ -161,7 +185,7 @@ class StreamlitApp:
                                     st.error(f"Failed to generate cover letter: {str(e)}")
 
                             logger.info("Generation completed successfully")
-                            st.success("Generation complete!")
+                            st.success("Generation complete: " + str(output_manager.output_dir))
                             
                         except Exception as e:
                             logger.error(f"Error during generation: {str(e)}", exc_info=True)
