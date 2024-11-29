@@ -1,9 +1,9 @@
 from typing import Dict, Optional
-from pathlib import Path
 from ..latex_compiler import LatexCompiler
 from ..utils import LatexEscaper, LatexPlaceholder
 import logging
 from src.core.database.factory import get_unit_of_work
+from src.latex.latex_compiler import OutputManager
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +14,10 @@ class ResumeLatexCompiler(LatexCompiler):
         self.escaper = LatexEscaper()
         self.placeholder = LatexPlaceholder()
 
-    def generate_pdf(self, content_dict: Dict[str, str], output_dir: Path) -> Optional[bytes]:
+    def generate_pdf(self, content_dict: Dict[str, str], output_manager: OutputManager) -> Optional[bytes]:
         """Generate PDF from resume content."""
         try:
-            # Create tex file path
-            tex_path = output_dir / 'resume.tex'
+            tex_path = output_manager.get_resume_path()
             
             with self.uow:
                 preamble = self.uow.get_resume_preamble()
@@ -27,7 +26,7 @@ class ResumeLatexCompiler(LatexCompiler):
                     return None
 
                 tex_content = self._generate_tex_content(preamble.content, content_dict)
-                return self.compile_pdf(tex_path, tex_content)
+                return self.compile_pdf(tex_path, tex_content, output_manager)
                 
         except Exception as e:
             logger.error(f"Failed to generate PDF: {e}")

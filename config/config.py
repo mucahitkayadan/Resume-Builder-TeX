@@ -1,5 +1,5 @@
-import logging
 import os
+import logging
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
@@ -14,8 +14,10 @@ MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
 MONGODB_DATABASE = os.getenv("MONGODB_DATABASE", "user_information")
 MONGODB_COLLECTION = os.getenv("MONGODB_COLLECTION", "portfolio")
 
+# LLM API Keys
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # Ollama Configuration
 OLLAMA_URI = "http://localhost:11434"

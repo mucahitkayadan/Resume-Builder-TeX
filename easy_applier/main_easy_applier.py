@@ -9,15 +9,18 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, project_root)
 
 from dotenv import load_dotenv
-from easy_applier.resume_generator import ResumeGenerator
 from easy_applier.job_applier import JobApplier
 from easy_applier.linkedin_scraper import LinkedInScraper
-from __legacy__.database_manager import DatabaseManager
-from __legacy__.json_loader import JsonLoader
-from src.loaders.prompt_loader import PromptLoader
-from __legacy__.engine import AIRunner
-from __legacy__.engine import OpenAIStrategy
 from easy_applier.linkedin_job_manager import LinkedInJobManager
+from src.resume.resume_generator import ResumeGenerator
+from src.core.database.factory import get_unit_of_work
+from src.llms.strategies import OpenAIStrategy, ClaudeStrategy, OllamaStrategy, GeminiStrategy
+from config.config import (
+    LINKEDIN_EMAIL,
+    LINKEDIN_PASSWORD,
+)
+from config.settings import APP_CONSTANTS
+from config.llm_config import LLMConfig
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -30,16 +33,12 @@ def kill_chrome_processes():
             except psutil.NoSuchProcess:
                 pass
 
-async def generate_resume_async(resume_generator, job_description, company_name, job_title, ai_strategy):
+async def generate_resume_async(resume_generator, job_description, company_name, job_title):
     try:
-        return await asyncio.to_thread(
-            resume_generator.process_resume_generation,
+        return await resume_generator.generate_resume(
             job_description=job_description,
             company_name=company_name,
-            job_title=job_title,
-            model_type=ai_strategy.__class__.__name__,
-            model_name=ai_strategy.model,
-            temperature=ai_strategy.temperature
+            job_title=job_title
         )
     except Exception as e:
         logger.error(f"Error generating resume: {str(e)}")
@@ -49,31 +48,34 @@ async def main():
     # Load environment variables
     load_dotenv()
 
-    # Initialize components
-    db_manager = DatabaseManager()
-    json_loader = JsonLoader("../__legacy__/files/information.json")
-    prompt_loader = PromptLoader("../prompts/")
+    # Initialize database connection
+    unit_of_work = get_unit_of_work()
 
-    # Choose AI strategy
-    ai_strategy = OpenAIStrategy(system_prompt=prompt_loader.get_system_prompt())
-    ai_runner = AIRunner(ai_strategy)
+    # Initialize LLM configuration
+    llm_config = LLMConfig()
+    
+    # Initialize LLM strategy
+    system_instruction = "You are an AI assistant helping to generate resumes and cover letters."
+    
+    # Use OpenAI by default
+    llm_strategy = OpenAIStrategy(system_instruction)
+    llm_strategy.model = llm_config.OPENAI_MODEL.name
+    llm_strategy.temperature = llm_config.OPENAI_MODEL.default_temperature
 
-    resume_generator = ResumeGenerator(db_manager, json_loader, prompt_loader, ai_runner)
+    # Initialize resume generator
+    resume_generator = ResumeGenerator(unit_of_work, llm_strategy)
     
     # Get LinkedIn credentials
-    linkedin_email = os.getenv("LINKEDIN_EMAIL")
-    linkedin_password = os.getenv("LINKEDIN_PASSWORD")
-
-    if not linkedin_email or not linkedin_password:
-        raise ValueError("LinkedIn credentials not found in .env file")
+    if not LINKEDIN_EMAIL or not LINKEDIN_PASSWORD:
+        raise ValueError("LinkedIn credentials not found in configuration")
 
     # Initialize LinkedIn scraper
-    scraper = LinkedInScraper(linkedin_email, linkedin_password)
+    scraper = LinkedInScraper(LINKEDIN_EMAIL, LINKEDIN_PASSWORD)
     scraper.login()
 
     # Initialize JobApplier and LinkedInJobManager
-    job_applier = JobApplier(scraper.driver)
-    job_manager = LinkedInJobManager(scraper, job_applier, resume_generator)
+    job_applier = JobApplier(scraper.driver, unit_of_work)
+    job_manager = LinkedInJobManager(scraper, job_applier, resume_generator, unit_of_work)
 
     # Set job search parameters
     keywords = "Software Engineer"
@@ -97,8 +99,7 @@ async def main():
             resume_generator,
             job_description,
             company_name,
-            job_title,
-            ai_strategy
+            job_title
         )
         tasks.append(task)
 
@@ -110,7 +111,6 @@ async def main():
         for i, resume_content in enumerate(resumes):
             if resume_content:
                 logger.info(f"Resume generated for job {i+1}/{len(job_descriptions)}")
-                # Here you can save or further process the resume_content
             else:
                 logger.warning(f"Failed to generate resume for job {i+1}")
                 

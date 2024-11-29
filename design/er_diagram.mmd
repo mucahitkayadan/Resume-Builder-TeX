@@ -14,7 +14,7 @@ erDiagram
         string id PK
         string user_id FK
         json personal_information
-        text career_summary
+        json career_summary
         json skills
         json work_experience
         json education
@@ -56,9 +56,11 @@ erDiagram
         string name UK
         string type
         text content
+        datetime created_at
+        datetime updated_at
     }
 
-    User ||--o{ Portfolio : "has"
-    User ||--o{ Resume : "creates"
-    Portfolio ||--o{ Resume : "used_by"
-    Resume ||--o{ Preamble : "uses"
+    User ||--o{ Portfolio : has
+    User ||--o{ Resume : creates
+    Portfolio ||--o{ Resume : used_by
+    Resume ||--|| Preamble : uses

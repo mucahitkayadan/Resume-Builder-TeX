@@ -124,8 +124,8 @@ class HardcodeSections:
             pub_data = {
                 'name': pub.name,
                 'publisher': pub.publisher,
-                'Year': pub.date,
-                'link': pub.description
+                'time': pub.time,
+                'link': pub.link
             }
             publications_content += self.tex_loader.safe_format_template('publication_item', **pub_data)
         return self.tex_loader.safe_format_template('publications', publications_content=publications_content)

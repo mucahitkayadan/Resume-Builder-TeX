@@ -1,7 +1,11 @@
 import streamlit as st
+from config.logger_config import setup_logger
+
+logger = setup_logger(__name__)
 
 class ModelSelector:
     def __init__(self):
+        logger.debug("Initializing ModelSelector")
         self.model_types = ["OpenAI", "Claude", "Ollama", "Gemini"]
         self.model_options = {
             "OpenAI": ["gpt-4o", "gpt-4o-mini", "gpt-4o-2024-08-06", "o1-mini",
@@ -23,6 +27,7 @@ class ModelSelector:
         Returns:
             tuple: (model_type, model_name, temperature) containing the selected settings
         """
+        logger.debug("Getting model settings")
         st.subheader("Model Settings")
 
         # Model type selection
@@ -49,4 +54,5 @@ class ModelSelector:
             help="Higher values make the output more creative but less focused"
         )
 
+        logger.debug(f"Selected settings - Type: {model_type}, Model: {model_name}, Temp: {temperature}")
         return model_type, model_name, temperature

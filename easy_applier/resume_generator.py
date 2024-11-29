@@ -1,13 +1,13 @@
-from __legacy__.engine import ResumeCreator
-from __legacy__.database_manager import DatabaseManager
-from __legacy__.json_loader import JsonLoader
-from src.loaders.prompt_loader import PromptLoader
-from __legacy__.engine import AIRunner
+from src.core.database.unit_of_work import MongoUnitOfWork
+from src.core.dto.portfolio.portfolio import PortfolioDTO
+from src.latex.utils.latex_escaper import LatexEscaper
 from typing import Dict, Generator, Tuple
 
 class ResumeGenerator:
-    def __init__(self, db_manager: DatabaseManager, json_loader: JsonLoader, prompt_loader: PromptLoader, ai_runner: AIRunner):
-        self.resume_creator = ResumeCreator(ai_runner, json_loader, prompt_loader, db_manager)
+    def __init__(self, unit_of_work: MongoUnitOfWork, ai_runner):
+        self.uow = unit_of_work
+        self.ai_runner = ai_runner
+        self.latex_escaper = LatexEscaper()
 
     def generate_resume(
         self, 
@@ -19,7 +19,18 @@ class ResumeGenerator:
         temperature: float,
         selected_sections: Dict[str, str]
     ) -> Generator[Tuple[str, float], None, None]:
-        return self.resume_creator.generate_resume(
+        # Get portfolio from database
+        with self.uow:
+            portfolio = self.uow.portfolio.get_by_user_id('default_user')  # Make configurable
+            if not portfolio:
+                raise ValueError("No portfolio found for user")
+            
+            # Convert to DTO
+            portfolio_dto = PortfolioDTO.from_db_model(portfolio, self.latex_escaper)
+
+        # Generate resume using AI runner
+        for update, progress in self.ai_runner.generate_resume(
+            portfolio_dto,
             job_description,
             company_name,
             job_title,
@@ -27,7 +38,8 @@ class ResumeGenerator:
             model_name,
             temperature,
             selected_sections
-        )
+        ):
+            yield update, progress
 
     def process_resume_generation(
         self, 

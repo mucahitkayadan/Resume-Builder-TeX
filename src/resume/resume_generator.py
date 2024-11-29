@@ -7,7 +7,6 @@ from src.latex.resume.resume_compiler import ResumeLatexCompiler
 from src.loaders.prompt_loader import PromptLoader
 from src.loaders.tex_loader import TexLoader
 from src.resume.hardcode_sections import HardcodeSections
-from src.resume.utils.file_ops import create_output_directory, save_job_description
 from src.loaders.portfolio_loader import PortfolioLoader
 from src.core.database.factory import get_unit_of_work
 from src.resume.utils.output_manager import OutputManager
@@ -35,67 +34,38 @@ class ResumeGenerator:
 
     def generate_resume(self,
                         job_description: str,
-                        selected_sections: Dict[str, str]) -> Generator[Tuple[str, float], None, Resume]:
-        """
-        Generate a résumé based on the provided job description and settings.
-        
-        Args:
-            job_description: Job description text
-            selected_sections: Dictionary of sections to process
-            
-        Yields:
-            Tuple of (status message, progress percentage)
-        Returns:
-            Resume: The generated resume object
-        """
+                        selected_sections: Dict[str, str],
+                        output_manager: OutputManager):
+        """Generate a résumé based on the provided job description and settings."""
         logger.info("Starting resume generation process")
-        logger.info(f"Using LLM strategy: {self.llm_runner.strategy.__class__.__name__}")
-        logger.info(f"Selected sections: {selected_sections}")
-        
-        progress = 0.0  # Initialize progress here
         
         try:
-            # Initial progress
-            yield "Starting resume generation...", progress
+            # Save job description
+            output_manager.save_job_description(job_description)
             
-            company_name, job_title = self.llm_runner.create_company_name_and_job_title(
-                self.prompt_loader.get_folder_name_prompt(), 
-                job_description
-            )
-            logger.info(f"Generated company name: {company_name}, job title: {job_title}")
-            progress = 0.2
-            yield f"Created folder for {company_name} - {job_title}", progress
-            
-            # Process sections
+            # Generate content for each section
             content_dict = {}
             total_sections = len(selected_sections)
-            for i, (section, process_type) in enumerate(selected_sections.items(), 1):
-                try:
-                    content = self.process_section(section, process_type, job_description)
-                    if content:
-                        content_dict[section] = content
-                        logger.info(f"Processed {section} section")
-                    progress = 0.2 + (0.6 * (i / total_sections))  # Progress from 20% to 80%
-                    yield f"Processed {section} section", progress
-                except Exception as e:
-                    logger.error(f"Failed to process section {section}: {e}")
-                    yield f"Error processing {section}", progress
             
+            for i, (section, process_type) in enumerate(selected_sections.items(), 1):
+                progress = i / (total_sections + 1)  # +1 for PDF generation
+                yield f"Processing {section}...", progress
+                
+                content = self.process_section(section, process_type, job_description)
+                if content:
+                    content_dict[section] = content
+
             # Generate and save resume
-            yield "Generating final PDF...", 0.9
             resume = self._generate_and_save_resume(
                 content_dict=content_dict,
-                job_description=job_description,
-                company_name=company_name,
-                job_title=job_title
+                output_manager=output_manager
             )
-            logger.info(f"Resume generated and saved with ID: {resume.id}")
-            yield "Resume generation complete!", 1.0
-            return resume
             
+            yield f"Resume generated successfully!", 1.0
+            return resume
+
         except Exception as e:
-            logger.error(f"Resume generation failed: {str(e)}", exc_info=True)
-            yield f"Error: {str(e)}", 1.0
+            logger.error(f"Failed to generate resume: {e}")
             raise
 
     def _process_sections(self,
@@ -128,35 +98,25 @@ class ResumeGenerator:
         
         return content_dict
 
-    def _generate_and_save_resume(self,
-                                  content_dict: Dict[str, str],
-                                  job_description: str,
-                                  company_name: str,
-                                  job_title: str) -> Resume:
-        """Generate PDF and save resume to database."""
+    def _generate_and_save_resume(self, content_dict: Dict[str, str], output_manager: OutputManager) -> Resume:
         try:
-            # Create output manager
-            output_manager = OutputManager(company_name, job_title)
-            
-            # Save job description
-            output_manager.save_job_description(job_description)
+            job_info = output_manager.get_job_info()
             
             # Generate PDF
             generated_pdf = self.latex_compiler.generate_pdf(
-                content_dict, 
-                output_manager.output_dir
+                content_dict=content_dict,
+                output_manager=output_manager
             )
             if not generated_pdf:
-                output_manager.cleanup()
                 raise Exception("PDF generation failed")
 
-            # Create resume object
+            # Create and save resume object
             resume = Resume(
                 id=None,
                 user_id=self.user_id,
-                company_name=company_name,
-                job_title=job_title,
-                job_description=job_description,
+                company_name=job_info.company_name,
+                job_title=job_info.job_title,
+                job_description=job_info.job_description,
                 **content_dict,
                 resume_pdf=generated_pdf,
                 model_type=self.llm_runner.get_config().get('type'),
@@ -164,7 +124,6 @@ class ResumeGenerator:
                 temperature=self.llm_runner.get_config().get('temperature')
             )
 
-            # Save to database
             with self.uow:
                 self.uow.resumes.add(resume)
                 self.uow.commit()
@@ -173,8 +132,6 @@ class ResumeGenerator:
             
         except Exception as e:
             logger.error(f"Failed to generate and save resume: {e}")
-            if 'output_manager' in locals():
-                output_manager.cleanup()
             raise
 
     def process_section(self,

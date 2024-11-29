@@ -70,6 +70,6 @@ class TexLoader:
             self.logger.error(f"ValueError in template '{template_name}': {e}")
             raise ValueError(f"Error formatting template '{template_name}': {e}")
 
-# if __name__ == '__main__':
-#     tex_loader = TexLoader()
-#     print(tex_loader.get_template("career_summary"))
+if __name__ == '__main__':
+    tex_loader = TexLoader()
+    print(tex_loader.get_template("publications"))

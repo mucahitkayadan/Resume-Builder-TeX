@@ -88,8 +88,8 @@ class PortfolioDTO(BaseDTO):
                 PublicationDTO(
                     name=cls.escape_text(pub.get('name', ''), escaper),
                     publisher=cls.escape_text(pub.get('publisher', ''), escaper),
-                    date=cls.escape_text(pub.get('date', ''), escaper),
-                    description=cls.escape_text(pub.get('description', ''), escaper)
+                    time=cls.escape_text(pub.get('time', ''), escaper),
+                    link=cls.escape_text(pub.get('link', ''), escaper)
                 )
                 for pub in data.publications
             ]

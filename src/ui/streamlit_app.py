@@ -1,5 +1,6 @@
 import streamlit as st
 import logging
+from config.logger_config import setup_logger
 
 from src.resume.resume_generator import ResumeGenerator
 from src.resume.cover_letter_generator import CoverLetterGenerator
@@ -11,9 +12,11 @@ from src.llms.runner import LLMRunner
 from src.resume.utils.job_analysis import check_clearance_requirement
 from config.settings import APP_CONSTANTS
 from config.llm_config import LLMConfig
-from src.core.database.models.resume import Resume
+from src.resume.utils.output_manager import OutputManager
+from src.resume.utils.job_info import JobInfo
+from src.core.database.models import Resume
 
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__, level=logging.INFO)
 
 class StreamlitApp:
     def __init__(self):
@@ -23,8 +26,7 @@ class StreamlitApp:
         self.section_selector = SectionSelector()
         self.prompt_loader = PromptLoader()
         
-        # Initialize LLMRunner with default OpenAI configuration
-        logger.debug("Creating LLMRunner with default OpenAI configuration")
+        logger.info("Creating LLMRunner with default OpenAI configuration")
         self.llm_runner = LLMRunner.create_with_config(
             model_type="OpenAI",
             model_name=LLMConfig.OPENAI_MODEL.name,
@@ -33,7 +35,7 @@ class StreamlitApp:
         )
 
     def setup_session_state(self):
-        logger.debug("Setting up session state")
+        logger.info("Setting up session state")
         if 'user_id' not in st.session_state:
             st.session_state['user_id'] = "mujakayadan"
         if 'portfolio_initialized' not in st.session_state:
@@ -47,21 +49,20 @@ class StreamlitApp:
         page = st.sidebar.radio("Go to", ["Resume Generator", "Database Viewer"])
         
         if page == "Resume Generator":
-            logger.debug("Showing resume generator page")
+            logger.info("Showing resume generator page")
             self.show_resume_generator()
         else:
-            logger.debug("Showing database viewer page")
+            logger.info("Showing database viewer page")
             self.show_database_viewer()
 
     def show_resume_generator(self):
         logger.info("Showing resume generator interface")
         try:
             # Get model settings
+            logger.info("Getting model settings")
             model_type, model_name, temperature = self.model_selector.get_model_settings()
-            logger.debug(f"Selected model settings - Type: {model_type}, Model: {model_name}, Temp: {temperature}")
             
-            # Update LLM configuration
-            logger.debug(f"Updating LLM config: type={model_type}, model={model_name}, temp={temperature}")
+            logger.info(f"Updating LLM configuration: {model_type}, {model_name}, {temperature}")
             self.llm_runner.update_config(
                 model_type=model_type,
                 model_name=model_name,
@@ -70,18 +71,18 @@ class StreamlitApp:
             
             # Get job description
             job_description = st.text_area("Enter the job description:", height=200)
-            if job_description:
-                logger.debug(f"Received job description (length: {len(job_description)})")
             
             # Get selected sections
             selected_sections = self.section_selector.get_user_section_selection()
-            logger.debug(f"Selected sections: {selected_sections}")
             
             # Check clearance requirement
             clearance_required = check_clearance_requirement(job_description, APP_CONSTANTS.get('clearance_keywords'))
             
             # Select generation option
-            generation_option = st.selectbox("Choose generation option", ["Resume", "Cover Letter", "Both"])
+            generation_option = st.selectbox(
+                "What would you like to generate?",
+                ["Resume", "Cover Letter", "Both"]
+            )
 
             # Generate content based on selected sections
             if st.button("Generate"):
@@ -95,51 +96,79 @@ class StreamlitApp:
                     logger.warning("No sections selected")
                     st.warning("Please select at least one section to generate")
                 else:
-                    logger.info("Starting content generation")
-                    # Extract company name and job title
-                    company_name, job_title = self.llm_runner.create_company_name_and_job_title(self.prompt_loader.get_folder_name_prompt(), job_description)
-                    logger.debug(f"Extracted company: {company_name}, job title: {job_title}")
-                    
-                    progress_bar = st.progress(0)
-                    status_area = st.empty()
-                    
-                    try:
-                        generated_resume = None
-                        if generation_option in ["Resume", "Both"]:
-                            logger.info("Generating resume")
-                            resume_generator = ResumeGenerator(self.llm_runner, st.session_state['user_id'])
-                            try:
-                                for status_msg, progress in resume_generator.generate_resume(
-                                    job_description=job_description,
-                                    selected_sections=selected_sections
-                                ):
-                                    progress_bar.progress(progress)
-                                    status_area.text(status_msg)
-                                    if isinstance(status_msg, Resume):  # Capture the returned Resume object
-                                        generated_resume = status_msg
-                            except Exception as e:
-                                logger.error(f"Resume generation failed: {str(e)}")
-                                st.error(f"Resume generation failed: {str(e)}")
-
-                        if generation_option in ["Cover Letter", "Both"] and generated_resume:
-                            logger.info("Generating cover letter")
-                            cover_letter_generator = CoverLetterGenerator(self.llm_runner, st.session_state['user_id'])
-                            cover_letter_generator.generate_cover_letter(
-                                job_description=job_description,
-                                resume_id=generated_resume.id,
-                                company_name=company_name,
-                                job_title=job_title
-                            )
-
-                        logger.info("Generation completed successfully")
-                        st.success("Generation complete!")
+                    with st.spinner("Generating..."):
+                        progress_bar = st.progress(0)
+                        status_area = st.empty()
                         
-                    except Exception as e:
-                        logger.error(f"Error during generation: {str(e)}", exc_info=True)
-                        st.error(f"An error occurred during generation: {str(e)}")
-                    finally:
-                        progress_bar.empty()
-                        status_area.empty()
+                        try:
+                            # Create job info first
+                            job_info = JobInfo.extract_from_description(
+                                job_description,
+                                self.llm_runner,
+                                self.prompt_loader
+                            )
+                            
+                            # Create output manager with job info
+                            output_manager = OutputManager(job_info)
+
+                            logger.info("Output manager is working at: " + str(output_manager.output_dir))
+                            generated_resume = None
+                            if generation_option in ["Resume", "Both"]:
+                                resume_generator = ResumeGenerator(self.llm_runner, st.session_state['user_id'])
+                                try:
+                                    for result in resume_generator.generate_resume(
+                                        job_description=job_description,
+                                        selected_sections=selected_sections,
+                                        output_manager=output_manager
+                                    ):
+                                        if isinstance(result, tuple):
+                                            status_msg, progress = result
+                                            progress_bar.progress(progress)
+                                            status_area.text(status_msg)
+                                        else:
+                                            generated_resume = result
+                                            logger.info(f"Resume generated successfully with ID: {generated_resume.id}")
+                                except Exception as e:
+                                    logger.error(f"Resume generation failed: {str(e)}")
+                                    st.error(f"Resume generation failed: {str(e)}")
+                                    raise  # Re-raise to prevent cover letter generation
+                                
+                            if generation_option in ["Cover Letter", "Both"]:
+                                logger.info("Starting cover letter generation process")
+                                try:
+                                    # Create new output manager for cover letter if needed
+                                    if generation_option == "Cover Letter":
+                                        job_info = JobInfo.extract_from_description(
+                                            job_description,
+                                            self.llm_runner,
+                                            self.prompt_loader
+                                        )
+                                        output_manager = OutputManager(job_info)
+                                        
+                                    cover_letter_generator = CoverLetterGenerator(self.llm_runner, st.session_state['user_id'])
+                                    result = cover_letter_generator.generate_cover_letter(
+                                        job_description=job_description,
+                                        resume_id=generated_resume.id if generated_resume else None,
+                                        output_manager=output_manager
+                                    )
+                                    logger.info(f"Cover letter generation result: {result}")
+                                    if "failed" in result.lower():
+                                        st.warning(result)
+                                    else:
+                                        st.success(result)
+                                except Exception as e:
+                                    logger.error(f"Cover letter generation failed with error: {str(e)}", exc_info=True)
+                                    st.error(f"Failed to generate cover letter: {str(e)}")
+
+                            logger.info("Generation completed successfully")
+                            st.success("Generation complete!")
+                            
+                        except Exception as e:
+                            logger.error(f"Error during generation: {str(e)}", exc_info=True)
+                            st.error(f"An error occurred during generation: {str(e)}")
+                        finally:
+                            progress_bar.empty()
+                            status_area.empty()
         except Exception as e:
             logger.error(f"Error during resume generation: {str(e)}", exc_info=True)
             st.error(f"An error occurred during resume generation: {str(e)}")

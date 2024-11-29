@@ -1,8 +1,12 @@
 import streamlit as st
 from typing import Dict
+from config.logger_config import setup_logger
+
+logger = setup_logger(__name__)
 
 class SectionSelector:
     def __init__(self):
+        logger.debug("Initializing SectionSelector")
         self.sections = [
             "personal_information", "career_summary", "skills", "work_experience",
             "education", "projects", "awards", "publications"
@@ -16,6 +20,7 @@ class SectionSelector:
         Returns:
             Dict[str, str]: Dictionary mapping section names to their selected handling method
         """
+        logger.debug("Getting user section selection")
         selected_sections = {}
         
         st.subheader("Section Handling")
@@ -42,4 +47,5 @@ class SectionSelector:
 
             selected_sections[section] = selected_option.lower()
 
+        logger.debug(f"Selected sections: {selected_sections}")
         return selected_sections

@@ -1,28 +1,31 @@
 from pathlib import Path
-from config.settings import OUTPUT_FOLDER
 import shutil
+from config.settings import OUTPUT_DIR
+from .job_info import JobInfo
+from .string_utils import sanitize_filename
 
 class OutputManager:
-    def __init__(self, company_name: str, job_title: str):
-        self.company_name = company_name
-        self.job_title = job_title
+    def __init__(self, job_info: JobInfo):
+        self.job_info = job_info
         self.output_dir = self._create_output_directory()
 
     def _create_output_directory(self) -> Path:
         """Create and return the output directory path."""
-        # Create a safe directory name from company and job title
-        safe_name = f"{self.company_name}_{self.job_title}".replace(' ', '_')
-        safe_name = ''.join(c for c in safe_name if c.isalnum() or c in '_-')
+        safe_company = sanitize_filename(self.job_info.company_name)
+        safe_job = sanitize_filename(self.job_info.job_title)
+        folder_name = f"{safe_company}_{safe_job}"
         
-        # Create unique directory
-        output_dir = OUTPUT_FOLDER / safe_name
+        output_dir = OUTPUT_DIR / folder_name
         counter = 1
         while output_dir.exists():
-            output_dir = OUTPUT_FOLDER / f"{safe_name}_{counter}"
+            output_dir = OUTPUT_DIR / f"{folder_name}_{counter}"
             counter += 1
             
         output_dir.mkdir(parents=True, exist_ok=True)
         return output_dir
+
+    def get_job_info(self) -> JobInfo:
+        return self.job_info
 
     def get_resume_path(self) -> Path:
         """Get path for resume file."""

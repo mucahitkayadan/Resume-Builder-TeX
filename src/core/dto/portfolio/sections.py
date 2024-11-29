@@ -41,8 +41,8 @@ class AwardDTO(BaseDTO):
 class PublicationDTO(BaseDTO):
     name: str
     publisher: str
-    date: str
-    description: str
+    time: str
+    link: str
 
 @dataclass
 class PersonalInformationDTO(BaseDTO):

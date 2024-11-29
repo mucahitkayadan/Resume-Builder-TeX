@@ -1,5 +1,5 @@
 # Testing is done - Successful
-from config.settings import PROMPTS_FOLDER
+from config.settings import PROMPTS_DIR
 
 
 class PromptLoader:
@@ -11,7 +11,7 @@ class PromptLoader:
         """
         Initialize the PromptLoader with a base directory path.
         """
-        self.prompt_dir = PROMPTS_FOLDER
+        self.prompt_dir = PROMPTS_DIR
 
     def _load_prompt(self, filename: str) -> str:
         """Load the content of a prompt file.
@@ -51,5 +51,5 @@ class PromptLoader:
 
 if __name__ == '__main__':
     prompt_loader = PromptLoader()
-    print(f"Resolved PROMPTS_FOLDER: {PROMPTS_FOLDER}")
+    print(f"Resolved PROMPTS_FOLDER: {PROMPTS_DIR}")
     print(prompt_loader.get_section_prompt('skills'))
