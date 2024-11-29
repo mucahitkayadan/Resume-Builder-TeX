@@ -1,6 +1,35 @@
 erDiagram
+    User {
+        string id PK
+        string email UK
+        string password_hash
+        blob signature_image
+        string signature_filename
+        string signature_content_type
+        datetime created_at
+        datetime updated_at
+    }
+
+    Portfolio {
+        string id PK
+        string user_id FK
+        json personal_information
+        json career_summary
+        json skills
+        json work_experience
+        json education
+        json projects
+        json awards
+        json publications
+        json certifications
+        json languages
+        datetime created_at
+        datetime updated_at
+    }
+
     Resume {
-        int id PK
+        string id PK
+        string user_id FK
         string company_name
         string job_title
         text job_description
@@ -12,27 +41,26 @@ erDiagram
         text projects
         text awards
         text publications
-        blob pdf_content
         string model_type
         string model_name
         float temperature
-        text cover_letter
+        blob resume_pdf
+        text cover_letter_content
         blob cover_letter_pdf
         datetime created_at
-        datetime last_updated
+        datetime updated_at
     }
 
     Preamble {
-        int id PK
+        string id PK
         string name UK
+        string type
         text content
+        datetime created_at
+        datetime updated_at
     }
 
-    TexHeader {
-        int id PK
-        string name UK
-        text content
-    }
-
-    Resume ||--o{ Preamble : "uses"
-    Resume ||--o{ TexHeader : "uses"
+    User ||--o{ Portfolio : has
+    User ||--o{ Resume : creates
+    Portfolio ||--o{ Resume : used_by
+    Resume ||--|| Preamble : uses

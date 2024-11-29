@@ -1,15 +1,10 @@
-import unittest
-from unittest.mock import Mock, patch
 import os
-import tempfile
-import shutil
-from engine.cover_letter_creator import CoverLetterCreator
-from utils.database_manager import DatabaseManager
-from loaders.json_loader import JsonLoader
-from loaders.prompt_loader import PromptLoader
-from engine.runners import AIRunner
-from engine.ai_strategies import OpenAIStrategy  # Import the actual AI strategy you're using
-from utils.latex_compiler import generate_cover_letter_pdf
+from __legacy__.engine import CoverLetterCreator
+from __legacy__.database_manager import DatabaseManager
+from __legacy__.json_loader import JsonLoader
+from src.loaders.prompt_loader import PromptLoader
+from __legacy__.engine import AIRunner
+from __legacy__.engine import OpenAIStrategy  # Import the actual AI strategy you're using
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -104,8 +99,8 @@ class TestCoverLetterCreator:
 
     def generate_cover_letter_with_values(self, job_description, company_name, job_title):
         # Use actual instances
-        db_manager = DatabaseManager('../db/resumes.db')
-        json_loader = JsonLoader('../files/information.json')
+        db_manager = DatabaseManager('../__legacy__/db/resumes.db')
+        json_loader = JsonLoader('../__legacy__/files/information.json')
         prompt_loader = PromptLoader('../prompts')
         ai_strategy = OpenAIStrategy('gpt-3.5-turbo', 0.2, system_prompt=prompt_loader.get_system_prompt())
         ai_runner = AIRunner(ai_strategy)

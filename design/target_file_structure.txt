@@ -1,0 +1,67 @@
+resume_builder/
+├── src/
+│   ├── api/                    # API endpoints and interfaces
+│   │   ├── __init__.py
+│   │   └── routes.py
+│   │
+│   ├── core/                   # Core business logic
+│   │   ├── __init__.py
+│   │   ├── resume/
+│   │   │   ├── __init__.py
+│   │   │   ├── creator.py
+│   │   │   └── processor.py
+│   │   └── cover_letter/
+│   │       ├── __init__.py
+│   │       └── creator.py
+│   │
+│   ├── ai/                     # AI-related components
+│   │   ├── __init__.py
+│   │   ├── runners/
+│   │   │   ├── __init__.py
+│   │   │   ├── base.py
+│   │   │   ├── openai.py
+│   │   │   └── claude.py
+│   │   └── strategies/
+│   │       ├── __init__.py
+│   │       └── ai_strategy.py
+│   │
+│   ├── database/              # Database operations
+│   │   ├── __init__.py
+│   │   ├── models/
+│   │   ├── repositories/
+│   │   └── unit_of_work/
+│   │
+│   ├── latex/                 # LaTeX handling
+│   │   ├── __init__.py
+│   │   ├── compiler.py
+│   │   └── templates/
+│   │
+│   ├── parsers/              # Job description parsers
+│   │   ├── __init__.py
+│   │   ├── indeed.py
+│   │   └── linkedin.py
+│   │
+│   ├── utils/                # Utility functions
+│   │   ├── __init__.py
+│   │   ├── file_ops.py
+│   │   └── text_processing.py
+│   │
+│   └── config/               # Configuration
+│       ├── __init__.py
+│       └── settings.py
+│
+├── tests/                    # Test files
+│   ├── __init__.py
+│   ├── unit/
+│   └── integration/
+│
+├── docs/                     # Documentation
+│   ├── technical.md
+│   └── api.md
+│
+├── scripts/                  # Utility scripts
+│   └── setup_db.py
+│
+└── resources/               # Static resources
+    ├── prompts/
+    └── templates/

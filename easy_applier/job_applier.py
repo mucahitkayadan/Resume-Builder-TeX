@@ -1,22 +1,22 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from src.core.database.unit_of_work import MongoUnitOfWork
+from src.core.database.models.resume import Resume
 
 class JobApplier:
-    def __init__(self, driver):
+    def __init__(self, driver, unit_of_work: MongoUnitOfWork):
         self.driver = driver
+        self.uow = unit_of_work
 
-    def apply_to_job(self, job_url, resume_path):
+    async def apply_to_job(self, job_url: str, resume_path: str) -> bool:
         self.driver.get(job_url)
         try:
+            # Wait for and click apply button
             apply_button = WebDriverWait(self.driver, 10).until(
                 EC.element_to_be_clickable((By.CSS_SELECTOR, ".jobs-apply-button"))
             )
             apply_button.click()
-
-            # Fill out application form
-            # This part will vary depending on the job application structure
-            # You'll need to implement form filling logic here
 
             # Upload resume
             upload_button = self.driver.find_element(By.CSS_SELECTOR, "input[type='file']")

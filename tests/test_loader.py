@@ -1,66 +1,72 @@
-import json
-from loaders.tex_loader import TexLoader
-from loaders.json_loader import JsonLoader
-from loaders.prompt_loader import PromptLoader
+import pytest
+from src.core.database.factory import get_unit_of_work
+from src.core.database.models.tex_header import TexHeader
+from src.loaders.tex_loader import TexLoader
+from datetime import datetime
 
-class LoaderTester:
-    def __init__(self):
-        self.tex_loader = TexLoader("../tex_template")
-        self.json_loader = JsonLoader("../files/information.json")
-        self.prompt_loader = PromptLoader("../prompts")
+@pytest.fixture
+def uow():
+    return get_unit_of_work()
 
-    def test_personal_information(self):
-        print(self.json_loader.get_personal_information())
-    def test_skills(self):
-        print(self.json_loader.get_skills())
-    def test_work_experience(self):
-        print(self.json_loader.get_work_experience())
-    def test_tex_loader(self):
-        print("\n--- Testing TexLoader ---")
-        methods = [
-            "get_main", "get_personal_information", "get_career_summary",
-            "get_skills", "get_work_experience", "get_education",
-            "get_projects", "get_awards", "get_publications"
-        ]
-        for method in methods:
-            content = getattr(self.tex_loader, method)()
-            print(f"\n{method}:")
-            print(content[:200] + "..." if len(content) > 200 else content)
+@pytest.fixture
+def tex_loader(uow):
+    return TexLoader(uow)
 
-    def test_json_loader(self):
-        print("\n--- Testing JsonLoader ---")
-        methods = [
-            "get_personal_information", "get_job_titles", "get_career_summary",
-            "get_skills", "get_work_experience", "get_education",
-            "get_projects", "get_awards", "get_publications"
-        ]
-        for method in methods:
-            content = getattr(self.json_loader, method)()
-            print(f"\n{method}:")
-            print(json.dumps(content, indent=2))
+def test_get_all_headers(uow):
+    with uow:
+        headers = uow.tex_headers.get_all()
+        assert isinstance(headers, list)
+        for header in headers:
+            assert isinstance(header, TexHeader)
+            assert header.name
+            assert header.content
 
-    def test_prompt_loader(self):
-        print("\n--- Testing PromptLoader ---")
-        methods = [
-            "get_personal_information_prompt", "get_job_titles_prompt",
-            "get_career_summary_prompt", "get_skills_prompt",
-            "get_work_experience_prompt", "get_education_prompt",
-            "get_projects_prompt", "get_awards_prompt",
-            "get_publications_prompt"
-        ]
-        for method in methods:
-            content = getattr(self.prompt_loader, method)()
-            print(f"\n{method}:")
-            print(content[:200] + "..." if len(content) > 200 else content)
+def test_add_and_delete_header(uow):
+    with uow:
+        # Create test header
+        test_header = TexHeader(
+            id=None,  # Explicitly set id as None for new headers
+            name="test_template",
+            content="\\section{Test Content}",
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+        
+        # Add header
+        added_header = uow.tex_headers.add(test_header)
+        assert added_header.id is not None
+        
+        # Verify it exists
+        assert uow.tex_headers.exists(added_header.id)
+        
+        # Delete header
+        assert uow.tex_headers.delete(added_header.id)
+        
+        # Verify it's gone
+        assert not uow.tex_headers.exists(added_header.id)
+        
+        uow.commit()
 
-    def run_all_tests(self):
-        self.test_tex_loader()
-        self.test_json_loader()
-        self.test_prompt_loader()
-
-if __name__ == "__main__":
-    tester = LoaderTester()
-    # tester.test_json_loader()
-    # tester.test_personal_information()
-    # tester.test_work_experience()
-    tester.test_skills()
+def test_update_header(uow):
+    with uow:
+        # Create test header
+        test_header = TexHeader(
+            id=None,  # Explicitly set id as None for new headers
+            name="test_update",
+            content="\\section{Original Content}",
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+        
+        # Add and update
+        added_header = uow.tex_headers.add(test_header)
+        added_header.content = "\\section{Updated Content}"
+        assert uow.tex_headers.update(added_header)
+        
+        # Verify update
+        updated = uow.tex_headers.get_by_id(added_header.id)
+        assert updated.content == "\\section{Updated Content}"
+        
+        # Cleanup
+        uow.tex_headers.delete(added_header.id)
+        uow.commit()

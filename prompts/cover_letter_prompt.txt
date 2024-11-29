@@ -5,11 +5,11 @@ You are given a resume content and job description. Create a cover letter for th
 Instructions: 
 - Use the resume content to create a cover letter tailored to the job description.
 - Write a cover letter that is 4 paragraphs long, naturally written and not too formal.
-- Explain each paragraph with detail.
-- Use casual, simple, everyday language. The writing style should reflect that of a non-native English speaker who is fluent but not overly formal.
+- Use casual, simple, everyday language. The writing style should reflect that of a non-native English speaker who is fluent but not overly formal. Use shorter sentences rather than combined with conjunctions, avoid excessive adjectives.
 - The cover letter should be easy to read and understand.
 - Use the information provided about the candidate's background to add personal touches and unique selling points to the letter.
 - If the company name or location is not available in the resume or the job description, use generic terms like "your company" or omit location references.
+- When you put the name in the end, it should start with a new line.
 
 Paragraph Structure:
 1. Introduction: State the position you're applying for and where you found the job posting. Express your enthusiasm for the role.

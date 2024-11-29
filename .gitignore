@@ -4,19 +4,15 @@ __pycache__/
 *__pycache__*/
 output/
 auxil/
-files/
+__legacy__/files/
 .idea/
 created_resumes/
 .env
-/linkedin_applier/
-# Ignore databases with personal information
-db/resumes.db
-db/user.db
 
-# Don't ignore preambles database (contains only LaTeX templates)
-!db/preambles.db
 .cadence
 /easy_applier/linkedin_cookies.pkl
 /easy_applier/chrome_profile/
 /easy_applier/chrome-data/
 /easy_applier/chromedriver-win64/
+/__legacy__/
+**.coverage

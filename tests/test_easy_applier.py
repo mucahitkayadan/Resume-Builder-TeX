@@ -7,14 +7,13 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, project_root)
 
 from easy_applier.resume_generator import ResumeGenerator
-from easy_applier.job_applier import JobApplier
 from easy_applier.linkedin_scraper import LinkedInScraper
 from easy_applier.linkedin_job_manager import LinkedInJobManager
-from utils.database_manager import DatabaseManager
-from loaders.json_loader import JsonLoader
-from loaders.prompt_loader import PromptLoader
-from engine.runners import AIRunner
-from engine.ai_strategies import OpenAIStrategy, ClaudeStrategy
+from __legacy__.database_manager import DatabaseManager
+from __legacy__.json_loader import JsonLoader
+from src.loaders.prompt_loader import PromptLoader
+from __legacy__.engine import AIRunner
+from __legacy__.engine import ClaudeStrategy
 
 def test_linkedin_scraper():
     print("\n=== Testing LinkedIn Scraper ===")
@@ -34,8 +33,8 @@ def test_linkedin_scraper():
 def test_resume_generator():
     print("\n=== Testing Resume Generator ===")
     try:
-        db_manager = DatabaseManager("../db/resumes.db")
-        json_loader = JsonLoader("../files/information.json")
+        db_manager = DatabaseManager("../__legacy__/db/resumes.db")
+        json_loader = JsonLoader("../__legacy__/files/information.json")
         prompt_loader = PromptLoader("../prompts")
         ai_strategy = ClaudeStrategy()
         ai_runner = AIRunner(ai_strategy)
