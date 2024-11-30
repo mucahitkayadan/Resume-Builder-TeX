@@ -5,5 +5,6 @@ from src.latex.utils.latex_escaper import LatexEscaper
 @dataclass
 class BaseDTO:
     @staticmethod
-    def escape_text(text: str, escaper: LatexEscaper) -> str:
-        return escaper.escape_text(str(text))
+    def escape_text(text: str) -> str:
+        """Use LatexEscaper to properly escape text for LaTeX."""
+        return LatexEscaper.escape_text(str(text))

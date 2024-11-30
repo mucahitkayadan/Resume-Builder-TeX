@@ -11,13 +11,12 @@ class HardcodeSections:
         logger.debug(f"Initializing HardcodeSections for user {user_id}")
         self.uow = get_unit_of_work()
         self.tex_loader = TexLoader()
-        self.latex_escaper = LatexEscaper()
         with self.uow:
             raw_portfolio = self.uow.portfolio.get_by_user_id(user_id)
             if not raw_portfolio:
                 logger.error(f"Portfolio not found for user {user_id}")
                 raise ValueError(f"Portfolio not found for user {user_id}")
-            self.portfolio = PortfolioDTO.from_db_model(raw_portfolio, self.latex_escaper)
+            self.portfolio = PortfolioDTO.from_db_model(raw_portfolio)
             logger.debug("Successfully loaded portfolio")
 
     def hardcode_section(self, section: str) -> str:
@@ -70,9 +69,9 @@ class HardcodeSections:
             content = self.tex_loader.safe_format_template(
                 'career_summary',
                 escape_latex=False,
-                job_title=self.latex_escaper.escape_text(job_title),
+                job_title=LatexEscaper.escape_text(job_title),
                 years_of_experience=str(self.portfolio.career_summary.years_of_experience),
-                summary=self.latex_escaper.escape_text(self.portfolio.career_summary.default_summary)
+                summary=LatexEscaper.escape_text(self.portfolio.career_summary.default_summary)
             )
             logger.debug(f"Generated career summary content length: {len(content)}")
             return content
@@ -86,8 +85,8 @@ class HardcodeSections:
             skills_content = ""
             for skill_category in self.portfolio.skills:
                 for category, skill_list in skill_category.items():
-                    escaped_category = self.latex_escaper.escape_text(category)
-                    escaped_skills = ', '.join(map(self.latex_escaper.escape_text, skill_list))
+                    escaped_category = LatexEscaper.escape_text(category)
+                    escaped_skills = ', '.join(map(LatexEscaper.escape_text, skill_list))
                     skills_content += f"    \\resumeSkillHeading{{{escaped_category}}}{{{escaped_skills}}}\n"
                     logger.debug(f"Added skill category: {category} with {len(skill_list)} skills")
             

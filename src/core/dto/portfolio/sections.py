@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from typing import List, Dict
-from .base import BaseDTO
+from typing import List
+from .base_dto import BaseDTO
 
 @dataclass
 class CareerSummaryDTO(BaseDTO):

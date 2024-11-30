@@ -5,7 +5,7 @@ from .sections import (
     CareerSummaryDTO, EducationItemDTO, ProjectDTO, 
     WorkExperienceDTO, AwardDTO, PublicationDTO, PersonalInformationDTO
 )
-from .base import BaseDTO
+from .base_dto import BaseDTO
 
 @dataclass
 class PortfolioDTO(BaseDTO):
@@ -19,36 +19,36 @@ class PortfolioDTO(BaseDTO):
     publications: List[PublicationDTO]
 
     @classmethod
-    def from_db_model(cls, data: Dict[str, Any], escaper: LatexEscaper) -> 'PortfolioDTO':
+    def from_db_model(cls, data: Dict[str, Any]) -> 'PortfolioDTO':
         return cls(
             personal_information=PersonalInformationDTO(
-                name=cls.escape_text(data.personal_information.get('name', ''), escaper),
-                email=cls.escape_text(data.personal_information.get('email', ''), escaper),
-                phone=cls.escape_text(data.personal_information.get('phone', ''), escaper),
-                address=cls.escape_text(data.personal_information.get('address', ''), escaper),
-                linkedin=cls.escape_text(data.personal_information.get('linkedin', ''), escaper),
-                github=cls.escape_text(data.personal_information.get('github', ''), escaper)
+                name=LatexEscaper.escape_text(data.personal_information.get('name', '')),
+                email=LatexEscaper.escape_text(data.personal_information.get('email', '')),
+                phone=LatexEscaper.escape_text(data.personal_information.get('phone', '')),
+                address=LatexEscaper.escape_text(data.personal_information.get('address', '')),
+                linkedin=LatexEscaper.escape_text(data.personal_information.get('linkedin', '')),
+                github=LatexEscaper.escape_text(data.personal_information.get('github', ''))
             ),
             career_summary=CareerSummaryDTO(
-                job_titles=[cls.escape_text(title, escaper) for title in data.career_summary.job_titles],
+                job_titles=[LatexEscaper.escape_text(title) for title in data.career_summary.job_titles],
                 years_of_experience=str(data.career_summary.years_of_experience),
-                default_summary=cls.escape_text(data.career_summary.default_summary, escaper)
+                default_summary=LatexEscaper.escape_text(data.career_summary.default_summary)
             ),
             education=[
                 EducationItemDTO(
-                    university_name=cls.escape_text(edu.get('university_name', ''), escaper),
-                    location=cls.escape_text(edu.get('location', ''), escaper),
-                    degree_type=cls.escape_text(edu.get('degree_type', ''), escaper),
-                    degree=cls.escape_text(edu.get('degree', ''), escaper),
-                    time=cls.escape_text(edu.get('time', ''), escaper),
-                    transcript=[cls.escape_text(course, escaper) for course in edu.get('transcript', [])]
+                    university_name=LatexEscaper.escape_text(edu.get('university_name', '')),
+                    location=LatexEscaper.escape_text(edu.get('location', '')),
+                    degree_type=LatexEscaper.escape_text(edu.get('degree_type', '')),
+                    degree=LatexEscaper.escape_text(edu.get('degree', '')),
+                    time=LatexEscaper.escape_text(edu.get('time', '')),
+                    transcript=[LatexEscaper.escape_text(course) for course in edu.get('transcript', [])]
                 )
                 for edu in data.education
             ],
             skills=[
                 {
-                    cls.escape_text(category, escaper): [
-                        cls.escape_text(skill, escaper) for skill in skills
+                    LatexEscaper.escape_text(category): [
+                        LatexEscaper.escape_text(skill) for skill in skills
                     ]
                     for category, skills in skill_group.items()
                 }
@@ -56,40 +56,40 @@ class PortfolioDTO(BaseDTO):
             ],
             work_experience=[
                 WorkExperienceDTO(
-                    job_title=cls.escape_text(exp.get('job_title', ''), escaper),
-                    company=cls.escape_text(exp.get('company', ''), escaper),
-                    location=cls.escape_text(exp.get('location', ''), escaper),
-                    time=cls.escape_text(exp.get('time', ''), escaper),
+                    job_title=LatexEscaper.escape_text(exp.get('job_title', '')),
+                    company=LatexEscaper.escape_text(exp.get('company', '')),
+                    location=LatexEscaper.escape_text(exp.get('location', '')),
+                    time=LatexEscaper.escape_text(exp.get('time', '')),
                     responsibilities=[
-                        cls.escape_text(resp, escaper) for resp in exp.get('responsibilities', [])
+                        LatexEscaper.escape_text(resp) for resp in exp.get('responsibilities', [])
                     ]
                 )
                 for exp in data.work_experience
             ],
             projects=[
                 ProjectDTO(
-                    name=cls.escape_text(proj.get('name', ''), escaper),
-                    technologies=cls.escape_text(proj.get('technologies', ''), escaper),
-                    date=cls.escape_text(proj.get('date', ''), escaper),
+                    name=LatexEscaper.escape_text(proj.get('name', '')),
+                    technologies=LatexEscaper.escape_text(proj.get('technologies', '')),
+                    date=LatexEscaper.escape_text(proj.get('date', '')),
                     bullet_points=[
-                        cls.escape_text(point, escaper) for point in proj.get('bullet_points', [])
+                        LatexEscaper.escape_text(point) for point in proj.get('bullet_points', [])
                     ]
                 )
                 for proj in data.projects
             ],
             awards=[
                 AwardDTO(
-                    name=cls.escape_text(award.get('name', ''), escaper),
-                    explanation=cls.escape_text(award.get('explanation', ''), escaper)
+                    name=LatexEscaper.escape_text(award.get('name', '')),
+                    explanation=LatexEscaper.escape_text(award.get('explanation', ''))
                 )
                 for award in data.awards
             ],
             publications=[
                 PublicationDTO(
-                    name=cls.escape_text(pub.get('name', ''), escaper),
-                    publisher=cls.escape_text(pub.get('publisher', ''), escaper),
-                    time=cls.escape_text(pub.get('time', ''), escaper),
-                    link=cls.escape_text(pub.get('link', ''), escaper)
+                    name=LatexEscaper.escape_text(pub.get('name', '')),
+                    publisher=LatexEscaper.escape_text(pub.get('publisher', '')),
+                    time=LatexEscaper.escape_text(pub.get('time', '')),
+                    link=LatexEscaper.escape_text(pub.get('link', ''))
                 )
                 for pub in data.publications
             ]

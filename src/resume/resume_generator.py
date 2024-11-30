@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Generator, Tuple
+from typing import Dict
 
 from src.core.database.models.resume import Resume
 from src.llms.runner import LLMRunner
@@ -131,7 +131,7 @@ class ResumeGenerator:
                 raise Exception("PDF generation failed")
 
             logger.debug("Creating resume object")
-            # Create and save resume object
+            # Create and save a resume object
             resume = Resume(
                 id=None,
                 user_id=self.user_id,
@@ -161,11 +161,11 @@ class ResumeGenerator:
         """Process a single section based on the process type."""
         logger.debug(f"Processing section {section} with type {process_type}")
         
-        if process_type == "skip":
+        if process_type.lower() == "skip":
             logger.debug(f"Skipping section {section}")
-            return ""  # Return empty string for skipped sections
+            return ""
             
-        elif process_type == "hardcode":
+        elif process_type.lower() == "hardcode":
             logger.debug(f"Hardcoding section {section}")
             try:
                 content = self.hardcoder.hardcode_section(section)
@@ -179,7 +179,7 @@ class ResumeGenerator:
                 logger.error(f"Error in hardcoding section {section}: {str(e)}", exc_info=True)
                 raise
             
-        elif process_type == "process":
+        elif process_type.lower() == "process":
             logger.debug(f"AI processing section {section}")
             try:
                 # Get the prompt template for this section
@@ -187,30 +187,20 @@ class ResumeGenerator:
                 logger.debug(f"Got prompt for section {section}")
                 
                 # Get the section data using portfolio_loader
-                section_data = self.portfolio_loader.get_section_data(section)
+                section_data = str(self.portfolio_loader.get_section_data(section))
+                logger.debug(f"Raw data for section {section}: {section_data}")
+                
                 if not section_data:
                     logger.warning(f"No data found for section {section} in portfolio")
                     return ""
-                
-                logger.debug(f"Got data for section {section}")
-                
-                # Format skills data if this is the skills section
-                if section == 'skills':
-                    formatted_data = []
-                    for skill_category in section_data:
-                        for category, skills in skill_category.items():
-                            formatted_data.append(f"{category}:\n- {', '.join(skills)}")
-                    section_data = "\n\n".join(formatted_data)
-                    logger.debug("Formatted skills data")
-                else:
-                    section_data = str(section_data)
+
+                logger.debug(f"Formatted data for section {section}: {section_data}")
                 
                 # Generate content using the prompt and portfolio data
-                logger.debug(f"Generating content for section {section}")
                 content = self.llm_runner.generate_content(prompt, section_data, job_description)
                 
                 if content:
-                    logger.debug(f"Successfully generated content for section {section}, length: {len(content)}")
+                    logger.debug(f"Successfully generated AI content for section {section}, length: {len(content)}")
                     return content
                 else:
                     logger.warning(f"AI returned empty content for section {section}")
