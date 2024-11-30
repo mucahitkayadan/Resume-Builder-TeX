@@ -2,58 +2,101 @@ from src.latex.utils import LatexEscaper
 from src.loaders.tex_loader import TexLoader
 from src.core.database.factory import get_unit_of_work
 from src.core.dto.portfolio.portfolio import PortfolioDTO
+import logging
+
+logger = logging.getLogger(__name__)
 
 class HardcodeSections:
     def __init__(self, user_id: str):
+        logger.debug(f"Initializing HardcodeSections for user {user_id}")
         self.uow = get_unit_of_work()
         self.tex_loader = TexLoader()
         self.latex_escaper = LatexEscaper()
         with self.uow:
             raw_portfolio = self.uow.portfolio.get_by_user_id(user_id)
             if not raw_portfolio:
+                logger.error(f"Portfolio not found for user {user_id}")
                 raise ValueError(f"Portfolio not found for user {user_id}")
             self.portfolio = PortfolioDTO.from_db_model(raw_portfolio, self.latex_escaper)
+            logger.debug("Successfully loaded portfolio")
 
     def hardcode_section(self, section: str) -> str:
+        logger.debug(f"Starting hardcode for section: {section}")
         method = getattr(self, f"hardcode_{section}", None)
         if not method:
+            logger.error(f"No hardcode method found for section: {section}")
             raise ValueError(f"No hardcode method for section: {section}")
-        return method()
+        
+        try:
+            content = method()
+            if content:
+                logger.debug(f"Successfully hardcoded section {section}, content length: {len(content)}")
+                return content
+            else:
+                logger.warning(f"Hardcode method returned empty content for section {section}")
+                return ""
+        except Exception as e:
+            logger.error(f"Error in hardcode method for section {section}: {str(e)}", exc_info=True)
+            raise
 
     def hardcode_personal_information(self) -> str:
-        personal_info = {
-            'name': self.portfolio.personal_information.name,
-            'email': self.portfolio.personal_information.email,
-            'phone': self.portfolio.personal_information.phone,
-            'address': self.portfolio.personal_information.address,
-            'LinkedIn': self.portfolio.personal_information.linkedin,
-            'GitHub': self.portfolio.personal_information.github
-        }
-        return self.tex_loader.safe_format_template('personal_information', 
-            escape_latex=False, 
-            **personal_info
-        )
+        logger.debug("Hardcoding personal information")
+        try:
+            personal_info = {
+                'name': self.portfolio.personal_information.name,
+                'email': self.portfolio.personal_information.email,
+                'phone': self.portfolio.personal_information.phone,
+                'address': self.portfolio.personal_information.address,
+                'LinkedIn': self.portfolio.personal_information.linkedin,
+                'GitHub': self.portfolio.personal_information.github
+            }
+            logger.debug(f"Personal info data: {personal_info}")
+            content = self.tex_loader.safe_format_template('personal_information', 
+                escape_latex=False, 
+                **personal_info
+            )
+            logger.debug(f"Generated personal info content length: {len(content)}")
+            return content
+        except Exception as e:
+            logger.error(f"Error in hardcode_personal_information: {str(e)}", exc_info=True)
+            raise
 
     def hardcode_career_summary(self) -> str:
-        # Get the first job title from the list or use default
-        job_title = self.portfolio.career_summary.job_titles[0] if self.portfolio.career_summary.job_titles else 'Professional'
-        
-        return self.tex_loader.safe_format_template(
-            'career_summary',
-            escape_latex=False,
-            job_title=self.latex_escaper.escape_text(job_title),
-            years_of_experience=str(self.portfolio.career_summary.years_of_experience),
-            summary=self.latex_escaper.escape_text(self.portfolio.career_summary.default_summary)
-        )
+        logger.debug("Hardcoding career summary")
+        try:
+            job_title = self.portfolio.career_summary.job_titles[0] if self.portfolio.career_summary.job_titles else 'Professional'
+            logger.debug(f"Using job title: {job_title}")
+            
+            content = self.tex_loader.safe_format_template(
+                'career_summary',
+                escape_latex=False,
+                job_title=self.latex_escaper.escape_text(job_title),
+                years_of_experience=str(self.portfolio.career_summary.years_of_experience),
+                summary=self.latex_escaper.escape_text(self.portfolio.career_summary.default_summary)
+            )
+            logger.debug(f"Generated career summary content length: {len(content)}")
+            return content
+        except Exception as e:
+            logger.error(f"Error in hardcode_career_summary: {str(e)}", exc_info=True)
+            raise
 
     def hardcode_skills(self) -> str:
-        skills_content = ""
-        for skill_category in self.portfolio.skills:
-            for category, skill_list in skill_category.items():
-                escaped_category = self.latex_escaper.escape_text(category)
-                escaped_skills = ', '.join(map(self.latex_escaper.escape_text, skill_list))
-                skills_content += f"    \\resumeSkillHeading{{{escaped_category}}}{{{escaped_skills}}}\n"
-        return self.tex_loader.safe_format_template('skills', skills_content=skills_content)
+        logger.debug("Hardcoding skills")
+        try:
+            skills_content = ""
+            for skill_category in self.portfolio.skills:
+                for category, skill_list in skill_category.items():
+                    escaped_category = self.latex_escaper.escape_text(category)
+                    escaped_skills = ', '.join(map(self.latex_escaper.escape_text, skill_list))
+                    skills_content += f"    \\resumeSkillHeading{{{escaped_category}}}{{{escaped_skills}}}\n"
+                    logger.debug(f"Added skill category: {category} with {len(skill_list)} skills")
+            
+            content = self.tex_loader.safe_format_template('skills', skills_content=skills_content)
+            logger.debug(f"Generated skills content length: {len(content)}")
+            return content
+        except Exception as e:
+            logger.error(f"Error in hardcode_skills: {str(e)}", exc_info=True)
+            raise
 
     def hardcode_work_experience(self) -> str:
         experience_content = ""

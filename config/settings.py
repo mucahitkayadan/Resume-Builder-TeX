@@ -20,7 +20,9 @@ APP_CONSTANTS = {
         "clearance required",
         "US citizen only",
         "US Citizen",
-        "Permanent Resident"
+        "Permanent Resident",
+        "U.S. Citizenship",
+        "Government Security Clearance"
     ],
     'default_location': "San Francisco, CA",
     'max_projects': 4,

@@ -16,6 +16,7 @@ from src.resume.utils.output_manager import OutputManager
 from src.resume.utils.job_info import JobInfo
 from src.core.database.models import Resume
 from src.core.database.factory import get_unit_of_work
+from src.resume.combined_generator import CombinedGenerator
 
 logger = setup_logger(__name__, level=logging.INFO)
 
@@ -111,133 +112,66 @@ class StreamlitApp:
 
             # Generate content based on selected sections
             if st.button("Generate"):
-                if clearance_required:
-                    logger.warning("Job requires security clearance - generation blocked")
-                    st.error("This job requires a security clearance or US citizenship. Resume generation is not available for this job.")
-                elif not job_description:
-                    logger.warning("No job description provided")
-                    st.warning("Please enter a job description")
-                elif not selected_sections:
-                    logger.warning("No sections selected")
-                    st.warning("Please select at least one section to generate")
-                else:
-                    with st.spinner("Generating..."):
-                        progress_bar = st.progress(0)
-                        status_area = st.empty()
-                        
-                        try:
-                            # Create job info first
-                            job_info = JobInfo.extract_from_description(
-                                job_description,
-                                self.llm_runner,
-                                self.prompt_loader
+                with st.spinner("Generating..."):
+                    progress_bar = st.progress(0)
+                    status_area = st.empty()
+
+                    try:
+                        # Create job info and output manager
+                        job_info = JobInfo.extract_from_description(
+                            job_description,
+                            self.llm_runner,
+                            self.prompt_loader
+                        )
+                        output_manager = OutputManager(job_info)
+                        logger.info(f"Output manager working at: {output_manager.output_dir}")
+
+                        if generation_option == "Resume":
+                            # Generate only resume
+                            resume_generator = ResumeGenerator(self.llm_runner, st.session_state['user_id'])
+                            for result in resume_generator.generate_resume(
+                                job_description=job_description,
+                                selected_sections=selected_sections,
+                                output_manager=output_manager
+                            ):
+                                if isinstance(result, tuple):
+                                    status_msg, progress = result
+                                    progress_bar.progress(progress)
+                                    status_area.text(status_msg)
+
+                        elif generation_option == "Cover Letter":
+                            # Generate cover letter using latest resume
+                            cover_letter_generator = CoverLetterGenerator(self.llm_runner, st.session_state['user_id'])
+                            result = cover_letter_generator.generate_cover_letter(
+                                job_description=job_description,
+                                resume_id=None,
+                                output_manager=output_manager
                             )
+                            # Handle result
+
+                        else:  # "Both"
+                            # Create generators
+                            resume_generator = ResumeGenerator(self.llm_runner, st.session_state['user_id'])
+                            cover_letter_generator = CoverLetterGenerator(self.llm_runner, st.session_state['user_id'])
+                            combined_generator = CombinedGenerator(resume_generator, cover_letter_generator)
                             
-                            # Create output manager with job info
-                            output_manager = OutputManager(job_info)
-                            logger.info("Output manager is working at: " + str(output_manager.output_dir))
+                            # Generate both
+                            for result in combined_generator.generate_both(
+                                job_description=job_description,
+                                selected_sections=selected_sections,
+                                output_manager=output_manager
+                            ):
+                                if isinstance(result, tuple):
+                                    status_msg, progress = result
+                                    progress_bar.progress(progress)
+                                    status_area.text(status_msg)
 
-                            generated_resume = None
-                            if generation_option in ["Resume", "Both"]:
-                                resume_generator = ResumeGenerator(self.llm_runner, st.session_state['user_id'])
-                                try:
-                                    for result in resume_generator.generate_resume(
-                                        job_description=job_description,
-                                        selected_sections=selected_sections,
-                                        output_manager=output_manager
-                                    ):
-                                        if isinstance(result, tuple):
-                                            status_msg, progress = result
-                                            progress_bar.progress(progress)
-                                            status_area.text(status_msg)
-                                        else:
-                                            generated_resume = result
-                                            logger.info(f"Resume generated successfully with ID: {generated_resume.id}")
-                                            # Store the resume ID in session state for later use
-                                            st.session_state['last_resume_id'] = generated_resume.id
-                                except Exception as e:
-                                    logger.error(f"Resume generation failed: {str(e)}")
-                                    st.error(f"Resume generation failed: {str(e)}")
-                                    raise
+                        logger.info("Generation completed successfully")
+                        st.success(f"Generation complete: {output_manager.output_dir}")
 
-                            if generation_option in ["Cover Letter", "Both"]:
-                                logger.info("Starting cover letter generation process")
-                                try:
-                                    cover_letter_generator = CoverLetterGenerator(self.llm_runner, st.session_state['user_id'])
-                                    
-                                    # If generating only cover letter, try to use the last resume
-                                    if generation_option == "Cover Letter" and 'last_resume_id' in st.session_state:
-                                        generated_resume_id = st.session_state['last_resume_id']
-                                        # Get the resume from database
-                                        with get_unit_of_work() as uow:
-                                            last_resume = uow.resumes.get_by_id(generated_resume_id)
-                                            if last_resume:
-                                                generated_resume = last_resume
-                                                # Use the same job info and output manager as the resume
-                                                job_info = JobInfo(
-                                                    company_name=last_resume.company_name,
-                                                    job_title=last_resume.job_title,
-                                                    job_description=job_description
-                                                )
-                                                output_manager = OutputManager(job_info)
-                                                logger.info(f"Using existing resume ID: {generated_resume_id}")
-
-                                    result = cover_letter_generator.generate_cover_letter(
-                                        job_description=job_description,
-                                        resume_id=generated_resume.id if generated_resume else None,
-                                        output_manager=output_manager
-                                    )
-                                    
-                                    # Update resume with cover letter info
-                                    if generated_resume and "successfully" in result.lower():
-                                        with get_unit_of_work() as uow:
-                                            resume = uow.resumes.get_by_id(generated_resume.id)
-                                            if resume:
-                                                # Get the cover letter content and PDF from output manager
-                                                cover_letter_path = output_manager.get_cover_letter_path()
-                                                if cover_letter_path.exists():
-                                                    # Read the content
-                                                    cover_letter_content = cover_letter_path.read_text()
-                                                    # Read the PDF if it exists
-                                                    pdf_path = output_manager.output_dir / "cover_letter.pdf"
-                                                    cover_letter_pdf = pdf_path.read_bytes() if pdf_path.exists() else None
-                                                    
-                                                    # Update resume with cover letter information
-                                                    resume.cover_letter_content = cover_letter_content
-                                                    resume.cover_letter_pdf = cover_letter_pdf
-                                                    resume.has_cover_letter = True
-                                                    resume.cover_letter_path = str(output_manager.output_dir)
-                                                    
-                                                    uow.resumes.update(resume)
-                                                    logger.info(f"Updated resume {resume.id} with cover letter content and PDF")
-                                    
-                                    logger.info(f"Cover letter generation result: {result}")
-                                    if "failed" in result.lower():
-                                        st.warning(result)
-                                    else:
-                                        st.success(result)
-                                except Exception as e:
-                                    logger.error(f"Cover letter generation failed: {str(e)}", exc_info=True)
-                                    st.error(f"Failed to generate cover letter: {str(e)}")
-
-                            if generation_option == "Both":
-                                logger.info("Generating both resume and cover letter...")
-                                if generated_resume and generated_resume.id:
-                                    logger.info(f"Resume generated and saved with ID: {generated_resume.id}")
-                                    if resume.cover_letter_content and resume.cover_letter_pdf:
-                                        logger.info(f"Cover letter added to resume {generated_resume.id}")
-                                    else:
-                                        logger.warning(f"Cover letter not properly saved to resume {generated_resume.id}")
-
-                            logger.info("Generation completed successfully")
-                            st.success("Generation complete: " + str(output_manager.output_dir))
-                            
-                        except Exception as e:
-                            logger.error(f"Error during generation: {str(e)}", exc_info=True)
-                            st.error(f"An error occurred during generation: {str(e)}")
-                        finally:
-                            progress_bar.empty()
-                            status_area.empty()
+                    except Exception as e:
+                        logger.error(f"Generation failed: {e}")
+                        st.error(str(e))
         except Exception as e:
             logger.error(f"Error during resume generation: {str(e)}", exc_info=True)
             st.error(f"An error occurred during resume generation: {str(e)}")

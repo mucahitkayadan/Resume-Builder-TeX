@@ -6,7 +6,7 @@ from datetime import datetime
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, project_root)
 
-from easy_applier.resume_generator import ResumeGenerator
+from __legacy__.resume_generator import ResumeGenerator
 from easy_applier.linkedin_scraper import LinkedInScraper
 from easy_applier.linkedin_job_manager import LinkedInJobManager
 from __legacy__.database_manager import DatabaseManager
