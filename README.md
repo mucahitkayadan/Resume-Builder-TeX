@@ -14,6 +14,7 @@
 - [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
+- [TODO](#todo)
 
 ## Project Overview
 
@@ -180,3 +181,38 @@ LaTeX templates are now stored in the database. To modify a template:
 ## TexLoader
 
 The TexLoader class now loads LaTeX templates from the database instead of from files. It uses the DatabaseManager to retrieve templates.
+
+## TODO
+
+### Upcoming Features
+1. **LinkedIn Easy Apply Integration**
+   - Automated job application process
+   - Application tracking
+   - Multi-platform support
+
+2. **Resume Generation Controls**
+   - Configurable section limits
+   - Smart content selection
+   - Template customization
+
+3. **API and Integration**
+   - RESTful API endpoints
+   - Documentation
+   - Authentication
+
+4. **UI Enhancements**
+   - Real-time PDF preview
+   - Better progress indicators
+   - Improved user settings
+
+5. **Storage Options**
+   - JSON template support
+   - Multiple database options
+   - Template management
+
+6. **Documentation**
+   - API guides
+   - Template customization
+   - Deployment instructions
+
+For technical details and implementation plans, see TECHNICAL.md.

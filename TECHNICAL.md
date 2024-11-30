@@ -76,6 +76,79 @@ The system includes robust error handling mechanisms, logging errors and warning
 - **Resume and Cover Letter Sharing**: Allow the user to share their resumes and cover letters with others.
 - **Resume and Cover Letter Printing**: Allow the user to print their resumes and cover letters.
 
+## TODO List
+
+### Core Functionality
+1. **Easy Apply Integration**
+   - Integrate LinkedIn Easy Apply functionality
+   - Add support for other job platforms
+   - Implement automated application tracking
+
+2. **Resume Generation Controls**
+   - Add configuration for section limits:
+     - Maximum number of projects (default: 4)
+     - Maximum bullet points per project (default: 4)
+     - Maximum bullet points per job (default: 5)
+     - Skills per category limits (min: 3, max: 8)
+   - Implement priority-based content selection
+   - Add content scoring system
+
+3. **API Development**
+   - Create RESTful API endpoints:
+     - `/api/v1/resume` - Resume generation
+     - `/api/v1/cover-letter` - Cover letter generation
+     - `/api/v1/portfolio` - Portfolio management
+   - Add API documentation using Swagger/OpenAPI
+   - Implement authentication and rate limiting
+
+4. **UI Improvements**
+   - Add real-time PDF preview
+   - Implement drag-and-drop section reordering
+   - Add progress indicators for generation steps
+   - Improve error messaging and validation
+   - Add user settings panel
+
+5. **Database and Storage**
+   - Add JSON import/export for templates
+   - Support multiple storage backends:
+     - MongoDB (current)
+     - JSON files (for end users)
+     - SQL databases
+   - Add template version control
+   - Implement backup/restore functionality
+
+6. **User Experience**
+   - Add warning messages about MongoDB migration
+   - Improve template management interface
+   - Add template preview functionality
+   - Implement user preferences storage
+
+7. **Documentation**
+   - Add detailed API documentation
+   - Create user guide for template customization
+   - Document MongoDB schema
+   - Add deployment guides
+
+8. **Testing and Quality**
+   - Add unit tests for core components
+   - Implement integration tests
+   - Add performance benchmarks
+   - Improve error handling and logging
+
+### Technical Debt
+1. Clean up duplicate code in generators
+2. Improve error handling in LaTeX compilation
+3. Standardize logging format
+4. Optimize database queries
+5. Refactor template management
+
+### Future Features
+1. Multi-language support
+2. AI-powered job matching
+3. Resume version control
+4. Analytics dashboard
+5. Batch processing capabilities
+
 
 [![](https://mermaid.ink/img/pako:eNq9WFtv2zYU_isC9-I1dhA7cRILQYAuBXZBug1tn1YbAi0dO0ok0iCpNl6W_75DSbZJipKdtogfJIr8yHO_0E8k5gmQkMQZlfJdSpeC5lMW4K-cCT6ALHK4EUAVF8FTtaR_A1EwBiIM3rK1MXsvOYsyThO99Ad-3JZjA7ESPF-pLebv8rOBSuZRThldasg7quicSnhfTRiojC9LxG35NhYUPG4pfILHxvF3VCRaclz-rR5-hFilnMkd6mgJKCFVEIlSC717Po8SkLFIVxoaBlKJfhCjAJStI0ZzqKc0UKUq23zneH4WqfXKnjB2KMhXmlYhcGaBrKt-ICFDniCJZM0aqiKN1edyAz5mPwdh8GvFIxefPxWrDKrF8oBZP_iTM6ieM0P4WFsTIl6oVaGiJBV4PBfr3l5BND18efS4YbFXv_fB6VccyV4HYlXMszSmpdw27nnKTA-94V9A3IJSIF7fTVsd8CD_3TlYrIWIslKKFjerfDBKkzBImTrA7bqU9guy86HUjKmsqys6xx00VtfXu9mfSmd1NHiE-olByq3hK33VjCQoscGTK0zD7NvTMAbQGDSLUrbgIqfNoy2EGRDI3uyl5GIqAPWOis0pBoBFyF77XkryIc0yaVOo5syTb1NZjmYvPv8rFw8RPKJ2UmAx2IScxbCiYwv0YoqQFLHHPtvpH0MF3_foYY7mNrPfR6POgwueYVCXcWRT2XuKE1R_rYC9_b0ZVj8uVtzUl9EigVck6NZKK9Puz6l7qvLRt1YTb9bowDth31XWqrDtQLiB1wHdRUyXLBuHf53q6dQmy6AxZ6j6G3xWZrAKl0JOgebzDHq6d8l0JNW1qRlpKZMg1KaNOqBhauu0mAKmW5ZYub0QJoVkEdWIMJivFchva7w0-yiFI23Nu12FNdROPsauYpU0SnuziO8Wd8xXOa4hjqamezmvIXcBZ9mwCvZWHks7tkVP5y5PDHXijUjy1TsH7YsqX6p3ttkRdsAGK9oOwBuRd8jpbhS273Gsabablj2rTN64CRxg0qja2swaHnN2YytTdmMcA3aDt2brhm2M1Y2qTLTnJMMwe_RiBqgP6RhuW9bsKDzoNiDpQncj2l7RJqfukquRs968eUAhl9LPiH1lHwyujW6_DeGW6yaieQFqYryiNWFO6W8C_Fdyz0XPJ1wLzJWwBdYUswXoldW4Vl39NxhYHaEfYbZwFaLRY_m494Icve5c0cMv6ZMc0NPShISkdNUpUXeQw5SEOEyoeJiSKXtGHC0U_7hmMQmVKKBPBC-WdyRc0EziV1Xl6n-ONhBIUtTT-_qvJf3qEyz5_3C-heAnCZ_IIwnH4-PR-eXkYngyOhsNLy9O-2RNwuFkeDw8HZ2dDUeX56ej88nouU_-LQ84OZ5cTs5PLsajs_HFGe4cP_8P7DU5ww?type=png)](https://mermaid.live/edit#pako:eNq9WFtv2zYU_isC9-I1dhA7cRILQYAuBXZBug1tn1YbAi0dO0ok0iCpNl6W_75DSbZJipKdtogfJIr8yHO_0E8k5gmQkMQZlfJdSpeC5lMW4K-cCT6ALHK4EUAVF8FTtaR_A1EwBiIM3rK1MXsvOYsyThO99Ad-3JZjA7ESPF-pLebv8rOBSuZRThldasg7quicSnhfTRiojC9LxG35NhYUPG4pfILHxvF3VCRaclz-rR5-hFilnMkd6mgJKCFVEIlSC717Po8SkLFIVxoaBlKJfhCjAJStI0ZzqKc0UKUq23zneH4WqfXKnjB2KMhXmlYhcGaBrKt-ICFDniCJZM0aqiKN1edyAz5mPwdh8GvFIxefPxWrDKrF8oBZP_iTM6ieM0P4WFsTIl6oVaGiJBV4PBfr3l5BND18efS4YbFXv_fB6VccyV4HYlXMszSmpdw27nnKTA-94V9A3IJSIF7fTVsd8CD_3TlYrIWIslKKFjerfDBKkzBImTrA7bqU9guy86HUjKmsqys6xx00VtfXu9mfSmd1NHiE-olByq3hK33VjCQoscGTK0zD7NvTMAbQGDSLUrbgIqfNoy2EGRDI3uyl5GIqAPWOis0pBoBFyF77XkryIc0yaVOo5syTb1NZjmYvPv8rFw8RPKJ2UmAx2IScxbCiYwv0YoqQFLHHPtvpH0MF3_foYY7mNrPfR6POgwueYVCXcWRT2XuKE1R_rYC9_b0ZVj8uVtzUl9EigVck6NZKK9Puz6l7qvLRt1YTb9bowDth31XWqrDtQLiB1wHdRUyXLBuHf53q6dQmy6AxZ6j6G3xWZrAKl0JOgebzDHq6d8l0JNW1qRlpKZMg1KaNOqBhauu0mAKmW5ZYub0QJoVkEdWIMJivFchva7w0-yiFI23Nu12FNdROPsauYpU0SnuziO8Wd8xXOa4hjqamezmvIXcBZ9mwCvZWHks7tkVP5y5PDHXijUjy1TsH7YsqX6p3ttkRdsAGK9oOwBuRd8jpbhS273Gsabablj2rTN64CRxg0qja2swaHnN2YytTdmMcA3aDt2brhm2M1Y2qTLTnJMMwe_RiBqgP6RhuW9bsKDzoNiDpQncj2l7RJqfukquRs968eUAhl9LPiH1lHwyujW6_DeGW6yaieQFqYryiNWFO6W8C_Fdyz0XPJ1wLzJWwBdYUswXoldW4Vl39NxhYHaEfYbZwFaLRY_m494Icve5c0cMv6ZMc0NPShISkdNUpUXeQw5SEOEyoeJiSKXtGHC0U_7hmMQmVKKBPBC-WdyRc0EziV1Xl6n-ONhBIUtTT-_qvJf3qEyz5_3C-heAnCZ_IIwnH4-PR-eXkYngyOhsNLy9O-2RNwuFkeDw8HZ2dDUeX56ej88nouU_-LQ84OZ5cTs5PLsajs_HFGe4cP_8P7DU5ww)
 
