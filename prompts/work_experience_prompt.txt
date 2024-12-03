@@ -3,7 +3,8 @@ Based on the provided job description and candidate's work experience, create a 
 Important instructions:
 1. Use ONLY the information provided. Do not add, invent, or assume any details not explicitly given.
 2. List jobs in reverse chronological order (most recent first).
-3. Use 3-4 bullet points for each job.
+3. Use ${work_experience_bullet_point_number} bullet points for each job.
+4. Include maximum ${work_experience_number} jobs.
 5. Focus on relevant experiences and accomplishments that demonstrate skills applicable to the desired position.
 
 Example Usage:

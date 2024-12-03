@@ -1,9 +1,9 @@
 Based on the provided job description and candidate's project experience, create a concise projects section. Follow these guidelines:
 
 Instructions:
-- Include maximum 4 projects.
-- For each project, provide the project name and 3-4 bullet points highlighting key aspects or achievements.
-- Prioritize projects that demonstrate skills and experiences most relevant to the job description. If the job description about computer vision, list the projects related to computer vision. If the job description about LLMs, choose projects so.
+- Include maximum ${project_details_max_projects} projects.
+- For each project, provide ${project_details_bullet_points_per_project} bullet points highlighting key aspects or achievements.
+- Prioritize projects that demonstrate skills and experiences most relevant to the job description.
 
 Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU TO UNDERSTAND THE STRUCTURE
 \resumeProjectHeading

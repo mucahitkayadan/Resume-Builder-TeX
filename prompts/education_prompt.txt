@@ -1,11 +1,11 @@
 Task:
-Based on the provided job description and the given education list, create ae education section.
+Based on the provided job description and the given education list, create an education section.
 
 Instructions:
-- Include a maximum of 3 educational entries, prioritizing the most relevant and recent.
-- Prioritize education and courses that are most relevant to the job description.
-- List degrees in reverse chronological order, from the most recent to the old.
-- Include only the most relevant educational experiences, emphasizing courses or projects related to the desired position.
+- Include a maximum of ${education_details_max_entries} educational entries, prioritizing the most relevant and recent.
+- List up to ${education_details_max_courses} key courses per degree, prioritizing those most relevant to the job description.
+- List degrees in reverse chronological order.
+- Include only the most relevant educational experiences, emphasizingcourses or projects related to the desired position.
 - If any standard information is missing (e.g., graduation date), simply omit it. Do not use placeholders.
 
 Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU TO UNDERSTAND THE STRUCTURE

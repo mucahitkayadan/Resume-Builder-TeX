@@ -7,8 +7,8 @@ Instructions:
 - Add other relevant skills as \resumeSkillHeading to your answer. List ALL relevant skills for each category. Skills does not have to be explicitly exist in the job description.
 - Ensure that all relevant skills from the dataset are included, even if this means listing more than 3-4 items per category.
 For example, if languages are less than 10, you have to list all of them.
-- List at least 5 skill categories, even if this means some skill categories are not relevant to the job description.
-- List at least 6 and maximum 10 skills per category, even if this means some skills are not relevant to the job description.
+- List ${skill_category_number} skill categories, even if this means some skill categories are not relevant to the job description.
+- List at least ${min_skill_number_per_category} and maximum ${max_skill_number_per_category} skills per category, even if this means some skills are not relevant to the job description.
 
 Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU TO UNDERSTAND THE STRUCTURE
 \newcommand{\resumeSkillHeading}[2]{
