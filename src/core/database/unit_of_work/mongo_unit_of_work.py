@@ -6,7 +6,7 @@ from ..repositories.resume_repository import MongoResumeRepository
 from ..repositories.preamble_repository import MongoPreambleRepository
 from ..repositories.tex_header_repository import MongoTexHeaderRepository
 from ..models.preamble import Preamble
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
 class MongoUnitOfWork:
@@ -44,7 +44,7 @@ class MongoUnitOfWork:
             self.connection.abort_transaction()
 
     def get_resume_preamble(self) -> Optional[Preamble]:
-        """Get the resume preamble"""
+        """Get the résumé preamble"""
         if not self.preambles:
             raise ValueError("Preamble repository not initialized")
         return self.preambles.get_by_type("resume_preamble")
@@ -79,7 +79,7 @@ class MongoUnitOfWork:
             return None
 
     def update_cover_letter(self, resume_id: str, cover_letter_content: str, cover_letter_pdf: Optional[bytes] = None) -> bool:
-        """Update the cover letter content and PDF for a resume"""
+        """Update the cover letter content and PDF for a résumé"""
         if not self.resumes:
             raise ValueError("Resume repository not initialized")
         
@@ -88,7 +88,7 @@ class MongoUnitOfWork:
             if resume:
                 resume.cover_letter_content = cover_letter_content
                 resume.cover_letter_pdf = cover_letter_pdf
-                resume.updated_at = datetime.utcnow()
+                resume.updated_at = datetime.now(timezone.utc)
                 return self.resumes.update(resume)
             return False
         except Exception as e:
@@ -109,7 +109,7 @@ class MongoUnitOfWork:
                 user.signature_image = signature_image
                 user.signature_filename = os.path.basename(signature_path)
                 user.signature_content_type = 'image/jpeg'  # Assuming it's always jpg
-                user.updated_at = datetime.utcnow()
+                user.updated_at = datetime.now(timezone.utc)
                 
                 return self.users.update(user)
             return False

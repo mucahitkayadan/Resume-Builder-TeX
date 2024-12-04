@@ -3,7 +3,7 @@ from bson import ObjectId
 from ...exceptions.database_exceptions import DatabaseError
 from ..interfaces.repository_interface import BaseRepository
 from ..models.resume import Resume
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 logger = logging.getLogger(__name__)
@@ -31,11 +31,11 @@ class MongoResumeRepository(BaseRepository[Resume]):
     def add(self, resume: Resume) -> Resume:
         try:
             # Create base dictionary with all fields
-            resume_dict = resume.dict(exclude={'id'})
+            resume_dict = resume.model_dump(exclude={'id'})
             
             # Handle timestamps
-            resume_dict['created_at'] = datetime.utcnow()
-            resume_dict['updated_at'] = datetime.utcnow()
+            resume_dict['created_at'] = datetime.now(timezone.utc)
+            resume_dict['updated_at'] = datetime.now(timezone.utc)
             
             # Handle binary data separately to avoid encoding issues
             if resume.resume_pdf:
@@ -67,8 +67,8 @@ class MongoResumeRepository(BaseRepository[Resume]):
 
     def update(self, resume: Resume) -> bool:
         try:
-            resume_dict = resume.dict(exclude={'id'})
-            resume_dict['updated_at'] = datetime.utcnow()
+            resume_dict = resume.model_dump(exclude={'id'})
+            resume_dict['updated_at'] = datetime.now(timezone.utc)
             
             # Handle binary data separately
             if resume.resume_pdf:
@@ -105,7 +105,7 @@ class MongoResumeRepository(BaseRepository[Resume]):
         except Exception as e:
             raise DatabaseError(f"Error retrieving resumes by user ID: {str(e)}")
 
-    def _map_to_entity(self, doc: dict) -> Resume:
+    def _map_to_entity(self, doc: dict) -> Optional[Resume]:
         if not doc:
             return None
         
@@ -137,8 +137,8 @@ class MongoResumeRepository(BaseRepository[Resume]):
             doc.setdefault('temperature', 0.1)
             
             # Set default timestamps
-            doc.setdefault('created_at', datetime.utcnow())
-            doc.setdefault('updated_at', datetime.utcnow())
+            doc.setdefault('created_at', datetime.now(timezone.utc))
+            doc.setdefault('updated_at', datetime.now(timezone.utc))
             
             # Handle binary data
             if 'resume_pdf' in doc and doc['resume_pdf']:
@@ -152,7 +152,7 @@ class MongoResumeRepository(BaseRepository[Resume]):
             return None
 
     def get_latest_resume(self) -> Optional[Resume]:
-        """Get the most recently created resume"""
+        """Get the most recently created résumé"""
         try:
             result = self.collection.find_one(
                 sort=[('created_at', -1)]

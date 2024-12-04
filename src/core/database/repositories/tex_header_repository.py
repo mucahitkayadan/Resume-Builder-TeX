@@ -3,7 +3,7 @@ from bson import ObjectId
 from ...exceptions.database_exceptions import DatabaseError
 from ..interfaces.repository_interface import BaseRepository
 from ..models.tex_header import TexHeader
-from datetime import datetime
+from datetime import datetime, timezone
 
 class MongoTexHeaderRepository(BaseRepository[TexHeader]):
     def __init__(self, connection):
@@ -26,9 +26,9 @@ class MongoTexHeaderRepository(BaseRepository[TexHeader]):
 
     def add(self, tex_header: TexHeader) -> TexHeader:
         try:
-            header_dict = tex_header.dict(exclude={'id'})
-            header_dict['created_at'] = datetime.utcnow()
-            header_dict['updated_at'] = datetime.utcnow()
+            header_dict = tex_header.model_dump(exclude={'id'})
+            header_dict['created_at'] = datetime.now(timezone.utc)
+            header_dict['updated_at'] = datetime.now(timezone.utc)
             result = self.collection.insert_one(header_dict)
             tex_header.id = str(result.inserted_id)
             return tex_header
@@ -37,8 +37,8 @@ class MongoTexHeaderRepository(BaseRepository[TexHeader]):
 
     def update(self, tex_header: TexHeader) -> bool:
         try:
-            header_dict = tex_header.dict(exclude={'id'})
-            header_dict['updated_at'] = datetime.utcnow()
+            header_dict = tex_header.model_dump(exclude={'id'})
+            header_dict['updated_at'] = datetime.now(timezone.utc)
             result = self.collection.update_one(
                 {'_id': ObjectId(tex_header.id)},
                 {'$set': header_dict}
@@ -64,8 +64,8 @@ class MongoTexHeaderRepository(BaseRepository[TexHeader]):
         if doc:
             doc['id'] = str(doc.pop('_id'))
             if 'created_at' not in doc:
-                doc['created_at'] = datetime.utcnow()
+                doc['created_at'] = datetime.now(timezone.utc)
             if 'updated_at' not in doc:
-                doc['updated_at'] = datetime.utcnow()
+                doc['updated_at'] = datetime.now(timezone.utc)
             return TexHeader(**doc)
         return None

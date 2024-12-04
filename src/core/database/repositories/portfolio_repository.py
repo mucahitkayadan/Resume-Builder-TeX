@@ -3,7 +3,7 @@ from bson import ObjectId
 from ...exceptions.database_exceptions import DatabaseError
 from ..interfaces.repository_interface import BaseRepository
 from ..models.portfolio import Portfolio, CareerSummary
-from datetime import datetime
+from datetime import datetime, timezone
 
 class MongoPortfolioRepository(BaseRepository[Portfolio]):
     def __init__(self, connection):
@@ -26,7 +26,7 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
 
     def add(self, portfolio: Portfolio) -> Portfolio:
         try:
-            result = self.collection.insert_one(portfolio.dict(exclude={'id'}))
+            result = self.collection.insert_one(portfolio.model_dump(exclude={'id'}))
             portfolio.id = str(result.inserted_id)
             return portfolio
         except Exception as e:
@@ -36,7 +36,7 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
         try:
             result = self.collection.update_one(
                 {'_id': ObjectId(portfolio.id)},
-                {'$set': portfolio.dict(exclude={'id'})}
+                {'$set': portfolio.model_dump(exclude={'id'})}
             )
             return result.modified_count > 0
         except Exception as e:
@@ -79,8 +79,8 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
             doc.setdefault('publications', [])
             doc.setdefault('certifications', [])
             doc.setdefault('languages', [])
-            doc.setdefault('created_at', datetime.utcnow())
-            doc.setdefault('updated_at', datetime.utcnow())
+            doc.setdefault('created_at', datetime.now(timezone.utc))
+            doc.setdefault('updated_at', datetime.now(timezone.utc))
             
             return Portfolio(**doc)
         except Exception as e:
@@ -100,8 +100,8 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
             result = self.collection.update_one(
                 {'_id': ObjectId(portfolio_id)},
                 {'$set': {
-                    'career_summary': career_summary.dict(),
-                    'updated_at': datetime.utcnow()
+                    'career_summary': career_summary.model_dump(),
+                    'updated_at': datetime.now(timezone.utc)
                 }}
             )
             return result.modified_count > 0

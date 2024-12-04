@@ -1,6 +1,6 @@
 import logging
 from typing import Dict, Any, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 
 from src.llms.runner import LLMRunner
 from src.latex.cover_letter.cover_letter_compiler import CoverLetterLatexCompiler
@@ -8,7 +8,6 @@ from src.loaders.prompt_loader import PromptLoader
 from .utils.string_utils import ensure_string
 from src.core.database.factory import get_unit_of_work
 from src.resume.utils.output_manager import OutputManager
-from src.resume.resume_generator import ResumeGenerator
 from src.core.database.models import Resume
 
 logger = logging.getLogger(__name__)
@@ -57,14 +56,14 @@ class CoverLetterGenerator:
                 logger.error("PDF generation failed")
                 return "Cover letter PDF generation failed."
 
-            # Save to database
+            # Save to the database
             logger.debug("Saving cover letter to database")
             with self.uow:
                 resume = self.uow.resumes.get_by_id(resume_id)
                 if resume:
                     resume.cover_letter_content = latex_content
                     resume.cover_letter_pdf = pdf_content
-                    resume.updated_at = datetime.utcnow()
+                    resume.updated_at = datetime.now(timezone.utc)
                     self.uow.resumes.update(resume)
                     self.uow.commit()
                     logger.info(f"Cover letter saved to resume {resume_id}")
@@ -133,7 +132,7 @@ class CoverLetterGenerator:
                     return resume_data, resume
                 logger.warning(f"Specified resume {resume_id} not found")
 
-            # Get latest resume as fallback
+            # Get the latest résumé as fallback
             latest_resume = self.uow.resumes.get_latest_resume()
             if latest_resume:
                 resume_data = self.uow.get_resume_for_cover_letter(latest_resume.id)

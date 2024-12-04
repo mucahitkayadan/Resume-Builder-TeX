@@ -3,7 +3,7 @@ from bson import ObjectId
 from ...exceptions.database_exceptions import DatabaseError
 from ..interfaces.repository_interface import BaseRepository
 from ..models.user import User
-from datetime import datetime
+from datetime import datetime, timezone
 
 class MongoUserRepository(BaseRepository[User]):
     def __init__(self, connection):
@@ -33,9 +33,9 @@ class MongoUserRepository(BaseRepository[User]):
 
     def add(self, user: User) -> User:
         try:
-            user_dict = user.dict(exclude={'id'})
-            user_dict['created_at'] = datetime.utcnow()
-            user_dict['updated_at'] = datetime.utcnow()
+            user_dict = user.model_dump(exclude={'id'})
+            user_dict['created_at'] = datetime.now(timezone.utc)
+            user_dict['updated_at'] = datetime.now(timezone.utc)
             result = self.collection.insert_one(user_dict)
             user.id = str(result.inserted_id)
             return user
@@ -44,8 +44,8 @@ class MongoUserRepository(BaseRepository[User]):
 
     def update(self, user: User) -> bool:
         try:
-            user_dict = user.dict(exclude={'id'})
-            user_dict['updated_at'] = datetime.utcnow()
+            user_dict = user.model_dump(exclude={'id'})
+            user_dict['updated_at'] = datetime.now(timezone.utc)
             result = self.collection.update_one(
                 {'_id': ObjectId(user.id)},
                 {'$set': user_dict}
@@ -60,8 +60,8 @@ class MongoUserRepository(BaseRepository[User]):
                 {'_id': ObjectId(user_id)},
                 {
                     '$set': {
-                        'last_login': datetime.utcnow(),
-                        'updated_at': datetime.utcnow()
+                        'last_login': datetime.now(timezone.utc),
+                        'updated_at': datetime.now(timezone.utc)
                     }
                 }
             )
@@ -105,8 +105,8 @@ class MongoUserRepository(BaseRepository[User]):
             # Set default values
             doc.setdefault('signature_filename', None)
             doc.setdefault('signature_content_type', None)
-            doc.setdefault('created_at', datetime.utcnow())
-            doc.setdefault('updated_at', datetime.utcnow())
+            doc.setdefault('created_at', datetime.now(timezone.utc))
+            doc.setdefault('updated_at', datetime.now(timezone.utc))
             doc.setdefault('last_login', None)
             
             return User(**doc)
@@ -122,7 +122,7 @@ class MongoUserRepository(BaseRepository[User]):
                 {
                     '$set': {
                         'preferences': preferences,
-                        'updated_at': datetime.utcnow()
+                        'updated_at': datetime.now(timezone.utc)
                     }
                 }
             )
@@ -131,14 +131,14 @@ class MongoUserRepository(BaseRepository[User]):
             raise DatabaseError(f"Error updating user preferences: {str(e)}")
 
     def update_life_story(self, user_id: str, life_story: str) -> bool:
-        """Update user life story"""
+        """Update the user life story"""
         try:
             result = self.collection.update_one(
                 {'_id': ObjectId(user_id)},
                 {
                     '$set': {
                         'life_story': life_story,
-                        'updated_at': datetime.utcnow()
+                        'updated_at': datetime.now(timezone.utc)
                     }
                 }
             )
@@ -150,12 +150,12 @@ class MongoUserRepository(BaseRepository[User]):
         """Get user preferences"""
         try:
             user = self.get_by_id(user_id)
-            return user.preferences.dict() if user else None
+            return user.preferences.model_dump() if user else None
         except Exception as e:
             raise DatabaseError(f"Error retrieving user preferences: {str(e)}")
 
     def get_life_story(self, user_id: str) -> Optional[str]:
-        """Get user life story"""
+        """Get the user life story"""
         try:
             user = self.get_by_id(user_id)
             return user.life_story if user else None
