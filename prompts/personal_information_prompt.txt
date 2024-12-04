@@ -27,5 +27,3 @@ Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NO
 
 Example:
 \personalinfo{Muja Kayadan}{641 233 9607}{mujakayadan@outlook.com}{https://www.linkedin.com/in/muja-kayadan/}{https://github.com/mucahitkayadan}{San Francisco, CA, 94133}
-
-Here is the DATA you have to analyze:

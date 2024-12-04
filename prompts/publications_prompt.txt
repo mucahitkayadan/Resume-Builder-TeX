@@ -1,4 +1,21 @@
-List the publications of the user:
+Task: Based on the provided job description and candidate's research work, create a concise publications section.
+
+Instructions:
+- Include maximum ${publications_details_max_publications} publications.
+- Prioritize publications that are:
+  1. Most relevant to the target position and industry
+  2. Most recent and impactful
+  3. Published in well-recognized journals or conferences
+  4. Demonstrate technical expertise in relevant areas
+- For each publication, include:
+  1. Title of the paper/research
+  2. Journal/Conference name
+  3. Publication date
+  4. Link to the publication (if available)
+  5. Brief impact statement or key findings (if space permits)
+- Format citations professionally and consistently
+- If any standard information is missing (e.g., exact publication date), simply omit it. Do not use placeholders.
+- Prioritize peer-reviewed publications over preprints or technical reports
 
 Example output:
 \section{Publications}

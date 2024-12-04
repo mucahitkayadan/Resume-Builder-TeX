@@ -1,4 +1,18 @@
-List significant awards or recognitions for the job description.
+Task: Based on the provided job description and candidate's achievements, create a concise awards section.
+
+Instructions:
+- Include maximum ${awards_details_max_awards} awards or recognitions.
+- Prioritize awards that are:
+  1. Most relevant to the target position and industry
+  2. Most recent and significant
+  3. Demonstrate technical excellence, leadership, or innovation
+- For each award, include:
+  1. Award title/name
+  2. Issuing organization
+  3. Date or timeframe
+  4. Brief explanation of the achievement or significance
+- Use quantifiable metrics where available (e.g., "Top 5%", "First Place", "Among 500 participants")
+- If any standard information is missing (e.g., exact date), simply omit it. Do not use placeholders.
 
 Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NOT NEEDED. THIS IS ADDED JUST TO HELP YOU TO UNDERSTAND THE STRUCTURE
 \newcommand{\resumeAwardHeading}[2]{
@@ -15,5 +29,7 @@ Example:
     \resumeAwardHeading{TUBITAK Scientist Support Programs Presidency Winner}{Egg Sex Classification with Morphological Methods" at the Food and Agriculture Category of 2242-University Students Research Project Competitions organized by TUBITAK Scientist Support Programs Presidency won the first prize in the Kayseri Regional Exhibition. (Jun 2019)}
     \resumeAwardHeading{University of Padua Scholarship}{Awarded to graduate students who have been successful in the educational and professional area. Fee waiver + 7000 Euro / year grant. (Sep 2021 - Sep 2023)}
 \resumeSubHeadingListEnd
+
+Note: Each award should demonstrate value and impact. Focus on awards that showcase skills and achievements relevant to the position you're applying for. If you have more than ${awards_details_max_awards} awards, select the most impactful ones that align with the job requirements.
 
 
