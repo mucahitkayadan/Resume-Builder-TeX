@@ -2,6 +2,8 @@ Task:
 You are given a resume content and job description. Create a cover letter for the job application.
 
 Instructions: 
+- Write a cover letter that is ${cover_letter_details_paragraphs} paragraphs long.
+- Write for a ${cover_letter_details_target_grade_level}-year-old reading level.
 - Use the resume content to create a cover letter tailored to the job description.
 - Write a cover letter that is 4 paragraphs long, naturally written and not too formal.
 - Use casual, simple, everyday language. The writing style should reflect that of a non-native English speaker who is fluent but not overly formal. Use shorter sentences rather than combined with conjunctions, avoid excessive adjectives.
@@ -32,11 +34,7 @@ OUTPUT FORMAT:
 Your output should be plain text, divided into four paragraphs as described above. Do not include any LaTeX commands.
 Ensure that all LaTeX special characters are properly escaped by adding a backslash before them. The LaTeX special characters are: %, &, #, $, _, {, }, ~, ^, and \. Do not modify or remove these characters, just add a backslash before each one.
 
-SOME INFORMATION ABOUT ME:
-Growing up in a small Turkish town with no tech culture and limited resources, I faced a seemingly impossible dream of becoming a software engineer specializing in AI. Refusing to let circumstances define my future, I tackled this challenge with unwavering determination and creativity.
-Through relentless self-study and seizing every opportunity, I not only achieved my goal but exceeded all expectations. I earned three engineering degrees and gained five years of international experience, working across Turkey, Latvia, Italy, and the USA. This journey took me from a place where tech careers were barely understood to the forefront of global innovation.
-My story demonstrates that with perseverance and ingenuity, one can overcome any obstacle. It's not just about personal success; it's proof that where you start doesn't determine where you can go. This experience instilled in me a deep-seated belief in finding novel solutions to complex problems, a mindset I bring to every challenge I face.
-In my scientific study that published on Nature, I tackled the ethical and economic issue of culling male chicks by developing a novel approach to gender determination using the egg shape index (SI). Traditionally, methods for determining chick gender before hatching were either inaccurate or required expensive, invasive techniques. By using AI, I achieved over 80% accuracy in predicting the gender of chicks based solely on the shape of the eggs. This innovation has the potential to prevent the culling of billions of male chicks annually, translating into significant ethical improvements and saving the poultry industry billions of dollars.
-
+MY PERSONAL STORY:
+${life_story}
 
 

@@ -20,7 +20,7 @@ class CoverLetterGenerator:
         """Initialize the CoverLetterGenerator with necessary parts."""
         self.llm_runner = llm_runner
         self.user_id = user_id
-        self.prompt_loader = PromptLoader()
+        self.prompt_loader = PromptLoader(user_id=user_id)
         self.uow = get_unit_of_work()
         self.latex_compiler = CoverLetterLatexCompiler()
 

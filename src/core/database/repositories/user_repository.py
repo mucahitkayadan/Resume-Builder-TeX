@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from bson import ObjectId
 from ...exceptions.database_exceptions import DatabaseError
 from ..interfaces.repository_interface import BaseRepository
@@ -113,3 +113,77 @@ class MongoUserRepository(BaseRepository[User]):
         except Exception as e:
             print(f"Error mapping user entity: {str(e)}")
             return None
+
+    def update_preferences(self, user_id: str, preferences: Dict[str, Any]) -> bool:
+        """Update user preferences"""
+        try:
+            result = self.collection.update_one(
+                {'_id': ObjectId(user_id)},
+                {
+                    '$set': {
+                        'preferences': preferences,
+                        'updated_at': datetime.utcnow()
+                    }
+                }
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            raise DatabaseError(f"Error updating user preferences: {str(e)}")
+
+    def update_life_story(self, user_id: str, life_story: str) -> bool:
+        """Update user life story"""
+        try:
+            result = self.collection.update_one(
+                {'_id': ObjectId(user_id)},
+                {
+                    '$set': {
+                        'life_story': life_story,
+                        'updated_at': datetime.utcnow()
+                    }
+                }
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            raise DatabaseError(f"Error updating user life story: {str(e)}")
+
+    def get_preferences(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Get user preferences"""
+        try:
+            user = self.get_by_id(user_id)
+            return user.preferences.dict() if user else None
+        except Exception as e:
+            raise DatabaseError(f"Error retrieving user preferences: {str(e)}")
+
+    def get_life_story(self, user_id: str) -> Optional[str]:
+        """Get user life story"""
+        try:
+            user = self.get_by_id(user_id)
+            return user.life_story if user else None
+        except Exception as e:
+            raise DatabaseError(f"Error retrieving user life story: {str(e)}")
+
+    def update_skill_preferences(self, user_id: str, max_categories: int = None, 
+                               min_skills: int = None, max_skills: int = None) -> bool:
+        """Update user's skill preferences"""
+        try:
+            update_dict = {}
+            if max_categories is not None:
+                update_dict['preferences.skills_details.max_categories'] = max_categories
+            if min_skills is not None:
+                update_dict['preferences.skills_details.min_skills_per_category'] = min_skills
+            if max_skills is not None:
+                update_dict['preferences.skills_details.max_skills_per_category'] = max_skills
+            
+            if not update_dict:
+                return True
+            
+            result = self.collection.update_one(
+                {'_id': ObjectId(user_id)},
+                {
+                    '$set': update_dict,
+                    '$currentDate': {'updated_at': True}
+                }
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            raise DatabaseError(f"Error updating skill preferences: {str(e)}")

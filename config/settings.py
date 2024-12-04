@@ -23,10 +23,5 @@ APP_CONSTANTS = {
         "Permanent Resident",
         "U.S. Citizenship",
         "Government Security Clearance"
-    ],
-    'default_location': "San Francisco, CA",
-    'max_projects': 4,
-    'min_skill_categories': 5,
-    'min_skills_per_category': 6,
-    'max_skills_per_category': 10
+    ]
 }

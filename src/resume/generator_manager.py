@@ -23,7 +23,7 @@ class GeneratorManager:
         self._llm_runner = None
         self._resume_generator = None
         self._cover_letter_generator = None
-        self._prompt_loader = PromptLoader()
+        self._prompt_loader = PromptLoader(user_id=user_id)
 
     @property
     def llm_runner(self) -> LLMRunner:

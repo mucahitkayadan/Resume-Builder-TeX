@@ -26,7 +26,7 @@ class ResumeGenerator:
         self.llm_runner = llm_runner
         self.uow = get_unit_of_work()
         self.user_id = user_id
-        self.prompt_loader = PromptLoader()
+        self.prompt_loader = PromptLoader(user_id=user_id)
         self.tex_loader = TexLoader()
         self.portfolio_loader = PortfolioLoader(self.user_id)
         self.hardcoder = HardcodeSections(self.user_id)
