@@ -187,3 +187,38 @@ class MongoUserRepository(BaseRepository[User]):
             return result.modified_count > 0
         except Exception as e:
             raise DatabaseError(f"Error updating skill preferences: {str(e)}")
+
+    def update_llm_preferences(self, user_id: str, preferences: dict):
+        """Update LLM preferences for a user"""
+        self.collection.update_one(
+            {'user_id': user_id},
+            {
+                '$set': {
+                    'llm_preferences': preferences,
+                    'updated_at': datetime.utcnow()
+                }
+            }
+        )
+
+    def update_section_preferences(self, user_id: str, preferences: dict):
+        """Update section preferences for a user"""
+        self.collection.update_one(
+            {'user_id': user_id},
+            {
+                '$set': {
+                    'section_preferences': preferences,
+                    'updated_at': datetime.utcnow()
+                }
+            }
+        )
+
+    def get_preferences(self, user_id: str):
+        """Get all preferences for a user"""
+        user = self.collection.find_one({'user_id': user_id})
+        if user:
+            return {
+                'llm_preferences': user.get('llm_preferences', {}),
+                'section_preferences': user.get('section_preferences', {}),
+                'feature_preferences': user.get('feature_preferences', {})
+            }
+        return None

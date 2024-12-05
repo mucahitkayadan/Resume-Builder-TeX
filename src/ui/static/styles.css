@@ -1,0 +1,231 @@
+/* Dynamic background animation */
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Main content area */
+.main {
+    padding: 1rem 2rem;
+    background: linear-gradient(
+        -45deg,
+        #f8f9fa,
+        #f0f2f6,
+        #edf2f7,
+        #e9ecef
+    );
+    background-size: 400% 400%;
+    animation: gradientAnimation 15s ease infinite;
+}
+
+/* Headers */
+h1 {
+    color: #2c3e50;
+    padding: 0.5rem 0;
+    margin: 0 0 1.5rem 0;
+    border-bottom: 2px solid #3498db;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+h2, h3, .stMarkdown h3 {
+    color: #34495e;
+    margin: 0.8rem 0;
+    padding: 0;
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+/* Buttons */
+.stButton>button {
+    width: 100%;
+    border-radius: 5px;
+    height: 3em;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    transition: background-color 0.3s;
+}
+
+.stButton>button:hover {
+    background-color: #2980b9;
+}
+
+/* Text areas */
+.stTextArea>div>div>textarea {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background: linear-gradient(
+        135deg,
+        #ffffff,
+        #f8f9fa,
+        #f5f7fa
+    );
+    background-size: 200% 200%;
+    animation: gradientAnimation 10s ease infinite;
+    border-right: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Target all sidebar containers and remove spacing */
+[data-testid="stSidebar"] > div,
+[data-testid="stSidebar"] > div > div,
+[data-testid="stSidebar"] .block-container,
+[data-testid="stSidebar"] .element-container,
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Ensure logo has no extra spacing */
+[data-testid="stSidebar"] [data-testid="stImage"] {
+    margin: 0 !important;
+    padding: 1rem 0 !important;  /* Just enough padding for the logo */
+}
+
+/* Navigation menu */
+.nav-item {
+    display: block;
+    padding: 0.8rem 1rem;
+    margin: 0.5rem 0;
+    color: #ecf0f1 !important;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.nav-item:hover {
+    background-color: #3498db;
+}
+
+.nav-item.active {
+    background-color: #3498db;
+    font-weight: 500;
+}
+
+.nav-item .emoji {
+    margin-right: 0.5rem;
+    font-size: 1.2em;
+}
+
+/* Tabs styling */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 2rem;
+    background-color: #f8f9fa;
+}
+
+.stTabs [data-baseweb="tab"] {
+    height: 3rem;
+    background-color: transparent;
+    border-radius: 4px 4px 0 0;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.stTabs [data-baseweb="tab-list"] button[data-baseweb="tab"] {
+    border-bottom: 2px solid transparent;
+}
+
+.stTabs [data-baseweb="tab-list"] button[data-baseweb="tab"][aria-selected="true"] {
+    border-bottom: 2px solid #3498db;
+    color: #3498db;
+}
+
+/* Messages */
+.stSuccess, .stWarning, .stError {
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+.stSuccess {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.stWarning {
+    background-color: #f1c40f;
+    color: #2c3e50;
+}
+
+.stError {
+    background-color: #e74c3c;
+    color: white;
+}
+
+/* Navigation styling */
+.nav-container {
+    padding: 0.5rem;
+    background: linear-gradient(
+        to right bottom,
+        rgba(255,255,255,0.9),
+        rgba(255,255,255,0.7)
+    );
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    margin: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+/* Navigation buttons */
+.nav-container .stButton button {
+    background-color: transparent;
+    color: #2c3e50;
+    border: none;
+    text-align: left;
+    padding: 0.8rem 1rem;
+    margin: 0.2rem 0;
+    border-left: 3px solid transparent;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.nav-container .stButton button:hover {
+    background-color: #e3f2fd;
+    border-left: 3px solid #3498db;
+    color: #3498db;
+}
+
+/* Active navigation button */
+.nav-container .stButton button[data-active="true"] {
+    background-color: #e3f2fd;
+    border-left: 3px solid #3498db;
+    color: #3498db;
+}
+
+/* Remove button styling */
+.nav-container .stButton button {
+    box-shadow: none !important;
+}
+
+.nav-container .stButton button:hover {
+    box-shadow: none !important;
+}
+
+/* Remove any extra spacing from Streamlit containers */
+[data-testid="stMarkdownContainer"] {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.element-container {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Hide fullscreen button */
+[data-testid="StyledFullScreenButton"] {
+    display: none !important;
+} 

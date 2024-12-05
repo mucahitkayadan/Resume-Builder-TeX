@@ -9,19 +9,20 @@ class DatabaseViewer:
         self.uow = get_unit_of_work()
 
     def render(self):
-        st.title("Resume Database Viewer")
-
+        st.title(" Resume Database")
+        
         with self.uow:
             # Fetch all resumes from the database
             resumes = self.uow.resumes.get_all()
 
             if not resumes:
-                st.write("No resumes found in the database.")
+                st.info("🔍 No resumes found in the database.")
             else:
                 # Convert resumes to DataFrame format
                 df_data = [
                     {
                         'ID': resume.id,
+                        'Display Name': f"{resume.company_name}_{resume.job_title}",
                         'Company Name': resume.company_name,
                         'Job Title': resume.job_title,
                         'Creation Date': resume.created_at.strftime('%Y-%m-%d %H:%M:%S')
@@ -34,44 +35,66 @@ class DatabaseViewer:
                 df = df.sort_values('Creation Date', ascending=False)
 
                 # Display the DataFrame
-                st.dataframe(df)
+                st.dataframe(
+                    df[['Display Name', 'Company Name', 'Job Title', 'Creation Date']],
+                    use_container_width=True
+                )
 
-                # Allow user to select a resume
-                selected_resume_id = st.selectbox("Select a resume to view details:", df['ID'].tolist(), index=0)
+                # Allow user to select a resume by display name
+                selected_display_name = st.selectbox(
+                    "Select a resume to view details:",
+                    df['Display Name'].tolist(),
+                    index=0
+                )
+                
+                # Get the corresponding ID
+                selected_resume_id = df[df['Display Name'] == selected_display_name]['ID'].iloc[0]
 
                 if selected_resume_id:
                     resume = self.uow.resumes.get_by_id(selected_resume_id)
                     if resume:
-                        st.subheader(f"Details for Resume ID: {selected_resume_id}")
+                        # Create tabs for different views
+                        tab1, tab2 = st.tabs(["📝 Content", "📄 Documents"])
                         
-                        # Display resume sections
-                        sections = [
-                            'personal_information', 'career_summary', 'skills',
-                            'work_experience', 'education', 'projects',
-                            'awards', 'publications'
-                        ]
-                        
-                        for section in sections:
-                            content = getattr(resume, section)
-                            if content:
-                                st.text_area(section.replace('_', ' ').title(), content, height=100)
-
-                        # Handle PDF content
-                        if resume.resume_pdf:
-                            st.download_button(
-                                label="Download Resume PDF",
-                                data=resume.resume_pdf,
-                                file_name=f"resume_{selected_resume_id}.pdf",
-                                mime="application/pdf"
-                            )
+                        with tab1:
+                            st.subheader(f"Details for: {selected_display_name}")
                             
-                            # Display PDF using streamlit-pdf-viewer
-                            pdf_viewer(resume.resume_pdf)
-
-                        if resume.cover_letter_pdf:
-                            st.download_button(
-                                label="Download Cover Letter PDF",
-                                data=resume.cover_letter_pdf,
-                                file_name=f"cover_letter_{selected_resume_id}.pdf",
-                                mime="application/pdf"
-                            )
+                            # Display resume sections in expanders
+                            sections = [
+                                'personal_information', 'career_summary', 'skills',
+                                'work_experience', 'education', 'projects',
+                                'awards', 'publications'
+                            ]
+                            
+                            for section in sections:
+                                content = getattr(resume, section)
+                                if content:
+                                    with st.expander(section.replace('_', ' ').title()):
+                                        st.markdown(content)
+                        
+                        with tab2:
+                            col1, col2 = st.columns(2)
+                            
+                            with col1:
+                                if resume.resume_pdf:
+                                    st.subheader("Resume PDF")
+                                    st.download_button(
+                                        "⬇️ Download Resume PDF",
+                                        resume.resume_pdf,
+                                        file_name=f"{selected_display_name}_resume.pdf",
+                                        mime="application/pdf"
+                                    )
+                                    # Display PDF
+                                    pdf_viewer(resume.resume_pdf)
+                            
+                            with col2:
+                                if resume.cover_letter_pdf:
+                                    st.subheader("Cover Letter PDF")
+                                    st.download_button(
+                                        "⬇️ Download Cover Letter PDF",
+                                        resume.cover_letter_pdf,
+                                        file_name=f"{selected_display_name}_cover_letter.pdf",
+                                        mime="application/pdf"
+                                    )
+                                    # Display PDF
+                                    pdf_viewer(resume.cover_letter_pdf)

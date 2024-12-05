@@ -7,6 +7,9 @@ from src.resume.cover_letter_generator import CoverLetterGenerator
 from src.resume.utils.output_manager import OutputManager
 from src.llms.runner import LLMRunner
 from src.loaders.prompt_loader import PromptLoader
+from src.core.database.factory import get_unit_of_work
+from config.settings import FEATURE_FLAGS, APP_CONSTANTS
+from src.resume.utils.job_analysis import check_clearance_requirement
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +70,17 @@ class GeneratorManager:
                 output_manager: OutputManager) -> Generator[Tuple[str, float], None, None]:
         """Generate content based on the specified type."""
         try:
+            # Get user preferences for features
+            with get_unit_of_work() as uow:
+                preferences = uow.users.get_preferences(self.user_id)
+                feature_flags = preferences.get('feature_preferences', {}) if preferences else {}
+
+            # Check clearance if the feature is enabled
+            if feature_flags.get('check_clearance', FEATURE_FLAGS['check_clearance']):
+                if check_clearance_requirement(job_description, APP_CONSTANTS['clearance_keywords']):
+                    raise ValueError("Cannot generate content for positions requiring security clearance")
+
+            # Generate based on type
             if generation_type == GenerationType.RESUME:
                 yield from self._generate_resume(job_description, selected_sections, output_manager)
             
@@ -91,6 +105,10 @@ class GeneratorManager:
                     output_manager,
                     resume_id=resume.id
                 )
+
+            # Auto-save if enabled
+            if feature_flags.get('auto_save', True):
+                output_manager.save_job_description(job_description)
 
         except Exception as e:
             logger.error(f"Generation failed: {str(e)}", exc_info=True)
@@ -120,4 +138,4 @@ class GeneratorManager:
             resume_id=resume_id,
             output_manager=output_manager
         )
-        yield f"Cover letter generation: {result}", 1.0 
+        yield f"Cover letter generation: {result}", 1.0
