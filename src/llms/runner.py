@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict, Tuple
 from .strategies.base import LLMStrategy
-from src.resume.utils.string_utils import get_company_name_and_job_title
+from src.generator.utils.string_utils import get_company_name_and_job_title
 from src.llms.strategies import OpenAIStrategy, ClaudeStrategy, OllamaStrategy, GeminiStrategy
 from ..loaders.prompt_loader import PromptLoader
 from config.llm_config import LLMConfig

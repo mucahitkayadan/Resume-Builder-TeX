@@ -1,9 +1,9 @@
 import logging
 from typing import Dict, Generator, Tuple
 
-from src.resume.resume_generator import ResumeGenerator
-from src.resume.cover_letter_generator import CoverLetterGenerator
-from src.resume.utils.output_manager import OutputManager
+from src.generator.resume_generator import ResumeGenerator
+from src.generator.cover_letter_generator import CoverLetterGenerator
+from src.generator.utils.output_manager import OutputManager
 
 logger = logging.getLogger(__name__)
 

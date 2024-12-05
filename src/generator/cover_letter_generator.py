@@ -7,7 +7,7 @@ from src.latex.cover_letter.cover_letter_compiler import CoverLetterLatexCompile
 from src.loaders.prompt_loader import PromptLoader
 from .utils.string_utils import ensure_string
 from src.core.database.factory import get_unit_of_work
-from src.resume.utils.output_manager import OutputManager
+from src.generator.utils.output_manager import OutputManager
 from src.core.database.models import Resume
 
 logger = logging.getLogger(__name__)

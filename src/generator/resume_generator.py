@@ -6,10 +6,10 @@ from src.llms.runner import LLMRunner
 from src.latex.resume.resume_compiler import ResumeLatexCompiler
 from src.loaders.prompt_loader import PromptLoader
 from src.loaders.tex_loader import TexLoader
-from src.resume.hardcode_sections import HardcodeSections
+from src.generator.hardcode_sections import HardcodeSections
 from src.loaders.portfolio_loader import PortfolioLoader
 from src.core.database.factory import get_unit_of_work
-from src.resume.utils.output_manager import OutputManager
+from src.generator.utils.output_manager import OutputManager
 
 logger = logging.getLogger(__name__)
 

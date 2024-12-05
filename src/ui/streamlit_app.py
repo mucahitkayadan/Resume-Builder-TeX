@@ -3,20 +3,20 @@ import logging
 from config.logger_config import setup_logger
 from pathlib import Path
 
-from src.resume.resume_generator import ResumeGenerator
-from src.resume.cover_letter_generator import CoverLetterGenerator
+from src.generator.resume_generator import ResumeGenerator
+from src.generator.cover_letter_generator import CoverLetterGenerator
 from src.ui.components.section_selector import SectionSelector
 from src.ui.components.model_selector import ModelSelector
 from src.ui.components.database_viewer import DatabaseViewer
 from src.loaders.prompt_loader import PromptLoader
 from src.llms.runner import LLMRunner
-from src.resume.utils.job_analysis import check_clearance_requirement
+from src.generator.utils.job_analysis import check_clearance_requirement
 from config.settings import APP_CONSTANTS, FEATURE_FLAGS
 from config.llm_config import LLMConfig
-from src.resume.utils.output_manager import OutputManager
-from src.resume.utils.job_info import JobInfo
-from src.resume.combined_generator import CombinedGenerator
-from src.resume.generator_manager import GeneratorManager, GenerationType
+from src.generator.utils.output_manager import OutputManager
+from src.generator.utils.job_info import JobInfo
+from src.generator.combined_generator import CombinedGenerator
+from src.generator.generator_manager import GeneratorManager, GenerationType
 from src.ui.pages.home import HomePage
 from src.ui.pages.settings import SettingsPage
 from src.ui.pages.section_manager import SectionManagerPage
@@ -96,9 +96,6 @@ class StreamlitApp:
             # Navigation menu using buttons
             if 'current_page' not in st.session_state:
                 st.session_state.current_page = "home"
-            
-            # Navigation container with minimal spacing
-            st.markdown('<div class="nav-container">', unsafe_allow_html=True)
             
             # Navigation buttons
             if st.button("🏠 Home", key="nav_home", use_container_width=True):

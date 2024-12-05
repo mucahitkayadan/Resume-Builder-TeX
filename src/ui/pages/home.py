@@ -1,11 +1,11 @@
 import streamlit as st
-from src.resume.utils.job_analysis import check_clearance_requirement
-from src.resume.utils.job_info import JobInfo
-from src.resume.generator_manager import GenerationType
+from src.generator.utils.job_analysis import check_clearance_requirement
+from src.generator.utils.job_info import JobInfo
+from src.generator.generator_manager import GenerationType
 from config.settings import APP_CONSTANTS, FEATURE_FLAGS
 from config.logger_config import setup_logger
 from src.core.database.factory import get_unit_of_work
-from src.resume.utils.output_manager import OutputManager
+from src.generator.utils.output_manager import OutputManager
 
 logger = setup_logger(__name__)
 

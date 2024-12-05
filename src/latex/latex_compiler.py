@@ -6,7 +6,7 @@ from typing import Optional
 from config.logger_config import setup_logger
 from config.settings import OUTPUT_DIR
 from src.core.database.factory import get_unit_of_work
-from src.resume.utils.output_manager import OutputManager
+from src.generator.utils.output_manager import OutputManager
 
 logger = setup_logger(__name__)
 
