@@ -16,10 +16,10 @@
     padding: 1rem 2rem;
     background: linear-gradient(
         -45deg,
-        #f8f9fa,
-        #f0f2f6,
-        #edf2f7,
-        #e9ecef
+        #e8eaf6,
+        #e3f2fd,
+        #e0f2f1,
+        #e8eaf6
     );
     background-size: 400% 400%;
     animation: gradientAnimation 15s ease infinite;
@@ -67,15 +67,10 @@ h2, h3, .stMarkdown h3 {
 
 /* Sidebar */
 [data-testid="stSidebar"] {
-    background: linear-gradient(
-        135deg,
-        #ffffff,
-        #f8f9fa,
-        #f5f7fa
-    );
-    background-size: 200% 200%;
-    animation: gradientAnimation 10s ease infinite;
-    border-right: 1px solid rgba(0,0,0,0.05);
+    background-color: #b56b9056;
+    box-shadow: 0px 2px 4px -1px rgba(0,0,0,0.2), 
+                0px 4px 5px 0px rgba(0,0,0,0.14), 
+                0px 1px 10px 0px rgba(0,0,0,0.12);
 }
 
 /* Target all sidebar containers and remove spacing */
@@ -121,11 +116,20 @@ h2, h3, .stMarkdown h3 {
 }
 
 /* Tabs styling */
-.stTabs [data-baseweb="tab-list"] {
-    gap: 2rem;
-    background-color: #f8f9fa;
+.stTabs {
+    background-color: transparent;
 }
 
+/* Tab list container */
+.stTabs [data-baseweb="tab-list"] {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 8px 8px 0 0;
+    padding: 0 20px;
+    gap: 2rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* Individual tabs */
 .stTabs [data-baseweb="tab"] {
     height: 3rem;
     background-color: transparent;
@@ -134,13 +138,19 @@ h2, h3, .stMarkdown h3 {
     font-weight: 500;
 }
 
-.stTabs [data-baseweb="tab-list"] button[data-baseweb="tab"] {
-    border-bottom: 2px solid transparent;
+/* Active tab */
+.stTabs [data-baseweb="tab"][aria-selected="true"] {
+    color: #1976d2;
+    border-bottom: 2px solid #1976d2;
 }
 
-.stTabs [data-baseweb="tab-list"] button[data-baseweb="tab"][aria-selected="true"] {
-    border-bottom: 2px solid #3498db;
-    color: #3498db;
+/* Tab panels/content */
+.stTabs [data-baseweb="tab-panel"] {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 0 0 8px 8px;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-top: none;
 }
 
 /* Messages */
@@ -193,16 +203,16 @@ h2, h3, .stMarkdown h3 {
 }
 
 .nav-container .stButton button:hover {
-    background-color: #e3f2fd;
-    border-left: 3px solid #3498db;
-    color: #3498db;
+    background-color: var(--mui-palette-action-hover, rgba(0, 0, 0, 0.04));
+    border-left: 3px solid var(--mui-palette-primary-main, #1976d2);
+    color: var(--mui-palette-primary-main, #1976d2);
 }
 
 /* Active navigation button */
 .nav-container .stButton button[data-active="true"] {
-    background-color: #e3f2fd;
-    border-left: 3px solid #3498db;
-    color: #3498db;
+    background-color: var(--mui-palette-action-selected, rgba(0, 0, 0, 0.08));
+    border-left: 3px solid var(--mui-palette-primary-main, #1976d2);
+    color: var(--mui-palette-primary-main, #1976d2);
 }
 
 /* Remove button styling */

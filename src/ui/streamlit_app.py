@@ -110,7 +110,6 @@ class StreamlitApp:
             if st.button("🗄️ Database", key="nav_database", use_container_width=True):
                 st.session_state.current_page = "database"
                 
-            st.markdown('</div>', unsafe_allow_html=True)
             
         # Render selected page
         if st.session_state.current_page == "home":

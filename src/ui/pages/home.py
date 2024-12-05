@@ -51,12 +51,27 @@ class HomePage:
             
             with left_col:
                 st.markdown("### 📋 Job Description")
-                job_description = st.text_area(
-                    "Enter the job description:",
-                    height=200,
-                    placeholder="Paste the job description here...",
-                    help="Copy and paste the complete job description from the job posting"
-                )
+                
+                # Add tabs for different input methods
+                input_tab1, input_tab2 = st.tabs(["📝 Manual Entry", "🔗 Job Link"])
+                
+                with input_tab1:
+                    job_description = st.text_area(
+                        "Enter the job description:",
+                        height=200,
+                        placeholder="Paste the job description here...",
+                        help="Copy and paste the complete job description from the job posting"
+                    )
+                
+                with input_tab2:
+                    job_url = st.text_input(
+                        "Enter job posting URL:",
+                        placeholder="https://...",
+                        help="Enter the URL of the job posting (parsing will be available soon)"
+                    )
+                    if job_url:
+                        st.info("🚧 URL parsing feature coming soon! Please use manual entry for now.")
+                        job_description = ""  # Clear job description if URL is entered
                 
                 # Add clearance requirement check if feature is enabled
                 if job_description and FEATURE_FLAGS['check_clearance']:
