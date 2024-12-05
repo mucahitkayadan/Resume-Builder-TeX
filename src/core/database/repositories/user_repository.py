@@ -118,7 +118,7 @@ class MongoUserRepository(BaseRepository[User]):
         """Update user preferences"""
         try:
             result = self.collection.update_one(
-                {'_id': ObjectId(user_id)},
+                {'user_id': user_id},
                 {
                     '$set': {
                         'preferences': preferences,
@@ -134,7 +134,7 @@ class MongoUserRepository(BaseRepository[User]):
         """Update the user life story"""
         try:
             result = self.collection.update_one(
-                {'_id': ObjectId(user_id)},
+                {'user_id': user_id},
                 {
                     '$set': {
                         'life_story': life_story,
