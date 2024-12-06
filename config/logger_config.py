@@ -4,7 +4,7 @@ class NullHandler(logging.Handler):
     def emit(self, record):
         pass
 
-def setup_logger(name, level=logging.DEBUG):
+def setup_logger(name, level=logging.INFO):
     logger = logging.getLogger(name)
     
     # Remove any existing handlers

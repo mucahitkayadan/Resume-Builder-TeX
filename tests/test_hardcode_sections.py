@@ -2,7 +2,7 @@ import logging
 import os
 from pathlib import Path
 
-from src.resume.hardcode_sections import HardcodeSections
+from src.generator.hardcode_sections import HardcodeSections
 from src.core.database.factory import get_unit_of_work
 from src.latex.resume.resume_compiler import ResumeLatexCompiler
 

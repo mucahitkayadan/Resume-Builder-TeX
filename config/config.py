@@ -12,7 +12,6 @@ LINKEDIN_PASSWORD = os.getenv("LINKEDIN_PASSWORD")
 # MongoDB Configuration
 MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
 MONGODB_DATABASE = os.getenv("MONGODB_DATABASE", "user_information")
-MONGODB_COLLECTION = os.getenv("MONGODB_COLLECTION", "portfolio")
 
 # LLM API Keys
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")

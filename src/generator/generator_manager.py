@@ -2,11 +2,14 @@ from enum import Enum
 from typing import Dict, Generator, Tuple, Optional
 import logging
 
-from src.resume.resume_generator import ResumeGenerator
-from src.resume.cover_letter_generator import CoverLetterGenerator
-from src.resume.utils.output_manager import OutputManager
+from src.generator.resume_generator import ResumeGenerator
+from src.generator.cover_letter_generator import CoverLetterGenerator
+from src.generator.utils.output_manager import OutputManager
 from src.llms.runner import LLMRunner
 from src.loaders.prompt_loader import PromptLoader
+from src.core.database.factory import get_unit_of_work
+from config.settings import FEATURE_FLAGS, APP_CONSTANTS
+from src.generator.utils.job_analysis import check_clearance_requirement
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +70,17 @@ class GeneratorManager:
                 output_manager: OutputManager) -> Generator[Tuple[str, float], None, None]:
         """Generate content based on the specified type."""
         try:
+            # Get user preferences for features
+            with get_unit_of_work() as uow:
+                preferences = uow.users.get_preferences(self.user_id)
+                feature_flags = preferences.get('feature_preferences', {}) if preferences else {}
+
+            # Check clearance if the feature is enabled
+            if feature_flags.get('check_clearance', FEATURE_FLAGS['check_clearance']):
+                if check_clearance_requirement(job_description, APP_CONSTANTS['clearance_keywords']):
+                    raise ValueError("Cannot generate content for positions requiring security clearance")
+
+            # Generate based on type
             if generation_type == GenerationType.RESUME:
                 yield from self._generate_resume(job_description, selected_sections, output_manager)
             
@@ -92,6 +106,10 @@ class GeneratorManager:
                     resume_id=resume.id
                 )
 
+            # Auto-save if enabled
+            if feature_flags.get('auto_save', True):
+                output_manager.save_job_description(job_description)
+
         except Exception as e:
             logger.error(f"Generation failed: {str(e)}", exc_info=True)
             raise
@@ -115,9 +133,31 @@ class GeneratorManager:
                              resume_id: Optional[str] = None):
         """Handle cover letter generation."""
         logger.info("Starting cover letter generation")
-        result = self.cover_letter_generator.generate_cover_letter(
-            job_description=job_description,
-            resume_id=resume_id,
-            output_manager=output_manager
-        )
-        yield f"Cover letter generation: {result}", 1.0 
+        
+        try:
+            # If no resume_id provided, get the latest resume
+            if not resume_id:
+                with get_unit_of_work() as uow:
+                    latest_resume = uow.resumes.get_latest_resume()
+                    if latest_resume:
+                        resume_id = latest_resume.id
+                        logger.info(f"Using latest resume with ID: {resume_id}")
+                    else:
+                        logger.warning("No existing resume found in database")
+                        raise ValueError("Please generate a resume first or select an existing one")
+
+            result = self.cover_letter_generator.generate_cover_letter(
+                job_description=job_description,
+                resume_id=resume_id,
+                output_manager=output_manager
+            )
+            
+            if "Failed to save" in result:
+                logger.error(f"Cover letter generation failed: {result}")
+                raise ValueError(result)
+            
+            yield f"Cover letter generation: {result}", 1.0
+            
+        except Exception as e:
+            logger.error(f"Cover letter generation failed: {e}")
+            raise

@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from easy_applier.job_applier import JobApplier
 from easy_applier.linkedin_scraper import LinkedInScraper
 from easy_applier.linkedin_job_manager import LinkedInJobManager
-from src.resume.resume_generator import ResumeGenerator
+from src.generator.resume_generator import ResumeGenerator
 from src.core.database.factory import get_unit_of_work
 from src.llms.strategies import OpenAIStrategy, ClaudeStrategy, OllamaStrategy, GeminiStrategy
 from config.config import (

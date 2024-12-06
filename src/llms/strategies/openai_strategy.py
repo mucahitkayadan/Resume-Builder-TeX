@@ -6,7 +6,7 @@ from config.logger_config import setup_logger
 from ..utils.errors import APIError, ConfigurationError
 from ..utils.response import process_api_response
 from typing import Tuple
-from src.resume.utils.string_utils import sanitize_filename
+from src.generator.utils.string_utils import sanitize_filename
 
 logger = setup_logger(__name__)
 

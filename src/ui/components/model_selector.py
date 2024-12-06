@@ -1,5 +1,6 @@
 import streamlit as st
 from config.logger_config import setup_logger
+from src.core.database.factory import get_unit_of_work
 
 logger = setup_logger(__name__)
 
@@ -19,40 +20,34 @@ class ModelSelector:
                                                                    "mixtral", "codellama", "neural-chat"],
             "Gemini": ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.5-pro-exp-0801"]
         }
+        # Load saved preferences
+        self._load_saved_preferences()
+
+    def _load_saved_preferences(self):
+        """Load saved preferences from database"""
+        try:
+            with get_unit_of_work() as uow:
+                preferences = uow.users.get_preferences(st.session_state['user_id'])
+                if preferences and preferences.get('llm_preferences'):
+                    llm_prefs = preferences['llm_preferences']
+                    # Store preferences in session state
+                    st.session_state['model_type'] = llm_prefs['model_type']
+                    st.session_state['model_name'] = llm_prefs['model_name']
+                    st.session_state['temperature'] = llm_prefs['temperature']
+        except Exception as e:
+            logger.error(f"Error loading model preferences: {e}")
 
     def get_model_settings(self):
-        """
-        Creates a UI for selecting AI model settings.
-        
-        Returns:
-            tuple: (model_type, model_name, temperature) containing the selected settings
-        """
-        logger.debug("Getting model settings")
-        st.subheader("Model Settings")
+        """Get model settings, preferring saved preferences"""
+        # Use saved preferences if available
+        if 'model_type' in st.session_state:
+            model_type = st.session_state['model_type']
+            model_name = st.session_state['model_name']
+            temperature = st.session_state['temperature']
+        else:
+            # Default values if no preferences saved
+            model_type = "Claude"
+            model_name = "claude-3-5-sonnet-20240620"
+            temperature = 0.1
 
-        # Model type selection
-        model_type = st.selectbox(
-            "Select Model Type",
-            self.model_types,
-            index=0
-        )
-
-        # Model name selection based on type
-        model_name = st.selectbox(
-            "Select Model",
-            self.model_options[model_type],
-            index=0
-        )
-
-        # Temperature slider
-        temperature = st.slider(
-            "Temperature",
-            min_value=0.0,
-            max_value=1.0,
-            value=0.1,
-            step=0.1,
-            help="Higher values make the output more creative but less focused"
-        )
-
-        logger.debug(f"Selected settings - Type: {model_type}, Model: {model_name}, Temp: {temperature}")
         return model_type, model_name, temperature

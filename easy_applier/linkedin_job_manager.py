@@ -4,8 +4,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from src.core.database.unit_of_work import MongoUnitOfWork
 from src.core.database.models.resume import Resume
-from src.resume.utils.output_manager import OutputManager
-from src.resume.utils.job_info import JobInfo
+from src.generator.utils.output_manager import OutputManager
+from src.generator.utils.job_info import JobInfo
 
 
 class LinkedInJobManager:
