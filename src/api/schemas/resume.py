@@ -1,11 +1,25 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional, Dict, Any
 from datetime import datetime
 
-class Resume(BaseModel):
-    model_config = ConfigDict(from_attributes=True, protected_namespaces=())
+class ResumeRequest(BaseModel):
+    job_description: str
 
-    id: Optional[str] = None
+class ResumeGenerationOptions(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+    
+    temperature: Optional[float] = 0.1
+    model_type: Optional[str] = "openai"
+    model_name: Optional[str] = "gpt-3.5-turbo"
+
+class ResumeResponse(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+        protected_namespaces=(),
+        json_encoders={bytes: lambda v: v.decode('utf-8') if v else None}
+    )
+
+    id: str
     company_name: str
     job_title: str
     job_description: str
@@ -23,5 +37,5 @@ class Resume(BaseModel):
     model_type: Optional[str] = None
     model_name: Optional[str] = None
     temperature: Optional[float] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime

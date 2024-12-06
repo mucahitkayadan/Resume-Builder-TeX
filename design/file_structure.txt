@@ -1,0 +1,17 @@
+project_root/
++├── design/                   # Design documentation
++│   ├── diagrams/
++│   │   ├── system_architecture.mmd
++│   │   ├── sequence.mmd
++│   │   ├── use_case.mmd
++│   │   ├── class_diagram.mmd
++│   │   ├── er_diagram.mmd
++│   │   ├── flowchart_diagram.mmd
++│   │   └── component_diagram.mmd
++│   ├── 1-presentation.md
++│   ├── 2-functionality.md
++│   ├── 3-api_documentation.md
++│   ├── 4-security.md
++│   ├── 5-configuration.md
++│   ├── 6-testing.md
++│   └── target_file_structure.txt 

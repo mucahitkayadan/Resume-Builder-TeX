@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from typing import Optional, Dict, Any
 from datetime import datetime
 
@@ -61,9 +61,11 @@ class UserPreferences(BaseModel):
     awards_details: Dict[str, int] = Field(default_factory=get_awards_defaults)
     publications_details: Dict[str, int] = Field(default_factory=get_publications_defaults)
 
+    model_config = ConfigDict(from_attributes=True)
+
 class User(BaseModel):
     """User Model"""
-    id: Optional[str]
+    user_id: str
     email: EmailStr
     hashed_password: str
     full_name: Optional[str]
@@ -77,7 +79,5 @@ class User(BaseModel):
     signature_image: Optional[bytes] = None
     signature_filename: Optional[str] = None
     signature_content_type: Optional[str] = None
-    user_id: Optional[str] = None
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(from_attributes=True)

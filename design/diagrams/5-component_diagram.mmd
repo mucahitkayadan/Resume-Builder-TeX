@@ -1,0 +1,58 @@
+graph TB
+    subgraph Client Applications
+        subgraph Streamlit Application
+            ST[Streamlit UI]
+            STB[Streamlit Backend]
+        end
+        EXT[External Clients]
+    end
+
+    subgraph REST API Service
+        subgraph API Gateway
+            API[FastAPI Service]
+            AUTH[Authentication]
+        end
+
+        subgraph Core Services
+            RG[Resume Generator]
+            CG[Cover Letter Generator]
+            PS[Portfolio Service]
+        end
+
+        subgraph AI Layer
+            AI[AI Service]
+            subgraph AI Models
+                GPT[OpenAI]
+                Claude[Claude]
+                Gemini[Gemini]
+                Ollama[Ollama]
+            end
+        end
+
+        subgraph Document Services
+            LT[LaTeX Service]
+        end
+
+        subgraph Data Layer
+            DB[(MongoDB)]
+            FS[File Storage]
+        end
+    end
+
+    %% Streamlit connections
+    ST --> STB
+    STB --> AI
+    STB --> LT
+    STB --> DB
+
+    %% External API connections
+    EXT --> |REST| API
+    API --> |Auth| AUTH
+    API --> RG & CG & PS
+
+    %% Service interactions
+    RG & CG --> AI
+    AI --> GPT & Claude & Gemini & Ollama
+    RG & CG --> LT
+    PS --> DB
+    LT --> FS 

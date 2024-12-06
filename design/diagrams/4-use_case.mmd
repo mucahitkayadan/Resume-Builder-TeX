@@ -1,0 +1,71 @@
+graph TB
+    subgraph User Interfaces
+        ST((Streamlit<br/>User))
+        API((API<br/>Client))
+    end
+
+    subgraph Core Features
+        P[Portfolio<br/>Management]
+        R[Resume<br/>Creation]
+        C[Cover Letter<br/>Creation]
+        D[Document<br/>History]
+    end
+
+    subgraph Backend Services
+        DB[(Database)]
+        AI[AI Processing]
+        LT[LaTeX Engine]
+    end
+
+    subgraph AI Models
+        AI --> |OpenAI| GPT[GPT-4]
+        AI --> |Anthropic| CL[Claude]
+        AI --> |Google| GM[Gemini]
+        AI --> |Local| OL[Ollama]
+    end
+
+    subgraph Job Application
+        EA[Easy Apply]
+        JT[Job Tracking]
+        RP[Report Generation]
+    end
+
+    subgraph Automation Services
+        SC[Web Scraping]
+        SL[Selenium]
+        BS[BeautifulSoup4]
+    end
+
+    subgraph MIU Integration
+        MR[MIU Report]
+        MA[Microsoft Auth]
+        GH[GitHub Actions]
+    end
+
+    %% Core Feature Connections
+    ST --> P & R & C & D
+    API --> P & R & C & D
+    P --> DB
+    R & C --> AI
+    R & C --> LT
+    D --> DB
+
+    %% Job Application Connections
+    ST --> EA
+    EA --> SC
+    SC --> BS
+    EA --> SL
+    EA --> JT
+    JT --> DB
+
+    %% Report Automation
+    JT --> RP
+    RP --> MR
+    MR --> MA
+    MR --> GH
+    MR --> SL
+
+    %% Document Storage
+    LT --> DB
+    R --> DB
+    C --> DB

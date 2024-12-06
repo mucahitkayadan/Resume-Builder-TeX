@@ -36,10 +36,10 @@ class StreamlitApp:
         # Load and apply CSS
         self._load_css()
         
-        # Always initialize session state first
-        self.setup_session_state()
+        # Initialize session state first - Call it explicitly
+        self.setup_session_state()  # Changed from static method to instance method
         
-        # Initialize components
+        # Initialize components after session state is set up
         self.model_selector = ModelSelector()
         self.section_selector = SectionSelector()
         self.generator_manager = GeneratorManager(st.session_state['user_id'])
@@ -60,10 +60,8 @@ class StreamlitApp:
         st.session_state['generator_manager'] = self.generator_manager
         logger.debug("Components stored in session state")
 
-    @staticmethod
-    @st.cache_resource
-    def setup_session_state():
-        logger.info("Setting up session state")
+    def setup_session_state(self):  # Removed @staticmethod and @st.cache_resource
+        """Initialize session state variables"""
         if 'user_id' not in st.session_state:
             st.session_state['user_id'] = "mujakayadan"
         if 'portfolio_initialized' not in st.session_state:
