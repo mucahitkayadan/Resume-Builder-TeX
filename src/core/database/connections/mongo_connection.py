@@ -2,6 +2,7 @@ from typing import Optional, ContextManager
 from pymongo import MongoClient, database
 from config.config import MONGODB_URI, MONGODB_DATABASE
 
+
 class MongoConnection(ContextManager[database.Database]):
     def __init__(self, uri: str = MONGODB_URI, db_name: str = MONGODB_DATABASE):
         self._client: Optional[MongoClient] = None
@@ -32,7 +33,7 @@ class MongoConnection(ContextManager[database.Database]):
             self._collections_backup = {}
             for collection_name in self.db.list_collection_names():
                 self._collections_backup[collection_name] = [
-                    {k: v for k, v in doc.items() if k != '_id'} 
+                    {k: v for k, v in doc.items() if k != '_id'}
                     for doc in self.db[collection_name].find()
                 ]
         return self._session

@@ -1,0 +1,41 @@
+graph TB
+    subgraph Easy Applier System
+        subgraph Web Scrapers
+            LP[LinkedIn Parser]
+            IP[Indeed Parser]
+            GP[Glassdoor Parser]
+        end
+
+        subgraph Job Management
+            JM[Job Manager]
+            JQ[Job Queue]
+            JS[Job Storage]
+        end
+
+        subgraph Automation
+            SE[Selenium Controller]
+            AP[Application Process]
+            TR[Tracking System]
+        end
+
+        subgraph Integration
+            RG[Resume Generator]
+            CL[Cover Letter Generator]
+            DB[(Database)]
+        end
+    end
+
+    %% Scraper connections
+    LP & IP & GP --> JM
+    JM --> JQ
+    JQ --> JS
+
+    %% Automation flow
+    JQ --> SE
+    SE --> AP
+    AP --> TR
+    
+    %% Integration
+    AP --> RG
+    AP --> CL
+    TR --> DB 

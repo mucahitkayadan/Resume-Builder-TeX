@@ -31,13 +31,12 @@ class PromptLoader:
         if self._preferences is None and self.user_id:
             try:
                 with self.uow as uow:
-                    # Try first with user_id field
                     user = uow.users.get_by_user_id(self.user_id)
                     if not user:
-                        # If not found, try with _id
                         user = uow.users.get_by_id(self.user_id)
-                    if user:
-                        self._preferences = user.preferences.dict()
+                    if user and user.preferences:
+                        self._preferences = user.preferences.model_dump()
+                        logger.debug(f"Loaded preferences: {self._preferences}")
             except Exception as e:
                 logger.error(f"Error loading preferences for user {self.user_id}: {e}")
                 self._preferences = None
@@ -134,5 +133,5 @@ if __name__ == '__main__':
     # Example usage
     prompt_loader = PromptLoader(user_id="mujakayadan")
     print(f"Resolved PROMPTS_FOLDER: {PROMPTS_DIR}")
-    skills_prompt = prompt_loader.get_section_prompt('publications')
+    skills_prompt = prompt_loader.get_section_prompt('skills')
     print(skills_prompt)

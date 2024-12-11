@@ -1,0 +1,18 @@
+sequenceDiagram
+    participant GH as GitHub Actions
+    participant SE as Selenium Bot
+    participant MS as Microsoft Auth
+    participant MIU as MIU Portal
+    participant DB as Database
+
+    GH->>SE: Trigger Daily Report
+    activate SE
+    SE->>MS: Login Request
+    MS-->>SE: Auth Token
+    SE->>MIU: Access Portal
+    SE->>DB: Fetch Daily Applications
+    DB-->>SE: Application Count
+    SE->>MIU: Submit Report
+    MIU-->>SE: Confirmation
+    SE->>GH: Report Status
+    deactivate SE 

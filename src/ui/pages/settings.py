@@ -183,9 +183,46 @@ class SettingsPage:
                     value=preferences.education_details.get('max_courses', 5)
                 )
 
+            # Cover Letter Preferences
+            with st.expander("Cover Letter Preferences"):
+                st.subheader("Cover Letter")
+                paragraphs = st.number_input(
+                    "Number of Paragraphs",
+                    min_value=2,
+                    max_value=8,
+                    value=preferences.cover_letter_details.get('paragraphs', 4)
+                )
+                target_grade_level = st.number_input(
+                    "Target Grade Level",
+                    min_value=8,
+                    max_value=25,
+                    value=preferences.cover_letter_details.get('target_grade_level', 12),
+                    help="Target reading level for the cover letter (8-25)"
+                )
+
+            # Awards Preferences
+            with st.expander("Awards Preferences"):
+                st.subheader("Awards")
+                max_awards = st.number_input(
+                    "Maximum Awards",
+                    min_value=1,
+                    max_value=10,
+                    value=preferences.awards_details.get('max_awards', 4)
+                )
+
+            # Publications Preferences
+            with st.expander("Publications Preferences"):
+                st.subheader("Publications")
+                max_publications = st.number_input(
+                    "Maximum Publications",
+                    min_value=1,
+                    max_value=10,
+                    value=preferences.publications_details.get('max_publications', 3)
+                )
+
             if st.button("Save Preferences"):
                 try:
-                    # Update preferences
+                    # Update preferences with all sections
                     new_preferences = {
                         'project_details': {
                             'max_projects': max_projects,
@@ -207,6 +244,16 @@ class SettingsPage:
                         'education_details': {
                             'max_entries': max_education,
                             'max_courses': max_courses
+                        },
+                        'cover_letter_details': {
+                            'paragraphs': paragraphs,
+                            'target_grade_level': target_grade_level
+                        },
+                        'awards_details': {
+                            'max_awards': max_awards
+                        },
+                        'publications_details': {
+                            'max_publications': max_publications
                         }
                     }
                     

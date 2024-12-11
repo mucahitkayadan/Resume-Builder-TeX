@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant User
+    participant JM as Job Manager
+    participant SC as Scraper
+    participant SE as Selenium
+    participant RG as Resume Generator
+    participant DB as Database
+
+    User->>JM: Start Job Search
+    activate JM
+    JM->>SC: Scrape Job Listings
+    SC-->>JM: Job Data
+    JM->>DB: Store Jobs
+    
+    loop For Each Job
+        JM->>SE: Initialize Browser
+        SE->>RG: Generate Resume
+        RG-->>SE: Resume PDF
+        SE->>DB: Update Status
+        SE->>SE: Submit Application
+        SE-->>JM: Application Result
+        JM->>DB: Update Status
+    end
+    
+    JM-->>User: Application Report
+    deactivate JM 

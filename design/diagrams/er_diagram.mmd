@@ -2,7 +2,12 @@ erDiagram
     User {
         string id PK
         string email UK
-        string password_hash
+        string hashed_password
+        string full_name
+        boolean is_active
+        boolean is_superuser
+        datetime last_login
+        string life_story
         blob signature_image
         string signature_filename
         string signature_content_type
@@ -30,17 +35,11 @@ erDiagram
     Resume {
         string id PK
         string user_id FK
+        string portfolio_id FK
         string company_name
         string job_title
         text job_description
-        text personal_information
-        text career_summary
-        text skills
-        text work_experience
-        text education
-        text projects
-        text awards
-        text publications
+        json selected_sections
         string model_type
         string model_name
         float temperature
@@ -51,16 +50,37 @@ erDiagram
         datetime updated_at
     }
 
-    Preamble {
+    Template {
         string id PK
         string name UK
         string type
         text content
+        boolean is_default
+        datetime created_at
+        datetime updated_at
+    }
+
+    UserPreferences {
+        string id PK
+        string user_id FK
+        json project_details "max_projects, bullet_points_per_project"
+        json work_experience_details "max_jobs, bullet_points_per_job"
+        json skills_details "max_categories, min/max_skills_per_category"
+        json career_summary_details "min_words, max_words"
+        json education_details "max_entries, max_courses"
+        json cover_letter_details "paragraphs, target_grade_level"
+        json awards_details "max_awards"
+        json publications_details "max_publications"
         datetime created_at
         datetime updated_at
     }
 
     User ||--o{ Portfolio : has
     User ||--o{ Resume : creates
+    User ||--o{ JobListing : tracks
+    User ||--o{ JobReport : submits
+    User ||--|| UserPreferences : has
     Portfolio ||--o{ Resume : used_by
-    Resume ||--|| Preamble : uses
+    Resume ||--|| Template : uses
+    JobListing ||--|| ApplicationStatus : has
+    Resume ||--o{ ApplicationStatus : used_in

@@ -31,6 +31,41 @@ default_feature_preferences = {
     'dark_mode': False
 }
 
+# New detailed preferences structure
+default_detailed_preferences = {
+    'project_details': {
+        'max_projects': 5,
+        'bullet_points_per_project': 3
+    },
+    'work_experience_details': {
+        'max_jobs': 4,
+        'bullet_points_per_job': 3
+    },
+    'skills_details': {
+        'max_categories': 5,
+        'min_skills_per_category': 7,
+        'max_skills_per_category': 15
+    },
+    'career_summary_details': {
+        'min_words': 15,
+        'max_words': 25
+    },
+    'education_details': {
+        'max_entries': 3,
+        'max_courses': 4
+    },
+    'cover_letter_details': {
+        'paragraphs': 5,
+        'target_grade_level': 25
+    },
+    'awards_details': {
+        'max_awards': 4
+    },
+    'publications_details': {
+        'max_publications': 3
+    }
+}
+
 def setup_user(user_id: str):
     """Set up or update user preferences"""
     user = {
@@ -39,7 +74,8 @@ def setup_user(user_id: str):
         'updated_at': datetime.now(timezone.utc),
         'llm_preferences': default_llm_preferences,
         'section_preferences': default_section_preferences,
-        'feature_preferences': default_feature_preferences
+        'feature_preferences': default_feature_preferences,
+        'preferences': default_detailed_preferences  # Add the detailed preferences
     }
     
     # Update or insert user

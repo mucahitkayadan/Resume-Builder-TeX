@@ -5,14 +5,12 @@ Instructions:
 - Write a cover letter that is ${cover_letter_details_paragraphs} paragraphs long.
 - Write for a ${cover_letter_details_target_grade_level}-year-old reading level.
 - Use the resume content to create a cover letter tailored to the job description.
-- Write a cover letter that is 4 paragraphs long, naturally written and not too formal.
 - Use casual, simple, everyday language. The writing style should reflect that of a non-native English speaker who is fluent but not overly formal. Use shorter sentences rather than combined with conjunctions, avoid excessive adjectives.
 - The cover letter should be easy to read and understand.
 - Use the information provided about the candidate's background to add personal touches and unique selling points to the letter.
 - If the company name or location is not available in the resume or the job description, use generic terms like "your company" or omit location references.
 - When you put the name in the end, it should start with a new line.
 - Draw from the candidate's journey, emphasizing how overcoming challenges shaped their unique perspective and skill set.
-- Write for a 12-year-old. Sound like a person. They should be able to understand this, so provide relatable information and examples, but don’t sound cheesy, as adults will be the ones actually reading this article.
 - When writing this cover letter, keep in mind I am applying for a job in the United States.
 - You can mention from the personal story of me and how it leveraged my soft skills and its effect to the job position.
 

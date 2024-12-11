@@ -1,0 +1,55 @@
+graph TB
+    subgraph Cloud["Cloud Infrastructure"]
+        subgraph API_Server["API Server"]
+            API[FastAPI Service]
+            NGINX[Nginx Reverse Proxy]
+        end
+
+        subgraph DB_Servers["Database Servers"]
+            MongoDB[(MongoDB)]
+            FileStore[File Storage]
+        end
+
+        subgraph AI_Services["AI Services"]
+            OpenAI[OpenAI API]
+            Claude[Claude API]
+            Gemini[Gemini API]
+        end
+    end
+
+    subgraph Local["Local Infrastructure"]
+        ST[Streamlit Server]
+        Ollama[Ollama Service]
+        Selenium[Selenium Service]
+        BS[BeautifulSoup Service]
+    end
+
+    subgraph Clients["Client Devices"]
+        Browser[Web Browser]
+        Mobile[Mobile Device]
+    end
+
+    subgraph Automation["Automation Services"]
+        GH[GitHub Actions]
+        MIU[MIU Portal]
+    end
+
+    %% Client Connections
+    Browser & Mobile --> ST
+    Browser & Mobile --> NGINX
+
+    %% Server Connections
+    NGINX --> API
+    API --> MongoDB
+    API --> FileStore
+    API --> OpenAI & Claude & Gemini
+
+    %% Local Service Connections
+    ST --> Ollama
+    ST --> MongoDB
+    ST --> Selenium
+    ST --> BS
+
+    %% Automation Connections
+    GH --> Selenium
+    Selenium --> MIU 

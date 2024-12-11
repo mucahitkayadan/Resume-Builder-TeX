@@ -1,0 +1,85 @@
+graph TB
+    subgraph Client Applications
+        ST[Streamlit App]
+        EXT[External Clients]
+    end
+
+    subgraph Application Layer
+        subgraph Core Services
+            RC[Resume Creator]
+            CL[Cover Letter Creator]
+            EA[Easy Applier]
+        end
+
+        subgraph AI Layer
+            AI[AI Service]
+            subgraph AI Models
+                GPT[OpenAI]
+                Claude[Claude]
+                Gemini[Gemini]
+                Ollama[Ollama]
+            end
+        end
+
+        subgraph Document Services
+            LT[LaTeX Service]
+            PDF[PDF Generator]
+        end
+
+        subgraph Database Layer
+            subgraph Repositories
+                UR[User Repository]
+                PR[Portfolio Repository]
+                RR[Resume Repository]
+                TR[Template Repository]
+                JR[Job Repository]
+            end
+
+            subgraph Models
+                UM[User Model]
+                PM[Portfolio Model]
+                RM[Resume Model]
+                TM[Template Model]
+                JM[Job Model]
+            end
+
+            subgraph Unit of Work
+                UOW[MongoDB UOW]
+                MC[Mongo Connection]
+            end
+        end
+
+        subgraph Automation Layer
+            SL[Selenium Service]
+            BS[BeautifulSoup Service]
+            GH[GitHub Actions]
+        end
+    end
+
+    subgraph Data Storage
+        DB[(MongoDB)]
+        FS[File Storage]
+    end
+
+    %% Client Connections
+    ST --> RC & CL & EA
+    EXT --> RC & CL
+
+    %% Service Connections
+    RC & CL --> AI
+    RC & CL --> LT
+    LT --> PDF
+
+    %% Database Connections
+    RC & CL & EA --> UOW
+    UOW --> UR & PR & RR & TR & JR
+    UR & PR & RR & TR & JR --> DB
+    UR & PR & RR & TR & JR -.-> UM & PM & RM & TM & JM
+    UOW --> MC
+    MC --> DB
+
+    %% Automation Connections
+    EA --> SL & BS
+    EA --> GH
+    SL --> FS
+ 

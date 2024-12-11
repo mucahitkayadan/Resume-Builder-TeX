@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant User
+    participant ST as Streamlit UI
+    participant STB as Streamlit Backend
+    participant AI as AI Service
+    participant LT as LaTeX Service
+    participant DB as Database
+
+    User->>ST: Input Job Description
+    ST->>STB: Process Request
+    STB->>AI: Process Sections
+    AI-->>STB: Generated Content
+    STB->>LT: Format Document
+    LT-->>STB: PDF Document
+    STB->>DB: Store Resume
+    DB-->>STB: Resume ID
+    STB-->>ST: Success Response
+    ST-->>User: Show Download Link
+
+    note over ST,STB: Direct communication<br/>No API Gateway

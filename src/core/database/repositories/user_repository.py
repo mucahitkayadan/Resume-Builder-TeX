@@ -2,7 +2,7 @@ from typing import Optional, List, Dict, Any
 from bson import ObjectId
 from ...exceptions.database_exceptions import DatabaseError
 from ..interfaces.repository_interface import BaseRepository
-from ..models.user import User
+from ..models.user import User, UserPreferences
 from datetime import datetime, timezone
 
 class MongoUserRepository(BaseRepository[User]):
@@ -11,8 +11,13 @@ class MongoUserRepository(BaseRepository[User]):
         self.collection = self.connection.db['users']
 
     def get_by_id(self, id: str) -> Optional[User]:
+        """Get user by ID (alias for get_by_user_id)"""
+        return self.get_by_user_id(id)
+
+    def get_by_user_id(self, user_id: str) -> Optional[User]:
+        """Get user by user_id"""
         try:
-            result = self.collection.find_one({'_id': ObjectId(id)})
+            result = self.collection.find_one({'user_id': user_id})
             return self._map_to_entity(result) if result else None
         except Exception as e:
             raise DatabaseError(f"Error retrieving user: {str(e)}")
@@ -33,26 +38,79 @@ class MongoUserRepository(BaseRepository[User]):
 
     def add(self, user: User) -> User:
         try:
-            user_dict = user.model_dump(exclude={'id'})
+            user_dict = user.model_dump()
             user_dict['created_at'] = datetime.now(timezone.utc)
             user_dict['updated_at'] = datetime.now(timezone.utc)
             result = self.collection.insert_one(user_dict)
-            user.id = str(result.inserted_id)
-            return user
+            return self.get_by_user_id(user.user_id)
         except Exception as e:
             raise DatabaseError(f"Error adding user: {str(e)}")
 
     def update(self, user: User) -> bool:
         try:
-            user_dict = user.model_dump(exclude={'id'})
-            user_dict['updated_at'] = datetime.now(timezone.utc)
+            update_data = user.model_dump()
+            update_data['updated_at'] = datetime.now(timezone.utc)
+            
             result = self.collection.update_one(
-                {'_id': ObjectId(user.id)},
-                {'$set': user_dict}
+                {'user_id': user.user_id},
+                {'$set': update_data}
             )
             return result.modified_count > 0
         except Exception as e:
             raise DatabaseError(f"Error updating user: {str(e)}")
+
+    def delete(self, user_id: str) -> bool:
+        try:
+            result = self.collection.delete_one({'user_id': user_id})
+            return result.deleted_count > 0
+        except Exception as e:
+            raise DatabaseError(f"Error deleting user: {str(e)}")
+
+    def exists(self, user_id: str) -> bool:
+        try:
+            return self.collection.count_documents({'user_id': user_id}) > 0
+        except Exception as e:
+            raise DatabaseError(f"Error checking user existence: {str(e)}")
+
+    def _map_to_entity(self, doc: dict) -> Optional[User]:
+        if not doc:
+            return None
+        try:
+            # Convert MongoDB's _id to string id
+            if '_id' in doc:
+                doc.pop('_id')
+
+            # Convert preferences dict to UserPreferences model
+            if 'preferences' in doc and isinstance(doc['preferences'], dict):
+                doc['preferences'] = UserPreferences(**doc['preferences'])
+
+            # Convert datetime objects to UTC
+            if 'created_at' in doc and doc['created_at']:
+                doc['created_at'] = doc['created_at'].replace(tzinfo=timezone.utc)
+            if 'updated_at' in doc and doc['updated_at']:
+                doc['updated_at'] = doc['updated_at'].replace(tzinfo=timezone.utc)
+            if 'last_login' in doc and doc['last_login']:
+                doc['last_login'] = doc['last_login'].replace(tzinfo=timezone.utc)
+
+            return User(**doc)
+        except Exception as e:
+            print(f"Error mapping user entity: {str(e)}")
+            return None
+
+    def update_preferences(self, user_id: str, preferences: Dict[str, Any]) -> bool:
+        try:
+            result = self.collection.update_one(
+                {'user_id': user_id},
+                {
+                    '$set': {
+                        'preferences': preferences,
+                        'updated_at': datetime.now(timezone.utc)
+                    }
+                }
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            raise DatabaseError(f"Error updating user preferences: {str(e)}")
 
     def update_last_login(self, user_id: str) -> bool:
         try:
@@ -68,67 +126,6 @@ class MongoUserRepository(BaseRepository[User]):
             return result.modified_count > 0
         except Exception as e:
             raise DatabaseError(f"Error updating user last login: {str(e)}")
-
-    def delete(self, id: str) -> bool:
-        try:
-            result = self.collection.delete_one({'_id': ObjectId(id)})
-            return result.deleted_count > 0
-        except Exception as e:
-            raise DatabaseError(f"Error deleting user: {str(e)}")
-
-    def exists(self, id: str) -> bool:
-        try:
-            return self.collection.count_documents({'_id': ObjectId(id)}) > 0
-        except Exception as e:
-            raise DatabaseError(f"Error checking user existence: {str(e)}")
-
-    def get_by_user_id(self, user_id: str) -> Optional[User]:
-        """Get user by user_id field"""
-        try:
-            result = self.collection.find_one({'user_id': user_id})
-            return self._map_to_entity(result) if result else None
-        except Exception as e:
-            raise DatabaseError(f"Error retrieving user by user_id: {str(e)}")
-
-    def _map_to_entity(self, doc: dict) -> Optional[User]:
-        if not doc:
-            return None
-        
-        try:
-            # Handle ID conversion
-            doc['id'] = str(doc.pop('_id'))
-            
-            # Handle binary data
-            if 'signature_image' in doc and doc['signature_image']:
-                doc['signature_image'] = doc['signature_image']
-                
-            # Set default values
-            doc.setdefault('signature_filename', None)
-            doc.setdefault('signature_content_type', None)
-            doc.setdefault('created_at', datetime.now(timezone.utc))
-            doc.setdefault('updated_at', datetime.now(timezone.utc))
-            doc.setdefault('last_login', None)
-            
-            return User(**doc)
-        except Exception as e:
-            print(f"Error mapping user entity: {str(e)}")
-            return None
-
-    def update_preferences(self, user_id: str, preferences: Dict[str, Any]) -> bool:
-        """Update user preferences"""
-        try:
-            result = self.collection.update_one(
-                {'user_id': user_id},
-                {
-                    '$set': {
-                        'preferences': preferences,
-                        'updated_at': datetime.now(timezone.utc)
-                    }
-                }
-            )
-            return result.modified_count > 0
-        except Exception as e:
-            raise DatabaseError(f"Error updating user preferences: {str(e)}")
 
     def update_life_story(self, user_id: str, life_story: str) -> bool:
         """Update the user life story"""
