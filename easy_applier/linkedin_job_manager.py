@@ -6,6 +6,10 @@ from src.core.database.unit_of_work import MongoUnitOfWork
 from src.core.database.models.resume import Resume
 from src.generator.utils.output_manager import OutputManager
 from src.generator.utils.job_info import JobInfo
+from easy_applier.job_extractor import JobExtractor
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class LinkedInJobManager:
@@ -60,34 +64,46 @@ class LinkedInJobManager:
             else:
                 print(f"Failed to apply to {job['title']} at {job['company']}")
 
+    def get_job_description(self, job_url: str) -> dict:
+        """Get detailed job information from a job URL."""
+        try:
+            job_extractor = JobExtractor(self.driver)
+            job_details = job_extractor.extract_job_details(job_url)
+            if job_details:
+                return job_details
+            else:
+                logger.error(f"Failed to extract job details from {job_url}")
+                return None
+        except Exception as e:
+            logger.error(f"Error getting job description: {str(e)}")
+            return None
+
     def search_and_get_job_descriptions(self, keywords: str, location: str, num_jobs: int) -> list:
-        self.scraper.driver.get(f"https://www.linkedin.com/jobs/search/?keywords={keywords}&location={location}")
+        self.scraper.search_jobs(keywords, location)
         time.sleep(5)
 
-        job_descriptions = []
-        for i in range(num_jobs):
-            try:
-                job_listings = WebDriverWait(self.scraper.driver, 10).until(
-                    EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".job-card-container"))
-                )
-                if i < len(job_listings):
-                    job_listings[i].click()
-                    time.sleep(2)
+        job_details_list = []
+        try:
+            job_cards = WebDriverWait(self.scraper.driver, 10).until(
+                EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".job-card-container"))
+            )
 
-                    job_description = WebDriverWait(self.scraper.driver, 10).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, ".job-view-layout"))
-                    ).text
+            for i, card in enumerate(job_cards[:num_jobs]):
+                try:
+                    link = card.find_element(By.CSS_SELECTOR, "a").get_attribute("href")
+                    job_details = self.get_job_description(link)
+                    
+                    if job_details:
+                        job_details_list.append(job_details)
+                        print(f"Extracted job details {i+1}/{num_jobs}")
+                        print("-" * 50)
+                except Exception as e:
+                    print(f"Error extracting job {i+1}: {str(e)}")
 
-                    job_descriptions.append(job_description)
-                    print(f"Extracted job description {i+1}:")
-                    print(job_description[:500] + "..." if len(job_description) > 500 else job_description)
-                    print("-" * 50)
-                else:
-                    break
-            except Exception as e:
-                print(f"Error extracting job description: {str(e)}")
-
-        return job_descriptions
+            return job_details_list
+        except Exception as e:
+            print(f"Failed to get job listings: {str(e)}")
+            return []
 
     def extract_company_and_title(self, job_description):
         # This is a simple implementation. You might want to use more sophisticated

@@ -12,9 +12,11 @@ from dotenv import load_dotenv
 from easy_applier.job_applier import JobApplier
 from easy_applier.linkedin_scraper import LinkedInScraper
 from easy_applier.linkedin_job_manager import LinkedInJobManager
-from src.generator.resume_generator import ResumeGenerator
+from src.generator.generator_manager import GeneratorManager, GenerationType
+from src.generator.utils.output_manager import OutputManager
 from src.core.database.factory import get_unit_of_work
 from src.llms.strategies import OpenAIStrategy, ClaudeStrategy, OllamaStrategy, GeminiStrategy
+from config.config import test_user_id
 from config.config import (
     LINKEDIN_EMAIL,
     LINKEDIN_PASSWORD,
@@ -33,13 +35,15 @@ def kill_chrome_processes():
             except psutil.NoSuchProcess:
                 pass
 
-async def generate_resume_async(resume_generator, job_description, company_name, job_title):
+async def generate_resume_async(generator_manager, job_description):
     try:
-        return await resume_generator.generate_resume(
+        resume_content = await generator_manager.generate(
+            generation_type=GenerationType.RESUME,
             job_description=job_description,
-            company_name=company_name,
-            job_title=job_title
+            selected_sections={},
+            output_manager=OutputManager(job_description),
         )
+        return resume_content
     except Exception as e:
         logger.error(f"Error generating resume: {str(e)}")
         return None
@@ -62,20 +66,27 @@ async def main():
     llm_strategy.model = llm_config.OPENAI_MODEL.name
     llm_strategy.temperature = llm_config.OPENAI_MODEL.default_temperature
 
-    # Initialize resume generator
-    resume_generator = ResumeGenerator(unit_of_work, llm_strategy)
+    # Initialize generator manager instead of resume generator directly
+    if not test_user_id:
+        raise ValueError("test_user_id not found in configuration")
     
-    # Get LinkedIn credentials
-    if not LINKEDIN_EMAIL or not LINKEDIN_PASSWORD:
-        raise ValueError("LinkedIn credentials not found in configuration")
+    generator_manager = GeneratorManager(user_id=test_user_id)
+    generator_manager.configure_llm(
+        model_type='OpenAI',
+        model_name=llm_config.OPENAI_MODEL.name,
+        temperature=llm_config.OPENAI_MODEL.default_temperature
+    )
 
-    # Initialize LinkedIn scraper
-    scraper = LinkedInScraper(LINKEDIN_EMAIL, LINKEDIN_PASSWORD)
-    scraper.login()
+    # Initialize LinkedIn scraper with specific profile
+    scraper = LinkedInScraper(
+        email=LINKEDIN_EMAIL,
+        password=LINKEDIN_PASSWORD,
+        profile_name="Profile 1"
+    )
 
-    # Initialize JobApplier and LinkedInJobManager
+    # Update JobApplier and LinkedInJobManager to use generator_manager
     job_applier = JobApplier(scraper.driver, unit_of_work)
-    job_manager = LinkedInJobManager(scraper, job_applier, resume_generator, unit_of_work)
+    job_manager = LinkedInJobManager(scraper, job_applier, generator_manager, unit_of_work)
 
     # Set job search parameters
     keywords = "Software Engineer"
@@ -93,13 +104,10 @@ async def main():
     tasks = []
     for i, job_description in enumerate(job_descriptions):
         logger.info(f"Preparing resume generation for job {i+1}/{len(job_descriptions)}")
-        company_name, job_title = job_manager.extract_company_and_title(job_description)
         
         task = generate_resume_async(
-            resume_generator,
-            job_description,
-            company_name,
-            job_title
+            generator_manager,
+            job_description
         )
         tasks.append(task)
 

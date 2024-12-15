@@ -7,4 +7,4 @@ __pycache__/
 .Python
 .git
 .gitignore
-.pytest_cache/
+

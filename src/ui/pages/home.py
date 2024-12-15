@@ -6,6 +6,8 @@ from config.settings import APP_CONSTANTS, FEATURE_FLAGS
 from config.logger_config import setup_logger
 from src.core.database.factory import get_unit_of_work
 from src.generator.utils.output_manager import OutputManager
+from easy_applier.job_extractor import JobExtractor
+from config.config import LINKEDIN_EMAIL, LINKEDIN_PASSWORD
 
 logger = setup_logger(__name__)
 
@@ -14,6 +16,7 @@ class HomePage:
         self.model_selector = model_selector
         self.section_selector = section_selector
         self.generator_manager = generator_manager
+        self.job_extractor = JobExtractor(LINKEDIN_EMAIL, LINKEDIN_PASSWORD)
         # Load saved preferences
         self._load_user_preferences()
         
@@ -71,7 +74,7 @@ class HomePage:
                     )
                     if job_url:
                         st.info("🚧 URL parsing feature coming soon! Please use manual entry for now.")
-                        job_description = ""  # Clear job description if URL is entered
+                        job_description = str(self.job_extractor.extract_job_details(job_url))
                 
                 # Add clearance requirement check if feature is enabled
                 if job_description and FEATURE_FLAGS['check_clearance']:

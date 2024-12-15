@@ -3,23 +3,14 @@ import logging
 from config.logger_config import setup_logger
 from pathlib import Path
 
-from src.generator.resume_generator import ResumeGenerator
-from src.generator.cover_letter_generator import CoverLetterGenerator
 from src.ui.components.section_selector import SectionSelector
 from src.ui.components.model_selector import ModelSelector
 from src.ui.components.database_viewer import DatabaseViewer
-from src.loaders.prompt_loader import PromptLoader
-from src.llms.runner import LLMRunner
-from src.generator.utils.job_analysis import check_clearance_requirement
-from config.settings import APP_CONSTANTS, FEATURE_FLAGS
-from config.llm_config import LLMConfig
-from src.generator.utils.output_manager import OutputManager
-from src.generator.utils.job_info import JobInfo
-from src.generator.combined_generator import CombinedGenerator
-from src.generator.generator_manager import GeneratorManager, GenerationType
+from src.generator.generator_manager import GeneratorManager
 from src.ui.pages.home import HomePage
 from src.ui.pages.settings import SettingsPage
 from src.ui.pages.section_manager import SectionManagerPage
+from config.config import test_user_id
 
 logger = setup_logger(__name__, level=logging.INFO)
 
@@ -63,7 +54,7 @@ class StreamlitApp:
     def setup_session_state(self):  # Removed @staticmethod and @st.cache_resource
         """Initialize session state variables"""
         if 'user_id' not in st.session_state:
-            st.session_state['user_id'] = "mujakayadan"
+            st.session_state['user_id'] = test_user_id
         if 'portfolio_initialized' not in st.session_state:
             st.session_state['portfolio_initialized'] = False
 

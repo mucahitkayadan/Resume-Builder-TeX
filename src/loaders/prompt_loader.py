@@ -3,6 +3,7 @@ from string import Template
 from typing import Dict, Any, Optional
 from config.settings import PROMPTS_DIR
 from src.core.database.factory import get_unit_of_work
+from config.config import test_user_id
 import logging
 
 logger = logging.getLogger(__name__)
@@ -131,7 +132,7 @@ class PromptLoader:
 
 if __name__ == '__main__':
     # Example usage
-    prompt_loader = PromptLoader(user_id="mujakayadan")
+    prompt_loader = PromptLoader(user_id=test_user_id)
     print(f"Resolved PROMPTS_FOLDER: {PROMPTS_DIR}")
     skills_prompt = prompt_loader.get_section_prompt('skills')
     print(skills_prompt)

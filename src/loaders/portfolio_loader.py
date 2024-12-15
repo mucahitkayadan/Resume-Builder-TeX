@@ -3,6 +3,7 @@ from typing import Dict, List, Any, Optional, Union
 import logging
 from src.core.database.factory import get_unit_of_work
 from src.core.dto.portfolio.portfolio import PortfolioDTO
+from config.config import test_user_id
 
 logger = logging.getLogger(__name__)
 
@@ -34,5 +35,5 @@ class PortfolioLoader:
             return None
 
 if __name__ == '__main__':
-    portfolio_loader = PortfolioLoader("mujakayadan")
-    print(portfolio_loader.get_section_data('projects'))
+    portfolio_loader = PortfolioLoader(test_user_id)
+    print(portfolio_loader.get_section_data('publications'))
