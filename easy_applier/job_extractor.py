@@ -152,7 +152,7 @@ if __name__ == "__main__":
     
     extractor = JobExtractor(LINKEDIN_EMAIL, LINKEDIN_PASSWORD)
 
-    job = extractor.extract_job_details("4098825071")
+    job = extractor.extract_job_details("https://www.linkedin.com/jobs/collections/hiring-in-network/?currentJobId=4098985472&discover=top-applicant%2Chiring-in-network&discoveryOrigin=JOBS_HOME_COMPETITIVE_ADVANTAGE_JOB_COLLECTIONS")
     print(job)
     # jobs = extractor.search_jobs(
     #     keywords="Python Developer",

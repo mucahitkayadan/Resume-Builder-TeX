@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from src.llms.runner import LLMRunner
 from src.loaders.prompt_loader import PromptLoader
+from config.settings import PROMPTS_DIR
 
 @dataclass
 class JobInfo:
@@ -11,11 +12,11 @@ class JobInfo:
     @classmethod
     def extract_from_description(cls, 
                                job_description: str,
-                               llm_runner: LLMRunner,
-                               prompt_loader: PromptLoader) -> 'JobInfo':
+                               llm_runner: LLMRunner) -> 'JobInfo':
         """Extract job information from description using LLM."""
+        prompt_loader = PromptLoader(PROMPTS_DIR)
         company_name, job_title = llm_runner.create_company_name_and_job_title(
-            prompt_loader.get_folder_name_prompt(), 
+            prompt_loader.get_folder_name_prompt(),
             job_description
         )
         return cls(

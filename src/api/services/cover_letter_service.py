@@ -37,8 +37,7 @@ class CoverLetterService:
             prompt_loader = PromptLoader(user_id)
             job_info = JobInfo.extract_from_description(
                 job_description=job_description,
-                llm_runner=llm_runner,
-                prompt_loader=prompt_loader
+                llm_runner=llm_runner
             )
             
             # Create output manager
