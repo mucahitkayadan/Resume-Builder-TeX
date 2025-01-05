@@ -54,7 +54,10 @@ class StreamlitApp:
     def setup_session_state(self):  # Removed @staticmethod and @st.cache_resource
         """Initialize session state variables"""
         if 'user_id' not in st.session_state:
+            logger.debug(f"Setting user_id in session state to: {test_user_id}")
             st.session_state['user_id'] = test_user_id
+        else:
+            logger.debug(f"Current user_id in session state: {st.session_state['user_id']}")
         if 'portfolio_initialized' not in st.session_state:
             st.session_state['portfolio_initialized'] = False
 

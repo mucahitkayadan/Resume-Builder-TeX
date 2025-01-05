@@ -36,4 +36,4 @@ class PortfolioLoader:
 
 if __name__ == '__main__':
     portfolio_loader = PortfolioLoader(test_user_id)
-    print(portfolio_loader.get_section_data('publications'))
+    print(portfolio_loader.get_section_data('personal_information'))

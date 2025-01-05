@@ -8,6 +8,9 @@ from ..repositories.tex_header_repository import MongoTexHeaderRepository
 from ..models.preamble import Preamble
 from datetime import datetime, timezone
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 class MongoUnitOfWork:
     def __init__(self, connection: MongoConnection):
@@ -54,6 +57,33 @@ class MongoUnitOfWork:
         if not self.preambles:
             raise ValueError("Preamble repository not initialized")
         return self.preambles.get_by_type("cover_letter_preamble")
+
+    def get_last_resume_id(self, user_id: str) -> Optional[str]:
+        """Get the id of the last resume"""
+        if not self.resumes:
+            raise ValueError("Resume repository not initialized")
+        
+        logger.debug(f"Getting last resume ID for user_id: {user_id}")
+        
+        try:
+            # Query directly for the _id field
+            result = self.resumes.collection.find_one(
+                {'user_id': user_id},
+                sort=[('created_at', -1)],
+                projection={'_id': 1}  # Only get the _id field
+            )
+            
+            if result and '_id' in result:
+                resume_id = str(result['_id'])
+                logger.debug(f"Found latest resume ID: {resume_id}")
+                return resume_id
+                
+            logger.debug("No resume found for user")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error getting last resume ID: {str(e)}")
+            return None
 
     def get_resume_for_cover_letter(self, resume_id: str) -> Optional[Dict[str, str]]:
         """Get only the necessary resume sections for cover letter generation"""

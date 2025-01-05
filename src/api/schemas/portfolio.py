@@ -9,6 +9,7 @@ class PersonalInformation(BaseModel):
     address: Optional[str] = None
     linkedin: Optional[str] = None
     github: Optional[str] = None
+    website: Optional[str] = None
 
 class CareerSummary(BaseModel):
     job_titles: List[str]

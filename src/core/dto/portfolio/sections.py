@@ -52,3 +52,4 @@ class PersonalInformationDTO(BaseDTO):
     address: str
     linkedin: str
     github: str
+    website: str

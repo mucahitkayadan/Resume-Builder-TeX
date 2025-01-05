@@ -47,7 +47,8 @@ class HardcodeSections:
                 'phone': self.portfolio.personal_information.phone,
                 'address': self.portfolio.personal_information.address,
                 'LinkedIn': self.portfolio.personal_information.linkedin,
-                'GitHub': self.portfolio.personal_information.github
+                'GitHub': self.portfolio.personal_information.github,
+                'website': self.portfolio.personal_information.website
             }
             logger.debug(f"Personal info data: {personal_info}")
             content = self.tex_loader.safe_format_template('personal_information', 

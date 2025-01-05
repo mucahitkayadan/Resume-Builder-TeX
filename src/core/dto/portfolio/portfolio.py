@@ -27,7 +27,8 @@ class PortfolioDTO(BaseDTO):
                 phone=LatexEscaper.escape_text(data.personal_information.get('phone', '')),
                 address=LatexEscaper.escape_text(data.personal_information.get('address', '')),
                 linkedin=LatexEscaper.escape_text(data.personal_information.get('linkedin', '')),
-                github=LatexEscaper.escape_text(data.personal_information.get('github', ''))
+                github=LatexEscaper.escape_text(data.personal_information.get('github', '')),
+                website=LatexEscaper.escape_text(data.personal_information.get('website', ''))
             ),
             career_summary=CareerSummaryDTO(
                 job_titles=[LatexEscaper.escape_text(title) for title in data.career_summary.job_titles],

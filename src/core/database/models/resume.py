@@ -6,6 +6,7 @@ class Resume(BaseModel):
     model_config = ConfigDict(from_attributes=True, protected_namespaces=())
 
     id: Optional[str] = None
+    user_id: str
     company_name: str
     job_title: str
     job_description: str
