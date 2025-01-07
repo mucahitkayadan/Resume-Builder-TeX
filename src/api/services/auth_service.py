@@ -1,13 +1,12 @@
 from typing import Optional
 from datetime import datetime, timedelta
-import jwt
-from ..schemas.user import UserCreate, UserLogin, UserResponse
+from jose import jwt
+from ..schemas.user import UserCreate, UserLogin, UserResponse, UserUpdate
 from src.core.database.factory import get_unit_of_work
 from passlib.context import CryptContext
 from config.settings import settings
 import logging
 from src.core.database.models.user import User, UserPreferences
-import secrets
 
 logger = logging.getLogger(__name__)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -33,7 +32,7 @@ class AuthService:
                 default_preferences = UserPreferences().model_dump()
                 
                 user = User(
-                    user_id=user_data.user_id,  # Use provided user_id
+                    user_id=user_data.user_id,
                     email=user_data.email,
                     full_name=user_data.full_name,
                     hashed_password=pwd_context.hash(user_data.password),
@@ -48,7 +47,7 @@ class AuthService:
                 self.uow.commit()
                 
                 return UserResponse(
-                    user_id=created_user.user_id,  # No need for id alias anymore
+                    user_id=created_user.user_id,
                     email=created_user.email,
                     full_name=created_user.full_name,
                     created_at=created_user.created_at,
@@ -82,7 +81,11 @@ class AuthService:
                     "email": user.email,
                     "exp": datetime.utcnow() + timedelta(days=1)
                 }
-                token = jwt.encode(token_data, settings.JWT_SECRET_KEY, algorithm="HS256")
+                token = jwt.encode(
+                    token_data, 
+                    settings.jwt_secret_key, 
+                    algorithm=settings.jwt_algorithm
+                )
                 logger.info(f"Login successful for user: {user.user_id}")
                 return token
         except Exception as e:
@@ -92,3 +95,26 @@ class AuthService:
     async def get_user_by_id(self, user_id: str):
         with self.uow:
             return self.uow.users.get_by_user_id(user_id)
+
+    async def update_user(self, user_id: str, user_data: UserUpdate) -> UserResponse:
+        try:
+            with self.uow:
+                user = self.uow.users.get_by_id(user_id)
+                if not user:
+                    raise Exception("User not found")
+                
+                # Update fields
+                if user_data.full_name:
+                    user.full_name = user_data.full_name
+                if user_data.email:
+                    user.email = user_data.email
+                if user_data.preferences:
+                    user.preferences.update(user_data.preferences)
+                
+                user.updated_at = datetime.utcnow()
+                self.uow.commit()
+                
+                return UserResponse.from_orm(user)
+        except Exception as e:
+            logger.error(f"Error updating user: {str(e)}")
+            raise

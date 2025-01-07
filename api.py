@@ -3,6 +3,10 @@ from src.api.main import create_app
 
 app = create_app()
 
+@app.get("/")
+async def root():
+    return {"message": "Welcome to ResumeBuilderTeX API"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(

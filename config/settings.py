@@ -1,6 +1,5 @@
 from pydantic_settings import BaseSettings
-from pydantic import Field
-from typing import List, Dict
+from typing import List, Dict, Optional
 from functools import lru_cache
 from dotenv import load_dotenv
 import os
@@ -16,68 +15,78 @@ OUTPUT_DIR = PROJECT_ROOT / "created_resumes"
 # Create output directory if it doesn't exist
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-def get_default_algorithms() -> List[str]:
-    return ["RS256"]
-
-def get_default_cors_origins() -> List[str]:
-    return [
-        "http://localhost:3000",
-        "http://localhost:8000",
-    ]
-
-def get_default_feature_flags() -> Dict[str, bool]:
-    return {
-        'check_clearance': True
-    }
-
-def get_default_app_constants() -> Dict[str, List[str]]:
-    return {
-        'clearance_keywords': [
-            "security clearance",
-            "clearance required",
-            "US citizen only",
-            "US Citizen",
-            "Permanent Resident",
-            "U.S. Citizenship",
-            "Government Security Clearance"
-        ]
-    }
-
 class Settings(BaseSettings):
     # JWT settings
-    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY")
-    
-    # CORS settings
-    CORS_ORIGINS: List[str] = Field(default_factory=get_default_cors_origins)
+    jwt_secret_key: str = os.getenv("JWT_SECRET_KEY", "your-default-secret-key")  # Never use default in production
+    jwt_algorithm: str = "HS256"
+    jwt_expires_minutes: int = 30
     
     # MongoDB settings
-    MONGODB_URI: str = os.getenv("MONGODB_URI")
-    MONGODB_DATABASE: str = os.getenv("MONGODB_DATABASE")
+    mongodb_uri: Optional[str] = None
+    mongodb_database: Optional[str] = None
     
     # API settings
-    API_V1_PREFIX: str = "/api/v1"
+    api_v1_prefix: str = "/api/v1"
 
     # LLM settings
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
-    ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY")
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY")
+    openai_api_key: Optional[str] = None
+    anthropic_api_key: Optional[str] = None
+    gemini_api_key: Optional[str] = None
 
     # LinkedIn settings
-    LINKEDIN_EMAIL: str = os.getenv("LINKEDIN_EMAIL")
-    LINKEDIN_PASSWORD: str = os.getenv("LINKEDIN_PASSWORD")
+    linkedin_email: Optional[str] = None
+    linkedin_password: Optional[str] = None
 
-    # Application settings
-    FEATURE_FLAGS: Dict[str, bool] = Field(default_factory=get_default_feature_flags)
-    APP_CONSTANTS: Dict[str, List[str]] = Field(default_factory=get_default_app_constants)
-    
     # Path settings
-    PROJECT_ROOT: Path = PROJECT_ROOT
-    PROMPTS_DIR: Path = PROMPTS_DIR
-    OUTPUT_DIR: Path = OUTPUT_DIR
+    project_root: Path = PROJECT_ROOT
+    prompts_dir: Path = PROMPTS_DIR
+    output_dir: Path = OUTPUT_DIR
+
+    @property
+    def cors_origins(self) -> List[str]:
+        return [
+            "http://localhost:3000",
+            "http://localhost:8001",
+        ]
+
+    @property
+    def feature_flags(self) -> Dict[str, bool]:
+        return {
+            'check_clearance': True
+        }
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    @property
+    def app_constants(self) -> Dict[str, List[str]]:
+        return {
+            'clearance_keywords': [
+                "security clearance",
+                "clearance required",
+                "US citizen only",
+                "US Citizen",
+                "Permanent Resident",
+                "U.S. Citizenship",
+                "Government Security Clearance"
+            ]
+        }
+    
+    model_config = {
+        'env_file': '.env',
+        'case_sensitive': True,
+        'use_enum_values': True,
+        'extra': 'ignore',  # Allow extra fields
+    }
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Load environment variables after initialization
+        self.jwt_secret_key = os.getenv("JWT_SECRET_KEY", self.jwt_secret_key)
+        self.mongodb_uri = os.getenv("MONGODB_URI")
+        self.mongodb_database = os.getenv("MONGODB_DATABASE")
+        self.openai_api_key = os.getenv("OPENAI_API_KEY")
+        self.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+        self.gemini_api_key = os.getenv("GEMINI_API_KEY")
+        self.linkedin_email = os.getenv("LINKEDIN_EMAIL")
+        self.linkedin_password = os.getenv("LINKEDIN_PASSWORD")
 
 @lru_cache()
 def get_settings() -> Settings:
@@ -86,5 +95,5 @@ def get_settings() -> Settings:
 settings = get_settings()
 
 # For backward compatibility
-FEATURE_FLAGS = settings.FEATURE_FLAGS
-APP_CONSTANTS = settings.APP_CONSTANTS
+FEATURE_FLAGS = settings.feature_flags
+APP_CONSTANTS = settings.app_constants

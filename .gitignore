@@ -17,3 +17,5 @@ created_resumes/
 /__legacy__/
 **.coverage
 frontend
+.cursorrules
+node_modules

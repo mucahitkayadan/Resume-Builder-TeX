@@ -58,3 +58,18 @@ class UserPreferencesUpdate(BaseModel):
     feature_preferences: Optional[Dict] = None
 
     model_config = ConfigDict(protected_namespaces=()) 
+
+class UserUpdate(BaseModel):
+    """Schema for updating user information"""
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    linkedin: Optional[str] = None
+    github: Optional[str] = None
+    website: Optional[str] = None
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        protected_namespaces=()
+    )

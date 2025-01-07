@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from ..schemas.user import UserCreate, UserResponse, UserLogin
+from ..schemas.user import UserCreate, UserResponse, UserLogin, UserUpdate
 from ..services.auth_service import AuthService
 from ..middleware.auth import verify_token
 from ..dependencies.services import get_auth_service
@@ -49,5 +49,29 @@ async def get_current_user(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+
+@router.put("/profile/{user_id}", response_model=UserResponse)
+async def update_profile(
+    user_id: str,
+    profile_data: UserUpdate,
+    user_payload: Dict = Depends(verify_token),
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    try:
+        # Verify the user is updating their own profile
+        if user_payload["sub"] != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to update this profile"
+            )
+        
+        updated_user = await auth_service.update_user(user_id, profile_data)
+        return updated_user
+    except Exception as e:
+        logger.error(f"Profile update failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         ) 
