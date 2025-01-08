@@ -1,25 +1,40 @@
+from typing import Optional, Dict, Any
 from src.latex.utils import LatexEscaper
 from src.loaders.tex_loader import TexLoader
 from src.core.database.factory import get_unit_of_work
 from src.core.dto.portfolio.portfolio import PortfolioDTO
+from src.core.exceptions.database_exceptions import DatabaseError
 import logging
 
 logger = logging.getLogger(__name__)
 
 class HardcodeSections:
+    """Class to handle hardcoded sections from portfolio"""
+    
     def __init__(self, user_id: str):
-        logger.debug(f"Initializing HardcodeSections for user {user_id}")
-        self.uow = get_unit_of_work()
+        """Initialize with user_id and load portfolio data"""
+        self.user_id = user_id
+        self.portfolio = None
         self.tex_loader = TexLoader()
-        with self.uow:
-            raw_portfolio = self.uow.portfolio.get_by_user_id(user_id)
+        
+        # Load portfolio data
+        with get_unit_of_work() as uow:
+            raw_portfolio = uow.portfolio.get_by_user_id(user_id)
+            raw_profile = uow.profiles.get_by_user_id(user_id)
+            
             if not raw_portfolio:
                 logger.error(f"Portfolio not found for user {user_id}")
-                raise ValueError(f"Portfolio not found for user {user_id}")
-            self.portfolio = PortfolioDTO.from_db_model(raw_portfolio)
-            logger.debug("Successfully loaded portfolio")
+                raise DatabaseError(f"Portfolio not found for user {user_id}")
+                
+            if not raw_profile:
+                logger.error(f"Profile not found for user {user_id}")
+                raise DatabaseError(f"Profile not found for user {user_id}")
+            
+            self.portfolio = PortfolioDTO.from_db_models(raw_portfolio, raw_profile)
+            logger.debug(f"Loaded portfolio data for user {user_id}")
 
     def hardcode_section(self, section: str) -> str:
+        """Get hardcoded LaTeX content for a specific section"""
         logger.debug(f"Starting hardcode for section: {section}")
         method = getattr(self, f"hardcode_{section}", None)
         if not method:
@@ -41,19 +56,29 @@ class HardcodeSections:
     def hardcode_personal_information(self) -> str:
         logger.debug("Hardcoding personal information")
         try:
-            personal_info = {
-                'name': self.portfolio.personal_information.name,
-                'email': self.portfolio.personal_information.email,
-                'phone': self.portfolio.personal_information.phone,
-                'address': self.portfolio.personal_information.address,
-                'LinkedIn': self.portfolio.personal_information.linkedin,
-                'GitHub': self.portfolio.personal_information.github,
-                'website': self.portfolio.personal_information.website
+            personal_info = self.portfolio.get_personal_information()
+            logger.debug(f"Raw personal info: {personal_info}")
+            
+            # Convert keys to match template expectations with safe access
+            template_info = {
+                'name': personal_info.get('name', ''),
+                'phone': personal_info.get('phone', ''),
+                'email': personal_info.get('email', ''),
+                'LinkedIn': personal_info.get('linkedin', ''),
+                'GitHub': personal_info.get('github', ''),
+                'website': personal_info.get('website', ''),
+                'address': personal_info.get('address', '')
             }
-            logger.debug(f"Personal info data: {personal_info}")
+            
+            # Verify all required fields are present
+            missing_fields = [k for k, v in template_info.items() if not v]
+            if missing_fields:
+                logger.warning(f"Missing personal information fields: {missing_fields}")
+            
+            logger.debug(f"Template info data: {template_info}")
             content = self.tex_loader.safe_format_template('personal_information', 
                 escape_latex=False, 
-                **personal_info
+                **template_info
             )
             logger.debug(f"Generated personal info content length: {len(content)}")
             return content
@@ -64,15 +89,15 @@ class HardcodeSections:
     def hardcode_career_summary(self) -> str:
         logger.debug("Hardcoding career summary")
         try:
-            job_title = self.portfolio.career_summary.job_titles[0] if self.portfolio.career_summary.job_titles else 'Professional'
+            job_title = self.portfolio.career_summary.get('job_titles', ['Professional'])[0]
             logger.debug(f"Using job title: {job_title}")
             
             content = self.tex_loader.safe_format_template(
                 'career_summary',
                 escape_latex=False,
                 job_title=LatexEscaper.escape_text(job_title),
-                years_of_experience=str(self.portfolio.career_summary.years_of_experience),
-                summary=LatexEscaper.escape_text(self.portfolio.career_summary.default_summary)
+                years_of_experience=str(self.portfolio.career_summary.get('years_of_experience', '')),
+                summary=LatexEscaper.escape_text(self.portfolio.career_summary.get('default_summary', ''))
             )
             logger.debug(f"Generated career summary content length: {len(content)}")
             return content
@@ -101,16 +126,16 @@ class HardcodeSections:
     def hardcode_work_experience(self) -> str:
         experience_content = ""
         for exp in self.portfolio.work_experience:
-            responsibilities = exp.responsibilities
+            responsibilities = exp.get('responsibilities', [])
             responsibilities_content = "\n".join([
-                f"        \\resumeItem{{{r}}}"
+                f"        \\resumeItem{{{LatexEscaper.escape_text(r)}}}"
                 for r in responsibilities
             ])
             exp_data = {
-                'job_title': exp.job_title,
-                'time': exp.time,
-                'company': exp.company,
-                'location': exp.location,
+                'job_title': LatexEscaper.escape_text(exp.get('job_title', '')),
+                'time': LatexEscaper.escape_text(exp.get('time', '')),
+                'company': LatexEscaper.escape_text(exp.get('company', '')),
+                'location': LatexEscaper.escape_text(exp.get('location', '')),
                 'responsibilities': responsibilities_content
             }
             exp_content = self.tex_loader.safe_format_template('work_experience_item', **exp_data)
@@ -121,11 +146,11 @@ class HardcodeSections:
         education_content = "\\resumeSubHeadingListStart\n"
         for edu in self.portfolio.education:
             edu_data = {
-                'university': edu.university_name,
-                'location': edu.location,
-                'degree': f"{edu.degree_type} in {edu.degree}".strip(),
-                'time': edu.time,
-                'key_courses': f"Key Courses: {', '.join(edu.transcript)}"
+                'university': LatexEscaper.escape_text(edu.get('university_name', '')),
+                'location': LatexEscaper.escape_text(edu.get('location', '')),
+                'degree': LatexEscaper.escape_text(f"{edu.get('degree_type', '')} in {edu.get('degree', '')}".strip()),
+                'time': LatexEscaper.escape_text(edu.get('time', '')),
+                'key_courses': LatexEscaper.escape_text(f"Key Courses: {', '.join(edu.get('transcript', []))}")
             }
             education_content += self.tex_loader.safe_format_template('education_item', **edu_data)
         education_content += "\\resumeSubHeadingListEnd"
@@ -135,19 +160,20 @@ class HardcodeSections:
         projects_content = "\\resumeSubHeadingListStart\n"
         for project in self.portfolio.projects:
             bullet_points_content = "\n".join([
-                f"    \\resumeItem{{{point}}}"
-                for point in project.bullet_points
+                f"    \\resumeItem{{{LatexEscaper.escape_text(point)}}}"
+                for point in project.get('bullet_points', [])
             ])
             
-            name_and_tech = f"{project.name}" + (f" \\textbullet{{}} {project.technologies}" if project.technologies else "")
+            name_and_tech = LatexEscaper.escape_text(project.get('name', ''))
+            if project.get('technologies'):
+                name_and_tech += f" \\textbullet{{}} {LatexEscaper.escape_text(project['technologies'])}"
             
             project_data = {
                 'name_and_tech': name_and_tech,
-                'date': project.date,
+                'date': LatexEscaper.escape_text(project.get('date', '')),
                 'bullet_points': bullet_points_content
             }
-            project_content = self.tex_loader.safe_format_template('project_item', **project_data)
-            projects_content += project_content
+            projects_content += self.tex_loader.safe_format_template('project_item', **project_data)
         projects_content += "\\resumeSubHeadingListEnd"
         return projects_content
 
@@ -155,8 +181,8 @@ class HardcodeSections:
         awards_content = ""
         for award in self.portfolio.awards:
             award_data = {
-                'name': award.name,
-                'explanation': award.explanation
+                'name': LatexEscaper.escape_text(award.get('name', '')),
+                'explanation': LatexEscaper.escape_text(award.get('explanation', ''))
             }
             awards_content += self.tex_loader.safe_format_template('award_item', **award_data)
         return self.tex_loader.safe_format_template('awards', awards_content=awards_content)
@@ -165,10 +191,10 @@ class HardcodeSections:
         publications_content = ""
         for pub in self.portfolio.publications:
             pub_data = {
-                'name': pub.name,
-                'publisher': pub.publisher,
-                'time': pub.time,
-                'link': pub.link
+                'name': LatexEscaper.escape_text(pub.get('name', '')),
+                'publisher': LatexEscaper.escape_text(pub.get('publisher', '')),
+                'time': LatexEscaper.escape_text(pub.get('time', '')),
+                'link': LatexEscaper.escape_text(pub.get('link', ''))
             }
             publications_content += self.tex_loader.safe_format_template('publication_item', **pub_data)
         return self.tex_loader.safe_format_template('publications', publications_content=publications_content)

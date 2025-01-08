@@ -1,18 +1,39 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 class CareerSummary(BaseModel):
     """Career Summary Model"""
-    job_titles: List[str]
+    job_titles: List[str] = Field(default_factory=list)
     years_of_experience: str
     default_summary: str
+
+class PortfolioTemplatePreferences(BaseModel):
+    style: str = "modern"
+    font: str = "calibri"
+    spacing: str = "compact"
+
+class CustomSections(BaseModel):
+    enabled: List[str] = Field(default_factory=lambda: ["certifications", "languages", "interests"])
+    order: List[str] = Field(default_factory=lambda: [
+        "career_summary",
+        "work_experience",
+        "skills",
+        "education",
+        "projects",
+        "awards",
+        "publications"
+    ])
 
 class Portfolio(BaseModel):
     """MongoDB Portfolio Model"""
     id: Optional[str]
     user_id: str
-    personal_information: Dict[str, Any]
+    profile_id: str  # Reference to profiles collection
+    version: str = "1.0"
+    is_active: bool = True
+    template_preferences: PortfolioTemplatePreferences = Field(default_factory=PortfolioTemplatePreferences)
+    custom_sections: CustomSections = Field(default_factory=CustomSections)
     career_summary: CareerSummary
     skills: List[Dict[str, List[str]]]
     work_experience: List[Dict[str, Any]]

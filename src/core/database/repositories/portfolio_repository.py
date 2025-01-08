@@ -55,14 +55,24 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
         except Exception as e:
             raise DatabaseError(f"Error checking portfolio existence: {str(e)}")
 
-    def _map_to_entity(self, doc: dict) -> Portfolio:
+    def _map_to_entity(self, doc: dict) -> Optional[Portfolio]:
         if not doc:
             return None
-        
         try:
-            # Handle ID conversion
+            # Convert ObjectId to string for both id and profile_id
             doc['id'] = str(doc.pop('_id'))
+            if isinstance(doc.get('profile_id'), ObjectId):
+                doc['profile_id'] = str(doc['profile_id'])
             
+            # Convert any other ObjectId fields if they exist
+            for key, value in doc.items():
+                if isinstance(value, ObjectId):
+                    doc[key] = str(value)
+                elif isinstance(value, list):
+                    doc[key] = [str(item) if isinstance(item, ObjectId) else item for item in value]
+                elif isinstance(value, dict):
+                    doc[key] = {k: str(v) if isinstance(v, ObjectId) else v for k, v in value.items()}
+
             # Set default values for all required fields
             doc.setdefault('user_id', 'default_user')
             doc.setdefault('personal_information', {})
@@ -84,7 +94,6 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
             
             return Portfolio(**doc)
         except Exception as e:
-            print(f"Error mapping portfolio entity: {str(e)}")
             raise DatabaseError(f"Error mapping portfolio entity: {str(e)}")
 
     def get_by_user_id(self, user_id: str) -> Optional[Portfolio]:

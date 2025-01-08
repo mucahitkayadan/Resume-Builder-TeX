@@ -1,83 +1,56 @@
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, Dict, Any
 from datetime import datetime
 
-# Helper functions to create default dictionaries
-def get_project_defaults() -> Dict[str, int]:
-    return {
-        'max_projects': 2,
-        'bullet_points_per_project': 2
-    }
+class LLMPreferences(BaseModel):
+    """LLM preferences model"""
+    model_type: str = "Claude"
+    model_name: str = "claude-3-5-sonnet-20240620"
+    temperature: float = 0.1
 
-def get_work_experience_defaults() -> Dict[str, int]:
-    return {
-        'max_jobs': 4,
-        'bullet_points_per_job': 2
-    }
-
-def get_skills_defaults() -> Dict[str, Any]:
-    return {
-        'max_categories': 5,
-        'min_skills_per_category': 6,
-        'max_skills_per_category': 10
-    }
-
-def get_career_summary_defaults() -> Dict[str, int]:
-    return {
-        'min_words': 15,
-        'max_words': 25
-    }
-
-def get_education_defaults() -> Dict[str, int]:
-    return {
-        'max_entries': 3,
-        'max_courses': 5
-    }
-
-def get_cover_letter_defaults() -> Dict[str, Any]:
-    return {
-        'paragraphs': 4,
-        'target_grade_level': 12
-    }
-
-def get_awards_defaults() -> Dict[str, int]:
-    return {
-        'max_awards': 4
-    }
-
-def get_publications_defaults() -> Dict[str, int]:
-    return {
-        'max_publications': 3
-    }
+class SkillsDetails(BaseModel):
+    """Skills details preferences"""
+    max_categories: int = 4
+    min_skills_per_category: int = 3
+    max_skills_per_category: int = 10
 
 class UserPreferences(BaseModel):
-    """User Preferences Model"""
-    project_details: Dict[str, int] = Field(default_factory=get_project_defaults)
-    work_experience_details: Dict[str, int] = Field(default_factory=get_work_experience_defaults)
-    skills_details: Dict[str, Any] = Field(default_factory=get_skills_defaults)
-    career_summary_details: Dict[str, int] = Field(default_factory=get_career_summary_defaults)
-    education_details: Dict[str, int] = Field(default_factory=get_education_defaults)
-    cover_letter_details: Dict[str, Any] = Field(default_factory=get_cover_letter_defaults)
-    awards_details: Dict[str, int] = Field(default_factory=get_awards_defaults)
-    publications_details: Dict[str, int] = Field(default_factory=get_publications_defaults)
-
-    model_config = ConfigDict(from_attributes=True)
+    """User preferences model"""
+    project_details: Dict[str, Any] = Field(default_factory=dict)
+    work_experience_details: Dict[str, Any] = Field(default_factory=dict)
+    skills_details: SkillsDetails = Field(default_factory=SkillsDetails)
+    career_summary_details: Dict[str, Any] = Field(default_factory=dict)
+    education_details: Dict[str, Any] = Field(default_factory=dict)
+    cover_letter_details: Dict[str, Any] = Field(default_factory=dict)
+    awards_details: Dict[str, Any] = Field(default_factory=dict)
+    publications_details: Dict[str, Any] = Field(default_factory=dict)
+    feature_preferences: Dict[str, Any] = Field(default_factory=dict)
+    llm_preferences: LLMPreferences = Field(default_factory=LLMPreferences)
+    section_preferences: Dict[str, Any] = Field(default_factory=dict)
+    notifications: Dict[str, Any] = Field(default_factory=dict)
+    privacy: Dict[str, Any] = Field(default_factory=dict)
 
 class User(BaseModel):
-    """User Model"""
-    user_id: str
+    """MongoDB User Model"""
+    id: Optional[str] = None
     email: EmailStr
+    user_id: str
     hashed_password: str
-    full_name: Optional[str]
     is_active: bool = True
     is_superuser: bool = False
-    last_login: Optional[datetime]
+    preferences: UserPreferences = Field(default_factory=UserPreferences)
+    last_login: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
-    preferences: UserPreferences = Field(default_factory=UserPreferences)
-    life_story: Optional[str] = None
-    signature_image: Optional[bytes] = None
-    signature_filename: Optional[str] = None
-    signature_content_type: Optional[str] = None
+    email_verified: bool = False
+    last_active: Optional[datetime] = None
+    login_attempts: int = 0
+    reset_password_token: Optional[str] = None
+    reset_password_expires: Optional[datetime] = None
+    verification_token: Optional[str] = None
+    account_locked_until: Optional[datetime] = None
+    subscription_status: str = "free"
+    subscription_expires: Optional[datetime] = None
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        arbitrary_types_allowed = True

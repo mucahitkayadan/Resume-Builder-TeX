@@ -5,6 +5,7 @@ from ..repositories.user_repository import MongoUserRepository
 from ..repositories.resume_repository import MongoResumeRepository
 from ..repositories.preamble_repository import MongoPreambleRepository
 from ..repositories.tex_header_repository import MongoTexHeaderRepository
+from ..repositories.profile_repository import MongoProfileRepository
 from ..models.preamble import Preamble
 from datetime import datetime, timezone
 import os
@@ -18,6 +19,7 @@ class MongoUnitOfWork:
         self.portfolio = None
         self.users = None
         self.resumes = None
+        self.profiles = None
         self.preambles = None
         self.tex_headers = None
         self._in_transaction = False
@@ -26,6 +28,7 @@ class MongoUnitOfWork:
         self.portfolio = MongoPortfolioRepository(self.connection)
         self.users = MongoUserRepository(self.connection)
         self.resumes = MongoResumeRepository(self.connection)
+        self.profiles = MongoProfileRepository(self.connection)
         self.preambles = MongoPreambleRepository(self.connection)
         self.tex_headers = MongoTexHeaderRepository(self.connection)
         self._in_transaction = True

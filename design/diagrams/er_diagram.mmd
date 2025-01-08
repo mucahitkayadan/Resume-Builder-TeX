@@ -1,41 +1,56 @@
 erDiagram
-    User {
-        string id PK
+    Users {
+        ObjectId _id PK
+        string user_id UK
         string email UK
         string hashed_password
         string full_name
         boolean is_active
         boolean is_superuser
+        object preferences
         datetime last_login
+        datetime created_at
+        datetime updated_at
+        boolean email_verified
+        datetime last_active
+        int login_attempts
+        string reset_password_token
+        datetime reset_password_expires
+        string verification_token
+        datetime account_locked_until
+        string subscription_status
+        datetime subscription_expires
+    }
+
+    Profiles {
+        ObjectId _id PK
+        string user_id FK
+        object personal_information
+        object signature
         string life_story
-        blob signature_image
-        string signature_filename
-        string signature_content_type
         datetime created_at
         datetime updated_at
     }
 
-    Portfolio {
-        string id PK
+    Portfolios {
+        ObjectId _id PK
         string user_id FK
-        json personal_information
-        json career_summary
-        json skills
-        json work_experience
-        json education
-        json projects
-        json awards
-        json publications
-        json certifications
-        json languages
+        object career_summary
+        array work_experience
+        array skills
+        array education
+        array projects
+        array awards
+        array publications
+        array certifications
         datetime created_at
         datetime updated_at
     }
 
-    Resume {
-        string id PK
+    Resumes {
+        ObjectId _id PK
         string user_id FK
-        string portfolio_id FK
+        ObjectId portfolio_id FK
         string company_name
         string job_title
         text job_description
@@ -50,8 +65,8 @@ erDiagram
         datetime updated_at
     }
 
-    Template {
-        string id PK
+    Templates {
+        ObjectId _id PK
         string name UK
         string type
         text content
@@ -60,27 +75,8 @@ erDiagram
         datetime updated_at
     }
 
-    UserPreferences {
-        string id PK
-        string user_id FK
-        json project_details "max_projects, bullet_points_per_project"
-        json work_experience_details "max_jobs, bullet_points_per_job"
-        json skills_details "max_categories, min/max_skills_per_category"
-        json career_summary_details "min_words, max_words"
-        json education_details "max_entries, max_courses"
-        json cover_letter_details "paragraphs, target_grade_level"
-        json awards_details "max_awards"
-        json publications_details "max_publications"
-        datetime created_at
-        datetime updated_at
-    }
-
-    User ||--o{ Portfolio : has
-    User ||--o{ Resume : creates
-    User ||--o{ JobListing : tracks
-    User ||--o{ JobReport : submits
-    User ||--|| UserPreferences : has
-    Portfolio ||--o{ Resume : used_by
-    Resume ||--|| Template : uses
-    JobListing ||--|| ApplicationStatus : has
-    Resume ||--o{ ApplicationStatus : used_in
+    Users ||--|| Profiles : has
+    Users ||--o{ Portfolios : owns
+    Users ||--o{ Resumes : creates
+    Portfolios ||--o{ Resumes : used_in
+    Resumes ||--|| Templates : uses

@@ -2,8 +2,13 @@
 Database management package including repositories, models, and unit of work implementations.
 """
 
-from .models import *
-from .repositories import *
+from .models import User, Portfolio, Resume, Profile
+from .repositories import (
+    MongoPortfolioRepository,
+    MongoUserRepository,
+    MongoResumeRepository,
+    MongoProfileRepository
+)
 from .unit_of_work import *
 from .connections import *
 from .interfaces import *
@@ -13,11 +18,13 @@ __all__ = [
     'User',
     'Portfolio',
     'Resume',
+    'Profile',
     
     # Repositories
     'MongoPortfolioRepository',
     'MongoUserRepository',
     'MongoResumeRepository',
+    'MongoProfileRepository',
     
     # Unit of Work
     'MongoUnitOfWork',

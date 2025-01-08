@@ -76,9 +76,9 @@ class MongoUserRepository(BaseRepository[User]):
         if not doc:
             return None
         try:
-            # Convert MongoDB's _id to string id
+            # Convert _id to id if present
             if '_id' in doc:
-                doc.pop('_id')
+                doc['id'] = str(doc.pop('_id'))
 
             # Convert preferences dict to UserPreferences model
             if 'preferences' in doc and isinstance(doc['preferences'], dict):
@@ -94,8 +94,7 @@ class MongoUserRepository(BaseRepository[User]):
 
             return User(**doc)
         except Exception as e:
-            print(f"Error mapping user entity: {str(e)}")
-            return None
+            raise DatabaseError(f"Error mapping user entity: {str(e)}")
 
     def update_preferences(self, user_id: str, preferences: Dict[str, Any]) -> bool:
         try:
