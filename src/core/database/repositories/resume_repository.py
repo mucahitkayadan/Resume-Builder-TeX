@@ -77,9 +77,36 @@ class MongoResumeRepository(BaseRepository[Resume]):
     def get_all(self) -> List[Resume]:
         """Get all resumes"""
         try:
-            results = self.collection.find()
-            return [self._map_to_entity(doc) for doc in results]
+            cursor= self.collection.find({})
+            resumes = []
+            for doc in cursor:
+                try:
+                    # Convert ObjectId to string
+                    if '_id' in doc:
+                        doc['_id'] = str(doc['_id'])
+                    
+                    # Ensure user_id exists and is string
+                    if 'user_id' not in doc:
+                        logger.warning(f"Resume document missing user_id: {doc.get('_id')}")
+                        continue
+                    
+                    doc['user_id'] = str(doc['user_id'])
+                    
+                    # Handle datetime fields
+                    for field in ['created_at', 'updated_at']:
+                        if field in doc and not isinstance(doc[field], datetime):
+                            doc[field] = datetime.utcnow()
+                    
+                    resume = Resume(**doc)
+                    resumes.append(resume)
+                except Exception as e:
+                    logger.error(f"Error mapping resume document: {str(e)}")
+                    logger.debug(f"Problematic document: {doc}")
+                    continue
+                    
+            return resumes
         except Exception as e:
+            logger.error(f"Error retrieving all resumes: {str(e)}")
             raise DatabaseError(f"Error retrieving all resumes: {str(e)}")
 
     def add(self, resume: Resume) -> Resume:

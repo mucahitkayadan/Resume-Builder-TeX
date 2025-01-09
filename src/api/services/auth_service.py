@@ -1,12 +1,14 @@
 from typing import Optional
 from datetime import datetime, timedelta
-from jose import jwt
+from jose import JWTError, jwt
 from ..schemas.user import UserCreate, UserLogin, UserResponse, UserUpdate
 from src.core.database.factory import get_unit_of_work
 from passlib.context import CryptContext
 from config.settings import settings
 import logging
 from src.core.database.models.user import User, UserPreferences
+import os
+from src.core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
 
 logger = logging.getLogger(__name__)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -14,6 +16,53 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 class AuthService:
     def __init__(self):
         self.uow = get_unit_of_work()
+        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        self.secret_key = os.getenv("SECRET_KEY", "your-secret-key")
+        self.algorithm = "HS256"
+        self.access_token_expire_minutes = 30
+
+    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
+        return self.pwd_context.verify(plain_password, hashed_password)
+
+    def get_password_hash(self, password: str) -> str:
+        return self.pwd_context.hash(password)
+
+    async def authenticate_user(self, uow: MongoUnitOfWork, email: str, password: str) -> Optional[User]:
+        try:
+            user = await uow.users.get_by_email(email)
+            if not user:
+                return None
+            if not self.verify_password(password, user.hashed_password):
+                return None
+            return user
+        except Exception as e:
+            logger.error(f"Error authenticating user: {str(e)}")
+            return None
+
+    def create_access_token(self, data: dict, expires_delta: Optional[timedelta] = None) -> str:
+        to_encode = data.copy()
+        if expires_delta:
+            expire = datetime.utcnow() + expires_delta
+        else:
+            expire = datetime.utcnow() + timedelta(minutes=15)
+        to_encode.update({"exp": expire})
+        encoded_jwt = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+        return encoded_jwt
+
+    async def get_current_user(self, uow: MongoUnitOfWork, token: str) -> Optional[User]:
+        try:
+            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            user_id: str = payload.get("sub")
+            if user_id is None:
+                return None
+            user = await uow.users.get_by_id(user_id)
+            return user
+        except JWTError as e:
+            logger.error(f"JWT error: {str(e)}")
+            return None
+        except Exception as e:
+            logger.error(f"Error getting current user: {str(e)}")
+            return None
 
     async def create_user(self, user_data: UserCreate):
         try:

@@ -1,79 +1,97 @@
-from typing import Optional, ContextManager
-from pymongo import MongoClient, database
-from config.config import MONGODB_URI, MONGODB_DATABASE
+from typing import Optional
+from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import MongoClient
+import logging
 
+logger = logging.getLogger(__name__)
 
-class MongoConnection(ContextManager[database.Database]):
-    def __init__(self, uri: str = MONGODB_URI, db_name: str = MONGODB_DATABASE):
-        self._client: Optional[MongoClient] = None
-        self._db = None
-        self._is_mock = False
-        self._uri = uri
-        self._db_name = db_name
-        self._session = None
-        self._collections_backup = {}
-        # Initialize connection immediately
-        self._client = MongoClient(self._uri)
-        self._db = self._client[self._db_name]
+class MongoConnection:
+    def __init__(self, uri: str, db_name: str):
+        self.uri = uri
+        self.db_name = db_name
+        self.client: Optional[MongoClient] = None
+        self.async_client: Optional[AsyncIOMotorClient] = None
+        self.db = None
+        self._transaction = None
 
-    @property
-    def client(self):
-        return self._client
+    def connect(self):
+        """Connect synchronously to MongoDB"""
+        try:
+            self.client = MongoClient(self.uri)
+            self.db = self.client[self.db_name]
+            logger.info("Connected to MongoDB successfully")
+        except Exception as e:
+            logger.error(f"Error connecting to MongoDB: {str(e)}")
+            raise
 
-    @property
-    def db(self):
-        return self._db
-
-    def start_session(self):
-        if not self._is_mock:
-            self._session = self.client.start_session()
-            self._session.start_transaction()
-        else:
-            # Backup collections for mock rollback
-            self._collections_backup = {}
-            for collection_name in self.db.list_collection_names():
-                self._collections_backup[collection_name] = [
-                    {k: v for k, v in doc.items() if k != '_id'}
-                    for doc in self.db[collection_name].find()
-                ]
-        return self._session
-
-    def commit_transaction(self):
-        if self._session and not self._is_mock:
-            self._session.commit_transaction()
-        self._collections_backup = {}
-
-    def abort_transaction(self):
-        if self._session and not self._is_mock:
-            self._session.abort_transaction()
-        elif self._is_mock:
-            # Restore collections from backup
-            for collection_name in self.db.list_collection_names():
-                self.db[collection_name].delete_many({})
-                if collection_name in self._collections_backup and self._collections_backup[collection_name]:
-                    self.db[collection_name].insert_many(self._collections_backup[collection_name])
-
-    def end_session(self):
-        if self._session and not self._is_mock:
-            self._session.end_session()
-        self._collections_backup = {}
-
-    def __enter__(self):
-        return self.db
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_type:
-            self.abort_transaction()
-        else:
-            self.commit_transaction()
-
-    def get_database(self, db_name: str):
-        return self.client[db_name]
+    async def connect_async(self):
+        """Connect asynchronously to MongoDB"""
+        try:
+            self.async_client = AsyncIOMotorClient(self.uri)
+            self.db = self.async_client[self.db_name]
+            logger.info("Connected to MongoDB successfully (async)")
+        except Exception as e:
+            logger.error(f"Error connecting to MongoDB async: {str(e)}")
+            raise
 
     def close(self):
-        if self._client:
-            self._client.close()
+        """Close synchronous connection"""
+        if self.client:
+            self.client.close()
+            logger.info("Closed MongoDB connection")
 
-    def get_collection(self, collection_name: str):
-        """Get a collection from the database"""
-        return self.db[collection_name]
+    async def close_async(self):
+        """Close asynchronous connection"""
+        if self.async_client:
+            self.async_client.close()
+            logger.info("Closed MongoDB async connection")
+
+    def start_transaction(self):
+        """Start a synchronous transaction"""
+        if not self._transaction:
+            self._transaction = self.client.start_session()
+            self._transaction.start_transaction()
+
+    async def start_transaction_async(self):
+        """Start an asynchronous transaction"""
+        if not self._transaction:
+            self._transaction = await self.async_client.start_session()
+            await self._transaction.start_transaction()
+
+    def commit_transaction(self):
+        """Commit a synchronous transaction"""
+        if self._transaction:
+            self._transaction.commit_transaction()
+            self._transaction.end_session()
+            self._transaction = None
+
+    async def commit_transaction_async(self):
+        """Commit an asynchronous transaction"""
+        if self._transaction:
+            await self._transaction.commit_transaction()
+            await self._transaction.end_session()
+            self._transaction = None
+
+    def abort_transaction(self):
+        """Abort a synchronous transaction"""
+        if self._transaction:
+            self._transaction.abort_transaction()
+            self._transaction.end_session()
+            self._transaction = None
+
+    async def abort_transaction_async(self):
+        """Abort an asynchronous transaction"""
+        if self._transaction:
+            await self._transaction.abort_transaction()
+            await self._transaction.end_session()
+            self._transaction = None
+
+    @property
+    def is_connected(self) -> bool:
+        """Check if connected to MongoDB"""
+        return bool(self.client or self.async_client)
+
+    @property
+    def is_transaction_active(self) -> bool:
+        """Check if a transaction is active"""
+        return bool(self._transaction)

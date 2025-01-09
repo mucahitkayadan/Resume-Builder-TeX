@@ -39,17 +39,36 @@ def create_app() -> FastAPI:
         version="1.0.0"
     )
 
-    # Configure CORS middleware
+    # Configure CORS middleware with more explicit settings
+    origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8001",
+        "http://127.0.0.1:8001",
+    ]
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origins,
+        allow_origins=origins,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        allow_headers=[
+            "Content-Type",
+            "Authorization",
+            "Accept",
+            "Origin",
+            "X-Requested-With",
+        ],
+        expose_headers=["*"],
+        max_age=600,
     )
 
-    # Include routers with their prefixes and dependencies
-    app.include_router(auth_router, prefix=f"{settings.api_v1_prefix}/auth", tags=["auth"])
+    # Include all routers with prefix
+    app.include_router(
+        auth_router,
+        prefix=f"{settings.api_v1_prefix}/auth",
+        tags=["auth"]
+    )
     app.include_router(
         resumes_router,
         prefix=f"{settings.api_v1_prefix}/resumes",
@@ -75,14 +94,8 @@ def create_app() -> FastAPI:
         dependencies=[Depends(verify_token)]
     )
 
-    @app.get("/health")
-    async def health_check() -> Dict[str, str]:
-        """
-        Health check endpoint to verify API status.
-        
-        Returns:
-            Dict[str, str]: Status response indicating API health
-        """
-        return {"status": "healthy"}
+    @app.get("/")
+    async def root():
+        return {"message": "Resume Builder API"}
 
     return app

@@ -4,6 +4,9 @@ from ...exceptions.database_exceptions import DatabaseError
 from ..interfaces.repository_interface import BaseRepository
 from ..models.user import User, UserPreferences
 from datetime import datetime, timezone
+import logging
+
+logger = logging.getLogger(__name__)
 
 class MongoUserRepository(BaseRepository[User]):
     def __init__(self, connection):
@@ -22,12 +25,17 @@ class MongoUserRepository(BaseRepository[User]):
         except Exception as e:
             raise DatabaseError(f"Error retrieving user: {str(e)}")
 
-    def get_by_email(self, email: str) -> Optional[User]:
+    async def get_by_email(self, email: str) -> Optional[User]:
+        """Get user by email asynchronously"""
         try:
-            result = self.collection.find_one({'email': email})
-            return self._map_to_entity(result) if result else None
+            user_doc = await self.collection.find_one({"email": email})
+            if user_doc:
+                user_doc['_id'] = str(user_doc['_id'])
+                return User(**user_doc)
+            return None
         except Exception as e:
-            raise DatabaseError(f"Error retrieving user by email: {str(e)}")
+            logger.error(f"Error retrieving user by email: {str(e)}")
+            return None
 
     def get_all(self) -> List[User]:
         try:
@@ -145,9 +153,13 @@ class MongoUserRepository(BaseRepository[User]):
     def get_preferences(self, user_id: str) -> Optional[Dict[str, Any]]:
         """Get user preferences"""
         try:
-            user = self.get_by_id(user_id)
-            return user.preferences.model_dump() if user else None
+            user = self.get_by_user_id(user_id)
+            if not user:
+                return None
+            # Return the entire preferences dictionary
+            return user.preferences if isinstance(user.preferences, dict) else user.preferences.model_dump()
         except Exception as e:
+            logger.error(f"Error retrieving user preferences: {str(e)}")
             raise DatabaseError(f"Error retrieving user preferences: {str(e)}")
 
     def get_life_story(self, user_id: str) -> Optional[str]:
@@ -218,3 +230,27 @@ class MongoUserRepository(BaseRepository[User]):
                 'feature_preferences': user.get('feature_preferences', {})
             }
         return None
+
+    def get_by_email_sync(self, email: str) -> Optional[User]:
+        """Get user by email synchronously"""
+        try:
+            user_doc = self.collection.find_one({"email": email})
+            if user_doc:
+                user_doc['_id'] = str(user_doc['_id'])
+                return User(**user_doc)
+            return None
+        except Exception as e:
+            logger.error(f"Error retrieving user by email: {str(e)}")
+            return None
+
+    def get_by_id_sync(self, user_id: str) -> Optional[User]:
+        """Get user by ID synchronously"""
+        try:
+            user_doc = self.collection.find_one({"_id": ObjectId(user_id)})
+            if user_doc:
+                user_doc['_id'] = str(user_doc['_id'])
+                return User(**user_doc)
+            return None
+        except Exception as e:
+            logger.error(f"Error retrieving user by ID: {str(e)}")
+            return None

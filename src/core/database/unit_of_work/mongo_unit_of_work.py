@@ -24,13 +24,19 @@ class MongoUnitOfWork:
         self.tex_headers = None
         self._in_transaction = False
 
+    def _ensure_connection(self):
+        """Ensure database connection is established"""
+        if not self.connection.is_connected:
+            self.connection.connect()
+
+    async def _ensure_async_connection(self):
+        """Ensure async database connection is established"""
+        if not self.connection.is_connected:
+            await self.connection.connect_async()
+
     def __enter__(self):
-        self.portfolio = MongoPortfolioRepository(self.connection)
-        self.users = MongoUserRepository(self.connection)
-        self.resumes = MongoResumeRepository(self.connection)
-        self.profiles = MongoProfileRepository(self.connection)
-        self.preambles = MongoPreambleRepository(self.connection)
-        self.tex_headers = MongoTexHeaderRepository(self.connection)
+        self._ensure_connection()
+        self._init_repositories()
         self._in_transaction = True
         return self
 
@@ -41,6 +47,28 @@ class MongoUnitOfWork:
             self.commit()
         self._in_transaction = False
 
+    async def __aenter__(self):
+        await self._ensure_async_connection()
+        self._init_repositories()
+        self._in_transaction = True
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if exc_type:
+            await self.rollback_async()
+        else:
+            await self.commit_async()
+        self._in_transaction = False
+
+    def _init_repositories(self):
+        """Initialize all repositories"""
+        self.portfolio = MongoPortfolioRepository(self.connection)
+        self.users = MongoUserRepository(self.connection)
+        self.resumes = MongoResumeRepository(self.connection)
+        self.profiles = MongoProfileRepository(self.connection)
+        self.preambles = MongoPreambleRepository(self.connection)
+        self.tex_headers = MongoTexHeaderRepository(self.connection)
+
     def commit(self):
         if self._in_transaction:
             self.connection.commit_transaction()
@@ -48,6 +76,14 @@ class MongoUnitOfWork:
     def rollback(self):
         if self._in_transaction:
             self.connection.abort_transaction()
+
+    async def commit_async(self):
+        if self._in_transaction:
+            await self.connection.commit_transaction_async()
+
+    async def rollback_async(self):
+        if self._in_transaction:
+            await self.connection.abort_transaction_async()
 
     def get_resume_preamble(self) -> Optional[Preamble]:
         """Get the résumé preamble"""

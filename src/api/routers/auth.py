@@ -5,6 +5,9 @@ from ..middleware.auth import verify_token
 from ..dependencies.services import get_auth_service
 from typing import Dict
 import logging
+from fastapi.security import HTTPBearer
+from src.core.security.auth import get_current_user
+from src.core.database.models.user import User
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -38,17 +41,16 @@ async def login(
             detail=str(e)
         )
 
-@router.get("/me", response_model=UserResponse)
-async def get_current_user(
-    user_payload: Dict = Depends(verify_token),
-    auth_service: AuthService = Depends(get_auth_service)
-):
+@router.get("/me", response_model=User)
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    """Get current authenticated user"""
     try:
-        user = await auth_service.get_user_by_id(user_payload["sub"])
-        return user
+        logger.debug(f"Fetching user info for user_id: {current_user.user_id}")
+        return current_user
     except Exception as e:
+        logger.error(f"Error in read_users_me: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
 

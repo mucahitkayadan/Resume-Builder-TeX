@@ -42,12 +42,16 @@ class Settings(BaseSettings):
     prompts_dir: Path = PROMPTS_DIR
     output_dir: Path = OUTPUT_DIR
 
-    @property
-    def cors_origins(self) -> List[str]:
-        return [
-            "http://localhost:3000",
-            "http://localhost:8001",
-        ]
+    # CORS Settings
+    cors_origins: List[str] = [
+        "http://localhost:3000",      # React development server
+        "http://localhost:8001",      # FastAPI server
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8001",
+    ]
+    cors_allow_credentials: bool = True
+    cors_allow_methods: List[str] = ["*"]
+    cors_allow_headers: List[str] = ["*"]
 
     @property
     def feature_flags(self) -> Dict[str, bool]:

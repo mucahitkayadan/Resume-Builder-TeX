@@ -3,8 +3,8 @@ from src.api.services.resume_service import ResumeService
 from src.api.services.cover_letter_service import CoverLetterService
 from src.api.services.portfolio_service import PortfolioService
 from src.api.services.preferences_service import PreferencesService
-from src.api.services.application_service import ApplicationService
 from src.api.services.auth_service import AuthService
+from src.core.database.factory import get_async_unit_of_work
 
 def get_auth_service() -> Generator[AuthService, None, None]:
     service = AuthService()
@@ -41,9 +41,6 @@ def get_preferences_service() -> Generator[PreferencesService, None, None]:
     finally:
         pass
 
-def get_application_service() -> Generator[ApplicationService, None, None]:
-    service = ApplicationService()
-    try:
-        yield service
-    finally:
-        pass 
+async def get_uow():
+    async with get_async_unit_of_work() as uow:
+        yield uow

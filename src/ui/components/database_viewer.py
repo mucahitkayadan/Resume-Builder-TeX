@@ -9,6 +9,17 @@ class DatabaseViewer:
     def __init__(self):
         self.uow = get_unit_of_work()
 
+    def get_display_name(self, resume) -> str:
+        """Generate a display name for the resume"""
+        if isinstance(resume.personal_information, dict):
+            # For structured data
+            name = resume.personal_information.get('name', 'Unnamed')
+        else:
+            # For LaTeX format
+            name = resume.title or 'Unnamed'
+        
+        return f"{name}_{resume.created_at.strftime('%Y%m%d')}"
+
     def render(self):
         st.title("📊 Resume Database")
         
@@ -31,23 +42,23 @@ class DatabaseViewer:
             
             with col1:
                 st.metric(
-                    "Total Applications",
+                    "Total Resumes",
                     total_resumes,
-                    help="Total number of job applications"
+                    help="Total number of resumes"
                 )
             
             with col2:
                 st.metric(
-                    "Today's Applications",
+                    "Today's Resumes",
                     today_resumes,
-                    help="Applications submitted today"
+                    help="Resumes created today"
                 )
             
             with col3:
                 st.metric(
                     "Last 7 Days",
                     last_7_days,
-                    help="Applications in the last week"
+                    help="Resumes in the last week"
                 )
 
             # Add a separator
@@ -57,21 +68,21 @@ class DatabaseViewer:
             df_data = [
                 {
                     'ID': resume.id,
-                    'Display Name': f"{resume.company_name}_{resume.job_title}",
-                    'Company Name': resume.company_name,
-                    'Job Title': resume.job_title,
-                    'Creation Date': resume.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                    'Display Name': self.get_display_name(resume),
+                    'Title': resume.title,
+                    'Version': resume.version,
+                    'Created At': resume.created_at.strftime('%Y-%m-%d %H:%M:%S')
                 }
                 for resume in resumes
             ]
             df = pd.DataFrame(df_data)
             
             # Sort by creation date in descending order
-            df = df.sort_values('Creation Date', ascending=False)
+            df = df.sort_values('Created At', ascending=False)
 
             # Display the DataFrame
             st.dataframe(
-                df[['Display Name', 'Company Name', 'Job Title', 'Creation Date']],
+                df[['Display Name', 'Title', 'Version', 'Created At']],
                 use_container_width=True
             )
 
@@ -96,40 +107,43 @@ class DatabaseViewer:
                         
                         # Display resume sections in expanders
                         sections = [
-                            'personal_information', 'career_summary', 'skills',
-                            'work_experience', 'education', 'projects',
-                            'awards', 'publications'
+                            ('Personal Information', resume.personal_information),
+                            ('Career Summary', resume.career_summary),
+                            ('Skills', resume.skills),
+                            ('Work Experience', resume.work_experience),
+                            ('Education', resume.education),
+                            ('Projects', resume.projects),
+                            ('Awards', resume.awards),
+                            ('Publications', resume.publications)
                         ]
                         
-                        for section in sections:
-                            content = getattr(resume, section)
+                        for section_name, content in sections:
                             if content:
-                                with st.expander(section.replace('_', ' ').title()):
-                                    st.markdown(content)
+                                with st.expander(section_name):
+                                    if isinstance(content, (dict, list)):
+                                        st.json(content)
+                                    else:
+                                        st.markdown(content)
                     
                     with tab2:
-                        col1, col2 = st.columns(2)
+                        if resume.resume_pdf:
+                            st.subheader("Resume PDF")
+                            st.download_button(
+                                "⬇️ Download Resume PDF",
+                                resume.resume_pdf,
+                                file_name=f"{selected_display_name}_resume.pdf",
+                                mime="application/pdf"
+                            )
+                            # Display PDF
+                            pdf_viewer(resume.resume_pdf)
                         
-                        with col1:
-                            if resume.resume_pdf:
-                                st.subheader("Resume PDF")
-                                st.download_button(
-                                    "⬇️ Download Resume PDF",
-                                    resume.resume_pdf,
-                                    file_name=f"{selected_display_name}_resume.pdf",
-                                    mime="application/pdf"
-                                )
-                                # Display PDF
-                                pdf_viewer(resume.resume_pdf)
-                        
-                        with col2:
-                            if resume.cover_letter_pdf:
-                                st.subheader("Cover Letter PDF")
-                                st.download_button(
-                                    "⬇️ Download Cover Letter PDF",
-                                    resume.cover_letter_pdf,
-                                    file_name=f"{selected_display_name}_cover_letter.pdf",
-                                    mime="application/pdf"
-                                )
-                                # Display PDF
-                                pdf_viewer(resume.cover_letter_pdf)
+                        if resume.cover_letter_pdf:
+                            st.subheader("Cover Letter PDF")
+                            st.download_button(
+                                "⬇️ Download Cover Letter PDF",
+                                resume.cover_letter_pdf,
+                                file_name=f"{selected_display_name}_cover_letter.pdf",
+                                mime="application/pdf"
+                            )
+                            # Display PDF
+                            pdf_viewer(resume.cover_letter_pdf)

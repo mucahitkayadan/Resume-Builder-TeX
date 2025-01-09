@@ -12,9 +12,8 @@ from config.config import LINKEDIN_EMAIL, LINKEDIN_PASSWORD
 logger = setup_logger(__name__)
 
 class HomePage:
-    def __init__(self, model_selector, section_selector, generator_manager):
+    def __init__(self, model_selector, generator_manager):
         self.model_selector = model_selector
-        self.section_selector = section_selector
         self.generator_manager = generator_manager
         self.job_extractor = JobExtractor(LINKEDIN_EMAIL, LINKEDIN_PASSWORD)
         # Load saved preferences

@@ -2,6 +2,12 @@ import streamlit as st
 from src.core.database.factory import get_unit_of_work
 from config.logger_config import setup_logger
 from config.settings import FEATURE_FLAGS
+from src.core.database.models.user_preferences import (
+    UserPreferences, ProjectDetails, WorkExperienceDetails,
+    SkillsDetails, CareerSummaryDetails, EducationDetails,
+    CoverLetterDetails, AwardsDetails, PublicationsDetails,
+    FeaturePreferences, SectionPreferences
+)
 
 logger = setup_logger(__name__)
 
@@ -89,138 +95,165 @@ class SettingsPage:
                 st.error("User not found")
                 return
             
-            preferences = user.preferences
+            # Get user profile and preferences
+            profile = uow.profiles.get_by_user_id(st.session_state['user_id'])
+            
+            # Convert Pydantic model to dict if needed
+            if hasattr(user.preferences, 'model_dump'):
+                preferences = user.preferences.model_dump()
+            else:
+                preferences = user.preferences
             
             # Life Story Section
             with st.expander("Life Story"):
                 life_story = st.text_area(
                     "Your Life Story",
-                    value=user.life_story or "",
+                    value=profile.life_story if profile else "",
                     height=200,
-                    help="This will be used to personalize your cover letter"
+                    help="This will be used to personalize your cover letter",
+                    key="life_story_input"
                 )
             
             # Resume Section Preferences
             with st.expander("Resume Section Preferences"):
                 # Projects
                 st.subheader("Projects")
+                project_details = preferences.get('project_details', {})
                 max_projects = st.number_input(
                     "Maximum Projects",
                     min_value=1,
                     max_value=10,
-                    value=preferences.project_details.get('max_projects', 2)
+                    value=project_details.get('max_projects', 5),
+                    key="max_projects_input"
                 )
                 bullet_points_per_project = st.number_input(
                     "Bullet Points per Project",
                     min_value=1,
                     max_value=5,
-                    value=preferences.project_details.get('bullet_points_per_project', 2)
+                    value=project_details.get('bullet_points_per_project', 3),
+                    key="bullet_points_per_project_input"
                 )
                 
                 # Work Experience
                 st.subheader("Work Experience")
+                work_exp_details = preferences.get('work_experience_details', {})
                 max_jobs = st.number_input(
                     "Maximum Jobs",
                     min_value=1,
                     max_value=10,
-                    value=preferences.work_experience_details.get('max_jobs', 4)
+                    value=work_exp_details.get('max_jobs', 5),
+                    key="max_jobs_input"
                 )
                 bullet_points_per_job = st.number_input(
                     "Bullet Points per Job",
                     min_value=1,
                     max_value=5,
-                    value=preferences.work_experience_details.get('bullet_points_per_job', 2)
+                    value=work_exp_details.get('bullet_points_per_job', 3),
+                    key="bullet_points_per_job_input"
                 )
                 
                 # Skills
                 st.subheader("Skills")
+                skills_details = preferences.get('skills_details', {})
                 max_categories = st.number_input(
                     "Maximum Skill Categories",
                     min_value=1,
                     max_value=10,
-                    value=preferences.skills_details.get('max_categories', 5)
+                    value=skills_details.get('max_categories', 5),
+                    key="max_categories_input"
                 )
                 min_skills = st.number_input(
                     "Minimum Skills per Category",
                     min_value=1,
                     max_value=15,
-                    value=preferences.skills_details.get('min_skills_per_category', 6)
+                    value=skills_details.get('min_skills_per_category', 3),
+                    key="min_skills_input"
                 )
                 max_skills = st.number_input(
                     "Maximum Skills per Category",
                     min_value=1,
                     max_value=15,
-                    value=preferences.skills_details.get('max_skills_per_category', 10)
+                    value=skills_details.get('max_skills_per_category', 7),
+                    key="max_skills_input"
                 )
                 
                 # Career Summary
                 st.subheader("Career Summary")
+                career_summary_details = preferences.get('career_summary_details', {})
                 min_words = st.number_input(
                     "Minimum Words",
                     min_value=10,
                     max_value=50,
-                    value=preferences.career_summary_details.get('min_words', 15)
+                    value=career_summary_details.get('min_words', 25),
+                    key="min_words_input"
                 )
                 max_words = st.number_input(
                     "Maximum Words",
                     min_value=10,
                     max_value=50,
-                    value=preferences.career_summary_details.get('max_words', 25)
+                    value=career_summary_details.get('max_words', 35),
+                    key="max_words_input"
                 )
                 
                 # Education
                 st.subheader("Education")
+                education_details = preferences.get('education_details', {})
                 max_education = st.number_input(
                     "Maximum Education Entries",
                     min_value=1,
                     max_value=5,
-                    value=preferences.education_details.get('max_entries', 3)
+                    value=education_details.get('max_entries', 3),
+                    key="max_education_input"
                 )
                 max_courses = st.number_input(
                     "Maximum Courses Listed",
                     min_value=1,
                     max_value=10,
-                    value=preferences.education_details.get('max_courses', 5)
+                    value=education_details.get('max_courses', 5),
+                    key="max_courses_input"
                 )
 
-            # Cover Letter Preferences
-            with st.expander("Cover Letter Preferences"):
-                st.subheader("Cover Letter")
-                paragraphs = st.number_input(
-                    "Number of Paragraphs",
-                    min_value=2,
-                    max_value=8,
-                    value=preferences.cover_letter_details.get('paragraphs', 4)
+            # Feature Flags
+            with st.expander("Feature Flags"):
+                st.subheader("Features")
+                feature_preferences = preferences.get('feature_preferences', {})
+                check_clearance = st.toggle(
+                    "Security Clearance Check",
+                    value=feature_preferences.get('check_clearance', True),
+                    help="Enable/disable checking for security clearance requirements",
+                    key="check_clearance_toggle"
                 )
-                target_grade_level = st.number_input(
-                    "Target Grade Level",
-                    min_value=8,
-                    max_value=25,
-                    value=preferences.cover_letter_details.get('target_grade_level', 12),
-                    help="Target reading level for the cover letter (8-25)"
+                auto_save = st.toggle(
+                    "Auto-save",
+                    value=feature_preferences.get('auto_save', True),
+                    help="Automatically save generated documents",
+                    key="auto_save_toggle"
                 )
-
-            # Awards Preferences
-            with st.expander("Awards Preferences"):
-                st.subheader("Awards")
-                max_awards = st.number_input(
-                    "Maximum Awards",
-                    min_value=1,
-                    max_value=10,
-                    value=preferences.awards_details.get('max_awards', 4)
+                dark_mode = st.toggle(
+                    "Dark Mode",
+                    value=feature_preferences.get('dark_mode', False),
+                    help="Enable/disable dark mode",
+                    key="dark_mode_toggle"
                 )
 
-            # Publications Preferences
-            with st.expander("Publications Preferences"):
-                st.subheader("Publications")
-                max_publications = st.number_input(
-                    "Maximum Publications",
-                    min_value=1,
-                    max_value=10,
-                    value=preferences.publications_details.get('max_publications', 3)
-                )
+            # Section Preferences
+            with st.expander("Section Processing"):
+                st.subheader("Section Processing Preferences")
+                section_preferences = preferences.get('section_preferences', {})
+                section_values = {}
+                for section in ['personal_information', 'career_summary', 'skills', 
+                              'work_experience', 'education', 'projects', 'awards', 'publications']:
+                    section_values[section] = st.selectbox(
+                        f"{section.replace('_', ' ').title()}",
+                        options=["Process", "Hardcode", "Skip"],
+                        key=f"section_preference_{section}",
+                        index=0 if section_preferences.get(section) == "Process" 
+                              else 1 if section_preferences.get(section) == "Hardcode"
+                              else 2,
+                        help=f"Choose how to handle the {section.replace('_', ' ')} section"
+                    )
 
-            if st.button("Save Preferences"):
+            if st.button("Save Preferences", key="save_preferences_button"):
                 try:
                     # Update preferences with all sections
                     new_preferences = {
@@ -245,20 +278,26 @@ class SettingsPage:
                             'max_entries': max_education,
                             'max_courses': max_courses
                         },
-                        'cover_letter_details': {
-                            'paragraphs': paragraphs,
-                            'target_grade_level': target_grade_level
+                        'feature_preferences': {
+                            'check_clearance': check_clearance,
+                            'auto_save': auto_save,
+                            'dark_mode': dark_mode
                         },
-                        'awards_details': {
-                            'max_awards': max_awards
-                        },
-                        'publications_details': {
-                            'max_publications': max_publications
-                        }
+                        'section_preferences': section_values
                     }
                     
-                    # Update life story
-                    uow.users.update_life_story(st.session_state['user_id'], life_story)
+                    # Update life story in profile
+                    if profile:
+                        profile.life_story = life_story
+                        uow.profiles.update(profile)
+                    else:
+                        # Create new profile if it doesn't exist
+                        from src.core.database.models.profile import Profile
+                        new_profile = Profile(
+                            user_id=st.session_state['user_id'],
+                            life_story=life_story
+                        )
+                        uow.profiles.create(new_profile)
                     
                     # Update preferences
                     uow.users.update_preferences(st.session_state['user_id'], new_preferences)
@@ -267,7 +306,7 @@ class SettingsPage:
                     logger.info(f"Preferences updated for user {st.session_state['user_id']}")
                     
                 except Exception as e:
-                    logger.error(f"Failed to save preferences: {e}")
+                    logger.error(f"Failed to save preferences: {str(e)}")
                     st.error(f"❌ Failed to save preferences: {str(e)}")
 
     def _render_feature_flags(self):

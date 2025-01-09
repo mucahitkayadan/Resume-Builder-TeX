@@ -1,4 +1,4 @@
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, Any
 import logging
 from src.core.database.factory import get_unit_of_work
 from src.core.dto.portfolio.portfolio import PortfolioDTO
