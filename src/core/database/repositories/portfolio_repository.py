@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 class MongoPortfolioRepository(BaseRepository[Portfolio]):
     def __init__(self, connection):
         self.connection = connection
-        self.collection = self.connection.db['portfolio']
+        self.collection = self.connection.db['portfolios']
 
     def get_by_id(self, id: str) -> Optional[Portfolio]:
         try:

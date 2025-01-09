@@ -1,97 +1,68 @@
+"""MongoDB connection handler module."""
+
 from typing import Optional
-from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import MongoClient
+from pymongo.client_session import ClientSession
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorClientSession
 import logging
 
 logger = logging.getLogger(__name__)
 
 class MongoConnection:
-    def __init__(self, uri: str, db_name: str):
-        self.uri = uri
-        self.db_name = db_name
-        self.client: Optional[MongoClient] = None
-        self.async_client: Optional[AsyncIOMotorClient] = None
-        self.db = None
-        self._transaction = None
-
-    def connect(self):
-        """Connect synchronously to MongoDB"""
-        try:
-            self.client = MongoClient(self.uri)
-            self.db = self.client[self.db_name]
-            logger.info("Connected to MongoDB successfully")
-        except Exception as e:
-            logger.error(f"Error connecting to MongoDB: {str(e)}")
-            raise
-
-    async def connect_async(self):
-        """Connect asynchronously to MongoDB"""
-        try:
-            self.async_client = AsyncIOMotorClient(self.uri)
-            self.db = self.async_client[self.db_name]
-            logger.info("Connected to MongoDB successfully (async)")
-        except Exception as e:
-            logger.error(f"Error connecting to MongoDB async: {str(e)}")
-            raise
-
-    def close(self):
-        """Close synchronous connection"""
-        if self.client:
-            self.client.close()
-            logger.info("Closed MongoDB connection")
-
-    async def close_async(self):
-        """Close asynchronous connection"""
-        if self.async_client:
-            self.async_client.close()
-            logger.info("Closed MongoDB async connection")
-
-    def start_transaction(self):
-        """Start a synchronous transaction"""
-        if not self._transaction:
-            self._transaction = self.client.start_session()
-            self._transaction.start_transaction()
-
-    async def start_transaction_async(self):
-        """Start an asynchronous transaction"""
-        if not self._transaction:
-            self._transaction = await self.async_client.start_session()
-            await self._transaction.start_transaction()
-
-    def commit_transaction(self):
-        """Commit a synchronous transaction"""
-        if self._transaction:
-            self._transaction.commit_transaction()
-            self._transaction.end_session()
-            self._transaction = None
-
-    async def commit_transaction_async(self):
-        """Commit an asynchronous transaction"""
-        if self._transaction:
-            await self._transaction.commit_transaction()
-            await self._transaction.end_session()
-            self._transaction = None
-
-    def abort_transaction(self):
-        """Abort a synchronous transaction"""
-        if self._transaction:
-            self._transaction.abort_transaction()
-            self._transaction.end_session()
-            self._transaction = None
-
-    async def abort_transaction_async(self):
-        """Abort an asynchronous transaction"""
-        if self._transaction:
-            await self._transaction.abort_transaction()
-            await self._transaction.end_session()
-            self._transaction = None
-
+    """MongoDB connection handler for synchronous operations."""
+    
+    def __init__(self, uri: str, database: str):
+        """
+        Initialize MongoDB connection.
+        
+        Args:
+            uri: MongoDB connection URI
+            database: Database name
+        """
+        self.client = MongoClient(uri)
+        self.db = self.client[database]
+        self._session: Optional[ClientSession] = None
+        logger.info("Connected to MongoDB successfully")
+    
+    def __enter__(self) -> 'MongoConnection':
+        """Start a new session."""
+        self._session = self.client.start_session()
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """End the session."""
+        if self._session:
+            self._session.end_session()
+            self._session = None
+    
     @property
-    def is_connected(self) -> bool:
-        """Check if connected to MongoDB"""
-        return bool(self.client or self.async_client)
+    def session(self) -> Optional[ClientSession]:
+        """Get current session."""
+        return self._session
 
+class AsyncMongoConnection:
+    """Async MongoDB connection handler."""
+    
+    def __init__(self, uri: str, database: str):
+        """Initialize MongoDB connection."""
+        self.client = AsyncIOMotorClient(uri)
+        self.db = self.client[database]
+        self._session: Optional[AsyncIOMotorClientSession] = None
+        logger.info("Connected to MongoDB successfully")
+    
+    async def __aenter__(self) -> 'AsyncMongoConnection':
+        """Start a new session."""
+        self._session = await self.client.start_session()
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """End the session."""
+        if self._session:
+            await self._session.end_session()
+            self._session = None
+    
     @property
-    def is_transaction_active(self) -> bool:
-        """Check if a transaction is active"""
-        return bool(self._transaction)
+    def session(self) -> Optional[AsyncIOMotorClientSession]:
+        """Get current session."""
+        return self._session
+

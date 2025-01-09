@@ -32,7 +32,7 @@ class PortfolioLoader:
         self.uow = get_unit_of_work()
         with self.uow:
             # Get portfolio data
-            raw_portfolio = self.uow.portfolio.get_by_user_id(user_id)
+            raw_portfolio = self.uow.portfolios.get_by_user_id(user_id)
             if not raw_portfolio:
                 raise ValueError(f"Portfolio not found for user {user_id}")
             

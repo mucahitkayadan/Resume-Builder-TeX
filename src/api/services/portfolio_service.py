@@ -10,19 +10,19 @@ class PortfolioService:
 
     async def get_portfolio(self, user_id: str) -> Optional[PortfolioResponse]:
         with self.uow:
-            portfolio = self.uow.portfolio.get_by_user_id(user_id)
+            portfolio = self.uow.portfolios.get_by_user_id(user_id)
             if not portfolio:
                 return None
             return PortfolioResponse.model_validate(portfolio)
 
     async def update_portfolio(self, user_id: str, portfolio_data: dict):
         with self.uow:
-            portfolio = self.uow.portfolio.get_by_user_id(user_id)
+            portfolio = self.uow.portfolios.get_by_user_id(user_id)
             if not portfolio:
                 raise Exception("Portfolio not found")
 
             portfolio_data["updated_at"] = datetime.utcnow()
-            updated = self.uow.portfolio.update(portfolio.id, portfolio_data)
+            updated = self.uow.portfolios.update(portfolio.id, portfolio_data)
             self.uow.commit()
             return updated
 

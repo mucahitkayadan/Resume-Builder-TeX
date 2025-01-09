@@ -85,7 +85,7 @@ class CoverLetterGenerator:
         # If no resume_id, create minimal resume data
         if not resume_id:
             with self.uow:
-                portfolio = self.uow.portfolio.get_by_user_id(self.user_id)
+                portfolio = self.uow.portfolios.get_by_user_id(self.user_id)
                 if not portfolio:
                     return "No portfolio found for user"
                 
@@ -139,7 +139,7 @@ class CoverLetterGenerator:
                 return resume_data, latest_resume
 
             # No resume available, use portfolio data
-            portfolio = self.uow.portfolio.get_by_user_id(self.user_id)
+            portfolio = self.uow.portfolios.get_by_user_id(self.user_id)
             if not portfolio:
                 raise ValueError("No portfolio found for user")
             

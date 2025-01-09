@@ -19,7 +19,7 @@ class HardcodeSections:
         
         # Load portfolio data
         with get_unit_of_work() as uow:
-            raw_portfolio = uow.portfolio.get_by_user_id(user_id)
+            raw_portfolio = uow.portfolios.get_by_user_id(user_id)
             raw_profile = uow.profiles.get_by_user_id(user_id)
             
             if not raw_portfolio:
