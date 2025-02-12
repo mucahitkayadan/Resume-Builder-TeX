@@ -1,0 +1,18 @@
+2025-01-09 20:36:33,396 - src.core.database.connections.mongo_connection - INFO - Connected to database: user_information
+2025-01-09 20:36:33,397 - src.core.database.unit_of_work.mongo_unit_of_work - ERROR - Error initializing repositories: Can't instantiate abstract class MongoPortfolioRepository without an implementation for abstract methods 'exists', 'get_all'
+2025-01-09 20:36:33,397 - src.core.database.connections.mongo_connection - INFO - Disconnected from MongoDB
+2025-01-09 20:55:39,035 - src.core.database.connections.mongo_connection - INFO - Connected to database: user_information
+2025-01-09 20:55:39,035 - src.core.database.unit_of_work.mongo_unit_of_work - ERROR - Error initializing repositories: Can't instantiate abstract class MongoPreambleRepository without an implementation for abstract method 'get_by_user_id'
+2025-01-09 20:55:39,036 - src.core.database.connections.mongo_connection - INFO - Disconnected from MongoDB
+2025-01-09 21:00:10,310 - src.core.database.connections.mongo_connection - INFO - Connected to database: user_information
+2025-01-09 21:00:10,310 - src.core.database.unit_of_work.mongo_unit_of_work - ERROR - Error initializing repositories: Can't instantiate abstract class MongoPreambleRepository without an implementation for abstract methods 'add', 'delete', 'get_by_user_id', 'update'
+2025-01-09 21:00:10,310 - src.core.database.connections.mongo_connection - INFO - Disconnected from MongoDB
+2025-01-09 21:01:04,878 - src.core.database.connections.mongo_connection - INFO - Connected to database: user_information
+2025-01-09 21:01:04,879 - src.core.database.unit_of_work.mongo_unit_of_work - ERROR - Error initializing repositories: Can't instantiate abstract class MongoTexHeaderRepository without an implementation for abstract method 'get_by_user_id'
+2025-01-09 21:01:04,879 - src.core.database.connections.mongo_connection - INFO - Disconnected from MongoDB
+2025-01-09 21:03:36,750 - src.core.database.connections.mongo_connection - INFO - Connected to database: user_information
+2025-01-09 21:03:36,750 - src.core.database.connections.mongo_connection - INFO - Disconnected from MongoDB
+2025-01-09 21:06:14,041 - src.core.database.connections.mongo_connection - INFO - Connected to database: user_information
+2025-01-09 21:06:14,070 - src.core.database.connections.mongo_connection - INFO - Disconnected from MongoDB
+2025-01-09 21:10:47,890 - src.core.database.connections.mongo_connection - INFO - Connected to database: user_information
+2025-01-09 21:10:47,890 - src.core.database.connections.mongo_connection - INFO - Disconnected from MongoDB

@@ -1,0 +1,109 @@
+2025-01-09 18:38:57,260 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Initializing AsyncMongoUnitOfWork
+2025-01-09 18:38:57,261 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Entering AsyncMongoUnitOfWork context
+2025-01-09 18:38:57,261 - src.core.database.unit_of_work.mongo_unit_of_work - ERROR - Error starting transaction: 'AsyncMongoConnection' object has no attribute 'start_transaction'
+Traceback (most recent call last):
+  File "D:\Codes\ResumeBuilderTeX\src\core\database\unit_of_work\mongo_unit_of_work.py", line 88, in __aenter__
+    await self.connection.start_transaction()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AsyncMongoConnection' object has no attribute 'start_transaction'
+2025-01-09 19:39:28,703 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Initializing MongoUnitOfWork
+2025-01-09 19:39:28,703 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Entering MongoUnitOfWork context
+2025-01-09 19:39:28,703 - src.core.database.unit_of_work.mongo_unit_of_work - ERROR - Error initializing repositories: Can't instantiate abstract class MongoUserRepository without an implementation for abstract method 'exists'
+2025-01-09 19:42:03,179 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Initializing MongoUnitOfWork
+2025-01-09 19:42:03,180 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Entering MongoUnitOfWork context
+2025-01-09 19:42:03,180 - src.core.database.unit_of_work.mongo_unit_of_work - ERROR - Error initializing repositories: Can't instantiate abstract class MongoUserRepository without an implementation for abstract method 'exists'
+2025-01-09 19:46:00,139 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Initializing MongoUnitOfWork
+2025-01-09 19:46:00,139 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Entering MongoUnitOfWork context
+2025-01-09 19:46:00,139 - src.core.database.unit_of_work.mongo_unit_of_work - ERROR - Error initializing repositories: 'MongoConnection' object has no attribute 'get_collection'
+2025-01-09 19:47:58,315 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Initializing MongoUnitOfWork
+2025-01-09 19:47:58,315 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Entering MongoUnitOfWork context
+2025-01-09 19:47:58,315 - src.core.database.unit_of_work.mongo_unit_of_work - ERROR - Error initializing repositories: 'MongoConnection' object has no attribute 'get_collection'
+2025-01-09 19:50:04,899 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Initializing MongoUnitOfWork
+2025-01-09 19:50:04,899 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Entering MongoUnitOfWork context
+2025-01-09 19:50:04,899 - src.core.database.unit_of_work.mongo_unit_of_work - ERROR - Error initializing repositories: 'MongoConnection' object has no attribute 'get_collection'
+2025-01-09 19:53:03,330 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Initializing MongoUnitOfWork
+2025-01-09 19:53:03,330 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Entering MongoUnitOfWork context
+2025-01-09 19:53:03,330 - src.core.database.unit_of_work.mongo_unit_of_work - ERROR - Error initializing repositories: Database objects do not implement truth value testing or bool(). Please compare with None instead: database is not None
+2025-01-09 19:53:03,331 - src.api.routers.auth - ERROR - Login error: Database objects do not implement truth value testing or bool(). Please compare with None instead: database is not None
+Traceback (most recent call last):
+  File "D:\Codes\ResumeBuilderTeX\src\api\routers\auth.py", line 22, in login
+    with uow as unit_of_work:
+         ^^^
+  File "C:\Users\Muja\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "D:\Codes\ResumeBuilderTeX\src\core\database\factory.py", line 36, in get_unit_of_work
+    with MongoUnitOfWork(connection) as uow:
+         ~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Codes\ResumeBuilderTeX\src\core\database\unit_of_work\mongo_unit_of_work.py", line 36, in __enter__
+    self.users = UserRepository(self.connection)
+                 ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Codes\ResumeBuilderTeX\src\core\database\repositories\user_repository.py", line 22, in __init__
+    self.collection = connection.get_collection('users')
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Codes\ResumeBuilderTeX\src\core\database\connections\mongo_connection.py", line 51, in get_collection
+    if not self.db:
+           ^^^^^^^
+  File "D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\pymongo\synchronous\database.py", line 342, in __bool__
+    raise NotImplementedError(
+    ...<3 lines>...
+    )
+NotImplementedError: Database objects do not implement truth value testing or bool(). Please compare with None instead: database is not None
+2025-01-09 19:54:23,510 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Initializing MongoUnitOfWork
+2025-01-09 19:54:23,510 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Entering MongoUnitOfWork context
+2025-01-09 19:54:23,511 - src.core.database.unit_of_work.mongo_unit_of_work - ERROR - Error initializing repositories: Can't instantiate abstract class MongoPortfolioRepository without an implementation for abstract methods 'exists', 'get_all'
+2025-01-09 19:54:23,511 - src.api.routers.auth - ERROR - Login error: Can't instantiate abstract class MongoPortfolioRepository without an implementation for abstract methods 'exists', 'get_all'
+Traceback (most recent call last):
+  File "D:\Codes\ResumeBuilderTeX\src\api\routers\auth.py", line 22, in login
+    with uow as unit_of_work:
+         ^^^
+  File "C:\Users\Muja\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "D:\Codes\ResumeBuilderTeX\src\core\database\factory.py", line 36, in get_unit_of_work
+    with MongoUnitOfWork(connection) as uow:
+         ~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Codes\ResumeBuilderTeX\src\core\database\unit_of_work\mongo_unit_of_work.py", line 37, in __enter__
+    self.portfolios = PortfolioRepository(self.connection)
+                      ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+TypeError: Can't instantiate abstract class MongoPortfolioRepository without an implementation for abstract methods 'exists', 'get_all'
+2025-01-09 19:55:53,083 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Initializing MongoUnitOfWork
+2025-01-09 19:55:53,083 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Entering MongoUnitOfWork context
+2025-01-09 19:55:53,083 - src.core.database.unit_of_work.mongo_unit_of_work - ERROR - Error initializing repositories: Can't instantiate abstract class MongoPortfolioRepository without an implementation for abstract methods 'exists', 'get_all'
+2025-01-09 19:55:53,083 - src.api.routers.auth - ERROR - Login error: Can't instantiate abstract class MongoPortfolioRepository without an implementation for abstract methods 'exists', 'get_all'
+Traceback (most recent call last):
+  File "D:\Codes\ResumeBuilderTeX\src\api\routers\auth.py", line 22, in login
+    with uow as unit_of_work:
+         ^^^
+  File "C:\Users\Muja\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "D:\Codes\ResumeBuilderTeX\src\core\database\factory.py", line 36, in get_unit_of_work
+    with MongoUnitOfWork(connection) as uow:
+         ~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Codes\ResumeBuilderTeX\src\core\database\unit_of_work\mongo_unit_of_work.py", line 37, in __enter__
+    self.portfolios = PortfolioRepository(self.connection)
+                      ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+TypeError: Can't instantiate abstract class MongoPortfolioRepository without an implementation for abstract methods 'exists', 'get_all'
+2025-01-09 19:59:55,123 - __main__ - INFO - Starting Streamlit application
+2025-01-09 19:59:55,125 - __main__ - INFO - Starting Streamlit application
+2025-01-09 19:59:55,123 - __main__ - INFO - Starting Streamlit application
+2025-01-09 19:59:55,125 - __main__ - INFO - Starting Streamlit application
+2025-01-09 19:59:55,501 - src.ui.components.model_selector - DEBUG - Initializing ModelSelector
+2025-01-09 19:59:55,510 - src.ui.components.model_selector - ERROR - Error loading model preferences: Can't instantiate abstract class MongoResumeRepository without an implementation for abstract method 'get_by_user_id'
+2025-01-09 19:59:57,556 - src.ui.pages.home - ERROR - Error loading user preferences: Can't instantiate abstract class MongoResumeRepository without an implementation for abstract method 'get_by_user_id'
+2025-01-09 19:59:57,794 - src.ui.streamlit_app - INFO - Starting StreamlitApp
+2025-01-09 20:04:16,563 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Initializing MongoUnitOfWork
+2025-01-09 20:04:16,564 - src.core.database.unit_of_work.mongo_unit_of_work - DEBUG - Entering MongoUnitOfWork context
+2025-01-09 20:04:16,564 - src.core.database.unit_of_work.mongo_unit_of_work - ERROR - Error initializing repositories: Can't instantiate abstract class MongoResumeRepository without an implementation for abstract method 'get_by_user_id'
+2025-01-09 20:04:16,565 - src.api.routers.auth - ERROR - Login error: Can't instantiate abstract class MongoResumeRepository without an implementation for abstract method 'get_by_user_id'
+Traceback (most recent call last):
+  File "D:\Codes\ResumeBuilderTeX\src\api\routers\auth.py", line 22, in login
+    with uow as unit_of_work:
+         ^^^
+  File "C:\Users\Muja\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "D:\Codes\ResumeBuilderTeX\src\core\database\factory.py", line 36, in get_unit_of_work
+    with MongoUnitOfWork(connection) as uow:
+         ~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Codes\ResumeBuilderTeX\src\core\database\unit_of_work\mongo_unit_of_work.py", line 45, in __enter__
+    self.resumes = ResumeRepository(self.connection)
+                   ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+TypeError: Can't instantiate abstract class MongoResumeRepository without an implementation for abstract method 'get_by_user_id'

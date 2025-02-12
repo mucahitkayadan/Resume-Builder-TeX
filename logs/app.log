@@ -1,0 +1,48 @@
+2025-01-14 11:37:29,131 - asyncio - ERROR - Exception in callback _HandlerDelegate.execute.<locals>.<lambda>() at D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py:2438
+handle: <Handle _HandlerDelegate.execute.<locals>.<lambda>() at D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py:2438>
+Traceback (most recent call last):
+  File "C:\Users\Muja\AppData\Local\Programs\Python\Python313\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py", line 2438, in <lambda>
+    fut.add_done_callback(lambda f: f.result())
+                                    ~~~~~~~~^^
+  File "D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py", line 1746, in _execute
+    async def _execute(
+asyncio.exceptions.CancelledError
+2025-01-14 11:37:29,324 - asyncio - ERROR - Exception in callback _HandlerDelegate.execute.<locals>.<lambda>() at D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py:2438
+handle: <Handle _HandlerDelegate.execute.<locals>.<lambda>() at D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py:2438>
+Traceback (most recent call last):
+  File "C:\Users\Muja\AppData\Local\Programs\Python\Python313\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py", line 2438, in <lambda>
+    fut.add_done_callback(lambda f: f.result())
+                                    ~~~~~~~~^^
+  File "D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py", line 1746, in _execute
+    async def _execute(
+asyncio.exceptions.CancelledError
+2025-01-14 11:37:29,325 - asyncio - ERROR - Exception in callback _HandlerDelegate.execute.<locals>.<lambda>() at D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py:2438
+handle: <Handle _HandlerDelegate.execute.<locals>.<lambda>() at D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py:2438>
+Traceback (most recent call last):
+  File "C:\Users\Muja\AppData\Local\Programs\Python\Python313\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py", line 2438, in <lambda>
+    fut.add_done_callback(lambda f: f.result())
+                                    ~~~~~~~~^^
+  File "D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py", line 1746, in _execute
+    async def _execute(
+asyncio.exceptions.CancelledError
+2025-01-14 11:37:29,327 - asyncio - ERROR - Exception in callback _HandlerDelegate.execute.<locals>.<lambda>() at D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py:2438
+handle: <Handle _HandlerDelegate.execute.<locals>.<lambda>() at D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py:2438>
+Traceback (most recent call last):
+  File "C:\Users\Muja\AppData\Local\Programs\Python\Python313\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py", line 2438, in <lambda>
+    fut.add_done_callback(lambda f: f.result())
+                                    ~~~~~~~~^^
+  File "D:\Codes\ResumeBuilderTeX\.venv\Lib\site-packages\tornado\web.py", line 1746, in _execute
+    async def _execute(
+asyncio.exceptions.CancelledError
