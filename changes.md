@@ -15,6 +15,7 @@
 - Fixed issue with resume preamble loading in LaTeX compilation
 - Consolidated user preference models into a single file
 - Updated model configurations for better type safety
+- Moved prompts directory to src/llms/prompts for better organization
 
 ## Important Notes
 - The project uses Poetry for dependency management

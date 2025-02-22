@@ -10,7 +10,7 @@ load_dotenv()
 
 # Base paths
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-PROMPTS_DIR = PROJECT_ROOT / "prompts"
+PROMPTS_DIR = PROJECT_ROOT / "src" / "llms" / "prompts"
 OUTPUT_DIR = PROJECT_ROOT / "created_resumes"
 
 # Create output directory if it doesn't exist
