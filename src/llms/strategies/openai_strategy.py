@@ -1,11 +1,9 @@
 import os
-from typing import Tuple
 
 from openai import OpenAI
 
 from config.llm_config import LLMConfig
 from config.logger_config import setup_logger
-from src.generator.utils.string_utils import sanitize_filename
 
 from ..utils.errors import APIError, ConfigurationError
 from ..utils.response import process_api_response

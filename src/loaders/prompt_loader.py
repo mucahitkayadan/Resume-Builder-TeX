@@ -44,6 +44,60 @@ class PromptLoader:
                 self._preferences = None
         return self._preferences
 
+    def _read_template_file(self, filename: str) -> Template:
+        """Read and create a template from a file.
+
+        Args:
+            filename: Name of the file to read
+
+        Returns:
+            Template object created from file contents
+
+        Raises:
+            FileNotFoundError: If the file doesn't exist
+        """
+        prompt_path = self.prompt_dir / filename
+        if not prompt_path.exists():
+            raise FileNotFoundError(f"Prompt file not found at {prompt_path}")
+
+        with open(prompt_path, "r", encoding="utf-8") as f:
+            return Template(f.read().strip())
+
+    def _get_preference_variables(self) -> Dict[str, Any]:
+        """Get variables from user preferences.
+
+        Returns:
+            Dictionary of variables for template substitution
+        """
+        variables = {}
+        if self.preferences:
+            for category, values in self.preferences.items():
+                if isinstance(values, dict):
+                    for key, value in values.items():
+                        variables[f"{category}_{key}"] = value
+                else:
+                    variables[category] = values
+        return variables
+
+    def _add_life_story(self, variables: Dict[str, Any]) -> None:
+        """Add life story to variables if available.
+
+        Args:
+            variables: Dictionary to add life story to
+        """
+        try:
+            with self.uow as uow:
+                user = uow.users.get_by_user_id(self.user_id)
+                if not user:
+                    user = uow.users.get_by_id(self.user_id)
+                if user and user.life_story:
+                    variables["life_story"] = user.life_story
+                else:
+                    variables["life_story"] = "No personal story available."
+        except Exception as e:
+            logger.error(f"Error loading life story: {e}")
+            variables["life_story"] = "No personal story available."
+
     def _load_prompt(self, filename: str) -> str:
         """
         Load and format a prompt file with user preferences if available.
@@ -55,38 +109,12 @@ class PromptLoader:
             Formatted prompt string
         """
         try:
-            prompt_path = self.prompt_dir / filename
-            if not prompt_path.exists():
-                raise FileNotFoundError(f"Prompt file not found at {prompt_path}")
-
-            with open(prompt_path, "r", encoding="utf-8") as f:
-                template = Template(f.read().strip())
-
-            variables = {}
-            if self.preferences:
-                for category, values in self.preferences.items():
-                    if isinstance(values, dict):
-                        for key, value in values.items():
-                            variables[f"{category}_{key}"] = value
-                    else:
-                        variables[category] = values
+            template = self._read_template_file(filename)
+            variables = self._get_preference_variables()
 
             # Add life story if loading cover letter prompt
             if filename == "cover_letter_prompt.txt" and self.user_id:
-                try:
-                    with self.uow as uow:
-                        # Try first with user_id field
-                        user = uow.users.get_by_user_id(self.user_id)
-                        if not user:
-                            # If not found, try with _id
-                            user = uow.users.get_by_id(self.user_id)
-                        if user and user.life_story:
-                            variables["life_story"] = user.life_story
-                        else:
-                            variables["life_story"] = "No personal story available."
-                except Exception as e:
-                    logger.error(f"Error loading life story: {e}")
-                    variables["life_story"] = "No personal story available."
+                self._add_life_story(variables)
 
             return template.safe_substitute(variables)
         except Exception as e:

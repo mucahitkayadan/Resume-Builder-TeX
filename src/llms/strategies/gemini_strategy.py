@@ -1,5 +1,3 @@
-import os
-
 import google.generativeai as genai
 
 from config.llm_config import LLMConfig

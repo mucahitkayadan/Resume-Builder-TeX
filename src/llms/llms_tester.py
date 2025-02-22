@@ -1,10 +1,5 @@
-import os
 import sys
 from pathlib import Path
-
-# Add the project root to Python path
-project_root = str(Path(__file__).parent.parent.parent)
-sys.path.append(project_root)
 
 from config.llm_config import LLMConfig
 from src.llms.strategies.claude_strategy import ClaudeStrategy
@@ -13,8 +8,17 @@ from src.llms.strategies.ollama_strategy import OllamaStrategy
 from src.llms.strategies.openai_strategy import OpenAIStrategy
 from src.llms.utils.errors import APIError, ConfigurationError
 
+# Add the project root to Python path
+project_root = str(Path(__file__).parent.parent.parent)
+sys.path.append(project_root)
 
-def llm_strategy_tester(strategy_name: str, strategy_class, api_key_env: str):
+
+# flake8: noqa: C901
+def llm_strategy_tester(
+    strategy_name: str,
+    strategy_class,
+    api_key_env: str,
+) -> None:
     print(f"\n=== Testing {strategy_name} Strategy ===")
 
     # Test initialization
@@ -48,7 +52,7 @@ def llm_strategy_tester(strategy_name: str, strategy_class, api_key_env: str):
 
     try:
         response = strategy.generate_content(test_prompt, test_data, test_job)
-        print(f"✓ Successfully generated content")
+        print("✓ Successfully generated content")
         print(f"Response: {response[:100]}...")  # First 100 chars
     except APIError as e:
         print(f"✗ API error: {e}")
@@ -61,7 +65,7 @@ def llm_strategy_tester(strategy_name: str, strategy_class, api_key_env: str):
         folder_name = strategy.create_folder_name(
             "Generate a folder name for this job application", test_job
         )
-        print(f"✓ Successfully created folder name")
+        print("✓ Successfully created folder name")
         print(f"Folder name: {folder_name}")
     except APIError as e:
         print(f"✗ API error: {e}")

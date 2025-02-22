@@ -15,7 +15,11 @@ logger = logging.getLogger(__name__)
 
 
 class CoverLetterGenerator:
-    """A class for generating cover letters based on job descriptions and resume data."""
+    """Generate cover letters based on job descriptions and resume data.
+
+    This class handles the generation of cover letters by combining resume data
+    with job descriptions and using AI to create personalized content.
+    """
 
     def __init__(self, llm_runner: LLMRunner, user_id: str):
         """Initialize the CoverLetterGenerator with necessary parts."""
@@ -26,15 +30,22 @@ class CoverLetterGenerator:
         self.latex_compiler = CoverLetterLatexCompiler()
 
     def generate_cover_letter(
-        self, job_description: str, resume_id: str, output_manager: OutputManager
+        self,
+        job_description: str,
+        resume_id: str,
+        output_manager: OutputManager,
     ) -> str:
         """Generate a cover letter based on the given job description and resume data."""
-        logger.info(f"Starting cover letter generation for resume ID: {resume_id}")
+        logger.info(
+            f"Starting cover letter generation for resume ID: {resume_id}"
+        )
 
         try:
             # Validate inputs and get resume data
             logger.debug("Validating inputs and getting resume data")
-            validation_result = self._validate_and_get_data(job_description, resume_id)
+            validation_result = self._validate_and_get_data(
+                job_description, resume_id
+            )
             if isinstance(validation_result, str):
                 logger.warning(f"Validation failed: {validation_result}")
                 return validation_result
@@ -43,7 +54,9 @@ class CoverLetterGenerator:
 
             # Generate content
             logger.debug("Generating cover letter content")
-            cover_letter_content = self._generate_content(resume_data, job_description)
+            cover_letter_content = self._generate_content(
+                resume_data, job_description
+            )
             logger.debug("Content generation complete")
 
             # Generate PDF
@@ -80,7 +93,10 @@ class CoverLetterGenerator:
             return "Cover letter generated and saved successfully."
 
         except Exception as e:
-            logger.error(f"Failed to generate cover letter: {str(e)}", exc_info=True)
+            logger.error(
+                f"Failed to generate cover letter: {str(e)}",
+                exc_info=True,
+            )
             raise
 
     def _validate_and_get_data(self, job_description: str, resume_id: str):
@@ -111,7 +127,10 @@ class CoverLetterGenerator:
         with self.uow:
             resume_data = self.uow.get_resume_for_cover_letter(resume_id)
             if not resume_data:
-                return f"Resume with ID {resume_id} not found or has no content suitable for cover letter generation."
+                return (
+                    f"Resume with ID {resume_id} not found or has no content "
+                    "suitable for cover letter generation."
+                )
 
             resume = self.uow.resumes.get_by_id(resume_id)
             if not resume:
@@ -141,9 +160,11 @@ class CoverLetterGenerator:
                 logger.warning(f"Specified resume {resume_id} not found")
 
             # Get the latest résumé as fallback
-            latest_resume = self.uow.resumes.get_latest_resume()
+            latest_resume = self.uow.resumes.get_latest_by_user_id(self.user_id)
             if latest_resume:
-                resume_data = self.uow.get_resume_for_cover_letter(latest_resume.id)
+                resume_data = self.uow.get_resume_for_cover_letter(
+                    latest_resume.id
+                )
                 return resume_data, latest_resume
 
             # No resume available, use portfolio data

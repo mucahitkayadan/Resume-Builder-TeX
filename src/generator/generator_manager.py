@@ -48,7 +48,9 @@ class GeneratorManager:
             )
         else:
             self._llm_runner.update_config(
-                model_type=model_type, model_name=model_name, temperature=temperature
+                model_type=model_type,
+                model_name=model_name,
+                temperature=temperature,
             )
         logger.info(
             f"Configured LLM with {model_type}, {model_name}, temp={temperature}"
@@ -68,6 +70,26 @@ class GeneratorManager:
             )
         return self._cover_letter_generator
 
+    def _check_security_clearance(self, job_description: str, feature_flags: Dict) -> None:
+        """Check if the job requires security clearance."""
+        if feature_flags.get("check_clearance", FEATURE_FLAGS["check_clearance"]):
+            if check_clearance_requirement(
+                job_description, APP_CONSTANTS["clearance_keywords"]
+            ):
+                raise ValueError(
+                    "Cannot generate content for positions requiring security clearance"
+                )
+
+    def _get_feature_flags(self) -> Dict:
+        """Get user feature preferences."""
+        with get_unit_of_work() as uow:
+            preferences = uow.users.get_preferences(self.user_id)
+            return (
+                preferences.get("feature_preferences", {})
+                if preferences
+                else {}
+            )
+
     def generate(
         self,
         generation_type: GenerationType,
@@ -77,21 +99,8 @@ class GeneratorManager:
     ) -> Generator[Tuple[str, float], None, None]:
         """Generate content based on the specified type."""
         try:
-            # Get user preferences for features
-            with get_unit_of_work() as uow:
-                preferences = uow.users.get_preferences(self.user_id)
-                feature_flags = (
-                    preferences.get("feature_preferences", {}) if preferences else {}
-                )
-
-            # Check clearance if the feature is enabled
-            if feature_flags.get("check_clearance", FEATURE_FLAGS["check_clearance"]):
-                if check_clearance_requirement(
-                    job_description, APP_CONSTANTS["clearance_keywords"]
-                ):
-                    raise ValueError(
-                        "Cannot generate content for positions requiring security clearance"
-                    )
+            feature_flags = self._get_feature_flags()
+            self._check_security_clearance(job_description, feature_flags)
 
             # Generate based on type
             if generation_type == GenerationType.RESUME:
@@ -100,7 +109,9 @@ class GeneratorManager:
                 )
 
             elif generation_type == GenerationType.COVER_LETTER:
-                yield from self._generate_cover_letter(job_description, output_manager)
+                yield from self._generate_cover_letter(
+                    job_description, output_manager
+                )
 
             elif generation_type == GenerationType.BOTH:
                 resume = None
@@ -159,24 +170,7 @@ class GeneratorManager:
         logger.debug(f"Current user_id: {self.user_id}")
 
         try:
-            # If no resume_id provided, get the latest resume
-            if not resume_id:
-                with get_unit_of_work() as uow:
-                    logger.debug(f"Getting last resume ID for user_id: {self.user_id}")
-                    latest_resume_id = uow.get_last_resume_id(self.user_id)
-                    logger.debug(f"Retrieved latest_resume_id: {latest_resume_id}")
-                    if latest_resume_id:
-                        resume_id = latest_resume_id
-                        logger.info(f"Using latest resume with ID: {resume_id}")
-                    else:
-                        logger.warning("No existing resume found for user")
-                        raise ValueError(
-                            "No resume found. Please generate a resume first or select an existing one."
-                        )
-
-            if not resume_id:
-                raise ValueError("Resume ID is required for cover letter generation")
-
+            resume_id = self._get_resume_id(resume_id)
             result = self.cover_letter_generator.generate_cover_letter(
                 job_description=job_description,
                 resume_id=resume_id,
@@ -192,3 +186,24 @@ class GeneratorManager:
         except Exception as e:
             logger.error(f"Cover letter generation failed: {str(e)}")
             raise
+
+    def _get_resume_id(self, resume_id: Optional[str] = None) -> str:
+        """Get resume ID, either provided or latest."""
+        if resume_id:
+            return resume_id
+
+        with get_unit_of_work() as uow:
+            logger.debug(f"Getting last resume ID for user_id: {self.user_id}")
+            latest_resume_id = uow.get_last_resume_id(self.user_id)
+            logger.debug(f"Retrieved latest_resume_id: {latest_resume_id}")
+
+            if not latest_resume_id:
+                logger.warning("No existing resume found for user")
+                msg = (
+                    "No resume found. Please generate a resume first "
+                    "or select an existing one."
+                )
+                raise ValueError(msg)
+
+            logger.info(f"Using latest resume with ID: {latest_resume_id}")
+            return latest_resume_id

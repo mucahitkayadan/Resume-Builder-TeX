@@ -63,40 +63,44 @@ class CoverLetterLatexCompiler(LatexCompiler):
         try:
             with self.uow:
                 preamble = self.uow.get_cover_letter_preamble()
-                portfolio = self.uow.portfolios.get_by_user_id(user_id)
+                profile = self.uow.profiles.get_by_user_id(user_id)
                 signature = self.uow.get_user_signature(user_id)
                 job_info = output_manager.get_job_info()
 
-                if not all([preamble, portfolio]):
+                if not all([preamble, profile]):
                     raise ValueError(
                         "Missing required data for cover letter generation"
                     )
 
-                tex_content = preamble.content
-                personal_info = portfolio.personal_information
+                tex_content = preamble  
+                personal_info = profile.personal_information
 
                 # Handle signature if exists
-                if signature:
+                if signature and hasattr(signature, 'image'):
                     signature_path = output_manager.output_dir / "signature.jpg"
-                    signature_path.write_bytes(signature)
-                    tex_content = tex_content.replace(
-                        "\\usepackage{graphicx}",
-                        f"\\usepackage{{graphicx}}\n\\graphicspath{{{{.}}}}",
-                    )
+                    signature_bytes = signature.image
+                    if hasattr(signature_bytes, 'binary'):
+                        signature_bytes = signature_bytes.binary
+                    signature_path.write_bytes(signature_bytes)
 
-                # Replace placeholders
+                # Format the cover letter content with proper paragraph style
+                formatted_content = content.replace("\n", "\n\n")  # Ensure proper paragraph breaks
+
+                # Replace placeholders with escaped values
                 replacements = {
-                    "NAME": personal_info.get("name", ""),
+                    "NAME": personal_info.get("full_name", ""),
                     "PHONE": personal_info.get("phone", ""),
                     "EMAIL": personal_info.get("email", ""),
                     "LINKEDIN": personal_info.get("linkedin", ""),
                     "GITHUB": personal_info.get("github", ""),
+                    "WEBSITE": personal_info.get("website", ""),
                     "ADDRESS": personal_info.get("address", ""),
                     "COMPANY_NAME": job_info.company_name,
                     "JOB_TITLE": job_info.job_title,
-                    "COVER_LETTER_CONTENT": content,
+                    "COVER_LETTER_CONTENT": formatted_content,
                 }
 
+                # Replace all placeholders in one go
                 for key, value in replacements.items():
                     tex_content = tex_content.replace(
                         f"{{{{{key}}}}}", LatexEscaper.escape_text(str(value))
@@ -111,4 +115,5 @@ class CoverLetterLatexCompiler(LatexCompiler):
                     os.remove(signature_path)
                 except Exception:
                     pass  # If cleanup fails during error, just continue with the original error
+            logger.error(f"Failed to generate TeX content: {str(e)}", exc_info=True)
             raise

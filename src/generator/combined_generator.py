@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Generator, Tuple
+from typing import Dict
 
 from src.generator.cover_letter_generator import CoverLetterGenerator
 from src.generator.resume_generator import ResumeGenerator
@@ -44,7 +44,9 @@ class CombinedGenerator:
                     logger.debug(f"Got result type: {type(result)}")
                     if isinstance(result, tuple):
                         status_msg, progress = result
-                        logger.debug(f"Progress update: {status_msg} ({progress*100}%)")
+                        logger.debug(
+                            f"Progress update: {status_msg} ({progress*100}%)"
+                        )
                         yield result  # Progress updates
                     else:
                         logger.debug(f"Got non-tuple result: {type(result)}")
@@ -52,13 +54,15 @@ class CombinedGenerator:
                         logger.debug(f"Stored last_result: {type(last_result)}")
 
                 logger.debug(
-                    f"Finished resume generation loop, last_result type: {type(last_result)}"
+                    f"Finished resume generation loop, "
+                    f"last_result type: {type(last_result)}"
                 )
                 # Get the resume from the last result
                 resume = last_result
                 if resume:
                     logger.info(
-                        f"Resume generation completed, got resume ID: {resume.id}"
+                        f"Resume generation completed, "
+                        f"got resume ID: {resume.id}"
                     )
                 else:
                     logger.error("Resume is None after generation loop")
@@ -66,7 +70,8 @@ class CombinedGenerator:
 
                 # Then generate the cover letter using the same resume
                 logger.info(
-                    f"Starting cover letter generation for resume ID: {resume.id}"
+                    f"Starting cover letter generation "
+                    f"for resume ID: {resume.id}"
                 )
                 result = self.cover_letter_generator.generate_cover_letter(
                     job_description=job_description,
@@ -83,6 +88,8 @@ class CombinedGenerator:
 
         except Exception as e:
             logger.error(
-                f"Failed to generate resume and cover letter: {str(e)}", exc_info=True
+                "Failed to generate resume and cover letter: "
+                f"{str(e)}",
+                exc_info=True,
             )
             raise

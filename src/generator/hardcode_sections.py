@@ -1,5 +1,4 @@
 import logging
-from typing import Any, Dict, Optional
 
 from src.core.database.factory import get_unit_of_work
 from src.core.dto.portfolio.portfolio import PortfolioDTO
@@ -47,7 +46,8 @@ class HardcodeSections:
             content = method()
             if content:
                 logger.debug(
-                    f"Successfully hardcoded section {section}, content length: {len(content)}"
+                    f"Successfully hardcoded section {section}, "
+                    f"content length: {len(content)}"
                 )
                 return content
             else:
@@ -91,9 +91,8 @@ class HardcodeSections:
             logger.debug(f"Generated personal info content length: {len(content)}")
             return content
         except Exception as e:
-            logger.error(
-                f"Error in hardcode_personal_information: {str(e)}", exc_info=True
-            )
+            msg = f"Error in hardcode_personal_information: {str(e)}"
+            logger.error(msg, exc_info=True)
             raise
 
     def hardcode_career_summary(self) -> str:
@@ -131,7 +130,10 @@ class HardcodeSections:
                     escaped_skills = ", ".join(
                         map(LatexEscaper.escape_text, skill_list)
                     )
-                    skills_content += f"    \\resumeSkillHeading{{{escaped_category}}}{{{escaped_skills}}}\n"
+                    skills_content += (
+                        f"    \\resumeSkillHeading{{{escaped_category}}}"
+                        f"{{{escaped_skills}}}\n"
+                    )
                     logger.debug(
                         f"Added skill category: {category} with {len(skill_list)} skills"
                     )
@@ -146,76 +148,119 @@ class HardcodeSections:
             raise
 
     def hardcode_work_experience(self) -> str:
-        experience_content = ""
-        for exp in self.portfolio.work_experience:
-            responsibilities = exp.get("responsibilities", [])
-            responsibilities_content = "\n".join(
-                [
-                    f"        \\resumeItem{{{LatexEscaper.escape_text(r)}}}"
-                    for r in responsibilities
-                ]
+        logger.debug("Hardcoding work experience")
+        try:
+            experience_content = ""
+            for exp in self.portfolio.work_experience:
+                # Process responsibilities
+                responsibilities = exp.get("responsibilities", [])
+                responsibilities_content = "\n".join(
+                    [
+                        f"        \\resumeItem{{{LatexEscaper.escape_text(r)}}}"
+                        for r in responsibilities
+                    ]
+                )
+
+                # Prepare experience data
+                exp_data = {
+                    "job_title": LatexEscaper.escape_text(exp.get("job_title", "")),
+                    "time": LatexEscaper.escape_text(exp.get("time", "")),
+                    "company": LatexEscaper.escape_text(exp.get("company", "")),
+                    "location": LatexEscaper.escape_text(exp.get("location", "")),
+                    "responsibilities": responsibilities_content,
+                }
+
+                # Format and add to content
+                exp_content = self.tex_loader.safe_format_template(
+                    "work_experience_item", **exp_data
+                )
+                experience_content += exp_content
+
+            # Wrap in final template
+            content = self.tex_loader.safe_format_template(
+                "work_experience", experience_content=experience_content
             )
-            exp_data = {
-                "job_title": LatexEscaper.escape_text(exp.get("job_title", "")),
-                "time": LatexEscaper.escape_text(exp.get("time", "")),
-                "company": LatexEscaper.escape_text(exp.get("company", "")),
-                "location": LatexEscaper.escape_text(exp.get("location", "")),
-                "responsibilities": responsibilities_content,
-            }
-            exp_content = self.tex_loader.safe_format_template(
-                "work_experience_item", **exp_data
-            )
-            experience_content += exp_content
-        return self.tex_loader.safe_format_template(
-            "work_experience", experience_content=experience_content
-        )
+            logger.debug(f"Generated work experience content length: {len(content)}")
+            return content
+        except Exception as e:
+            msg = f"Error in hardcode_work_experience: {str(e)}"
+            logger.error(msg, exc_info=True)
+            raise
 
     def hardcode_education(self) -> str:
-        education_content = "\\resumeSubHeadingListStart\n"
-        for edu in self.portfolio.education:
-            edu_data = {
-                "university": LatexEscaper.escape_text(edu.get("university_name", "")),
-                "location": LatexEscaper.escape_text(edu.get("location", "")),
-                "degree": LatexEscaper.escape_text(
-                    f"{edu.get('degree_type', '')} in {edu.get('degree', '')}".strip()
-                ),
-                "time": LatexEscaper.escape_text(edu.get("time", "")),
-                "key_courses": LatexEscaper.escape_text(
-                    f"Key Courses: {', '.join(edu.get('transcript', []))}"
-                ),
-            }
-            education_content += self.tex_loader.safe_format_template(
-                "education_item", **edu_data
+        logger.debug("Hardcoding education")
+        try:
+            education_content = "\\resumeSubHeadingListStart\n"
+            for edu in self.portfolio.education:
+                # Prepare degree text
+                degree_type = edu.get("degree_type", "")
+                degree = edu.get("degree", "")
+                degree_text = f"{degree_type} in {degree}".strip()
+
+                # Prepare education data
+                edu_data = {
+                    "university": LatexEscaper.escape_text(
+                        edu.get("university_name", "")
+                    ),
+                    "location": LatexEscaper.escape_text(edu.get("location", "")),
+                    "degree": LatexEscaper.escape_text(degree_text),
+                    "time": LatexEscaper.escape_text(edu.get("time", "")),
+                    "key_courses": LatexEscaper.escape_text(
+                        f"Key Courses: {', '.join(edu.get('transcript', []))}"
+                    ),
+                }
+
+                # Format and add to content
+                education_content += self.tex_loader.safe_format_template(
+                    "education_item", **edu_data
+                )
+
+            education_content += "\\resumeSubHeadingListEnd"
+            content = self.tex_loader.safe_format_template(
+                "education", education_content=education_content
             )
-        education_content += "\\resumeSubHeadingListEnd"
-        return self.tex_loader.safe_format_template(
-            "education", education_content=education_content
-        )
+            logger.debug(f"Generated education content length: {len(content)}")
+            return content
+        except Exception as e:
+            msg = f"Error in hardcode_education: {str(e)}"
+            logger.error(msg, exc_info=True)
+            raise
 
     def hardcode_projects(self) -> str:
-        projects_content = "\\resumeSubHeadingListStart\n"
-        for project in self.portfolio.projects:
-            bullet_points_content = "\n".join(
-                [
-                    f"    \\resumeItem{{{LatexEscaper.escape_text(point)}}}"
-                    for point in project.get("bullet_points", [])
-                ]
-            )
+        logger.debug("Hardcoding projects")
+        try:
+            projects_content = "\\resumeSubHeadingListStart\n"
+            for project in self.portfolio.projects:
+                bullet_points_content = "\n".join(
+                    [
+                        f"    \\resumeItem{{{LatexEscaper.escape_text(point)}}}"
+                        for point in project.get("bullet_points", [])
+                    ]
+                )
 
-            name_and_tech = LatexEscaper.escape_text(project.get("name", ""))
-            if project.get("technologies"):
-                name_and_tech += f" \\textbullet{{}} {LatexEscaper.escape_text(project['technologies'])}"
+                # Process project name and technologies separately
+                name = LatexEscaper.escape_text(project.get("name", ""))
+                tech = project.get("technologies", "")
+                name_and_tech = name
+                if tech:
+                    tech_escaped = LatexEscaper.escape_text(tech)
+                    name_and_tech += f" \\textbullet{{}} {tech_escaped}"
 
-            project_data = {
-                "name_and_tech": name_and_tech,
-                "date": LatexEscaper.escape_text(project.get("date", "")),
-                "bullet_points": bullet_points_content,
-            }
-            projects_content += self.tex_loader.safe_format_template(
-                "project_item", **project_data
-            )
-        projects_content += "\\resumeSubHeadingListEnd"
-        return projects_content
+                project_data = {
+                    "name_and_tech": name_and_tech,
+                    "date": LatexEscaper.escape_text(project.get("date", "")),
+                    "bullet_points": bullet_points_content,
+                }
+                projects_content += self.tex_loader.safe_format_template(
+                    "project_item", **project_data
+                )
+            projects_content += "\\resumeSubHeadingListEnd"
+            logger.debug(f"Generated projects content length: {len(projects_content)}")
+            return projects_content
+        except Exception as e:
+            msg = f"Error in hardcode_projects: {str(e)}"
+            logger.error(msg, exc_info=True)
+            raise
 
     def hardcode_awards(self) -> str:
         awards_content = ""

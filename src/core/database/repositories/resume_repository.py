@@ -35,7 +35,7 @@ class MongoResumeRepository(BaseRepository[Resume]):
         except Exception as e:
             raise DatabaseError(f"Error retrieving user resumes: {str(e)}")
 
-    def get_latest_resume(self, user_id: str) -> Optional[Resume]:
+    def get_latest_by_user_id(self, user_id: str) -> Optional[Resume]:
         """Get the most recent resume for a user"""
         try:
             if not isinstance(user_id, str):

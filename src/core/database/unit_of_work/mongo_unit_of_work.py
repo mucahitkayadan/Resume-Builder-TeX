@@ -26,6 +26,18 @@ class MongoUnitOfWork:
         self.preambles = PreambleRepository(connection)
         self.tex_headers = TexHeaderRepository(connection)
 
+    def get_last_resume_id(self, user_id: str) -> Optional[str]:
+        """Get the ID of the user's most recent resume.
+
+        Args:
+            user_id: The ID of the user
+
+        Returns:
+            str: The ID of the most recent resume, or None if no resumes found
+        """
+        resume = self.resumes.get_latest_by_user_id(user_id)
+        return resume.id if resume else None
+
     def get_cover_letter_preamble(self) -> Optional[str]:
         """Get cover letter preamble."""
         preamble = self.preambles.get_by_type("cover_letter_preamble")
@@ -45,6 +57,42 @@ class MongoUnitOfWork:
         """Get TeX header."""
         header = self.tex_headers.get_latest()
         return header.content if header else None
+
+    def get_resume_for_cover_letter(self, resume_id: str) -> dict:
+        """Get resume data formatted for cover letter generation.
+
+        Args:
+            resume_id: The ID of the resume to retrieve
+
+        Returns:
+            dict: Resume data formatted for cover letter generation
+
+        Raises:
+            ValueError: If resume not found
+        """
+        resume = self.resumes.get_by_id(resume_id)
+        if not resume:
+            raise ValueError(f"Resume with ID {resume_id} not found")
+
+        # Collect all non-empty sections
+        resume_data = {}
+        sections = [
+            "personal_information",
+            "career_summary",
+            "skills",
+            "work_experience",
+            "education",
+            "projects",
+            "awards",
+            "publications",
+        ]
+
+        for section in sections:
+            content = getattr(resume, section, "")
+            if content and isinstance(content, str):
+                resume_data[section] = content
+
+        return resume_data
 
     def __enter__(self) -> "MongoUnitOfWork":
         """Enter the unit of work context."""
@@ -98,6 +146,42 @@ class AsyncMongoUnitOfWork:
         """Get TeX header asynchronously."""
         header = await self.tex_headers.get_latest()
         return header.content if header else None
+
+    async def get_resume_for_cover_letter(self, resume_id: str) -> dict:
+        """Get resume data formatted for cover letter generation asynchronously.
+
+        Args:
+            resume_id: The ID of the resume to retrieve
+
+        Returns:
+            dict: Resume data formatted for cover letter generation
+
+        Raises:
+            ValueError: If resume not found
+        """
+        resume = await self.resumes.get_by_id(resume_id)
+        if not resume:
+            raise ValueError(f"Resume with ID {resume_id} not found")
+
+        # Collect all non-empty sections
+        resume_data = {}
+        sections = [
+            "personal_information",
+            "career_summary",
+            "skills",
+            "work_experience",
+            "education",
+            "projects",
+            "awards",
+            "publications",
+        ]
+
+        for section in sections:
+            content = getattr(resume, section, "")
+            if content and isinstance(content, str):
+                resume_data[section] = content
+
+        return resume_data
 
     async def __aenter__(self) -> "AsyncMongoUnitOfWork":
         """Enter the async unit of work context."""

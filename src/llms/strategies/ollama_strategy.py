@@ -1,13 +1,11 @@
 import json
-import os
 
 import requests
 
 from config.llm_config import LLMConfig
 from config.logger_config import setup_logger
 
-from ..utils.errors import APIError, ConfigurationError
-from ..utils.response import process_api_response
+from ..utils.errors import APIError
 from .base import LLMStrategy
 
 logger = setup_logger(__name__)
@@ -66,7 +64,10 @@ class OllamaStrategy(LLMStrategy):
                 f"{self.base_url}/api/generate",
                 json={
                     "model": self.model,
-                    "system": "Create a concise folder name using underscores for this job application.",
+                    "system": (
+                        "Create a concise folder name using underscores "
+                        "for this job application."
+                    ),
                     "prompt": self._format_prompt(
                         prompt, job_description=job_description
                     ),

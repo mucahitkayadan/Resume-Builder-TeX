@@ -119,6 +119,87 @@ class ResumeGenerator:
             logger.error(f"Failed to generate resume: {str(e)}", exc_info=True)
             raise
 
+    def _process_hardcode_section(self, section: str) -> str:
+        """Process a section using hardcoded data."""
+        logger.debug(f"Hardcoding section {section}")
+        try:
+            content = self.hardcoder.hardcode_section(section)
+            if content:
+                logger.debug(
+                    f"Successfully hardcoded section {section}, "
+                    f"content length: {len(content)}"
+                )
+                return content
+            else:
+                logger.warning(
+                    f"Hardcoder returned empty content for section {section}"
+                )
+                return ""
+        except Exception as e:
+            logger.error(
+                f"Error in hardcoding section {section}: {str(e)}",
+                exc_info=True,
+            )
+            raise
+
+    def _process_ai_section(self, section: str, job_description: str) -> str:
+        """Process a section using AI generation."""
+        logger.debug(f"AI processing section {section}")
+        try:
+            # Get the prompt template for this section
+            prompt = self.prompt_loader.get_section_prompt(section)
+            logger.debug(f"Got prompt for section {section}")
+
+            # Get the section data using portfolio_loader
+            section_data = str(self.portfolio_loader.get_section_data(section))
+            logger.debug(f"Raw data for section {section}: {section_data}")
+
+            if not section_data:
+                logger.warning(f"No data found for section {section} in portfolio")
+                return ""
+
+            logger.debug(f"Formatted data for section {section}: {section_data}")
+
+            # Generate content using the prompt and portfolio data
+            content = self.llm_runner.generate_content(
+                prompt, section_data, job_description
+            )
+
+            if content:
+                msg = (
+                    f"Successfully generated AI content for section {section}, "
+                    f"length: {len(content)}"
+                )
+                logger.debug(msg)
+                return content
+            else:
+                logger.warning(f"AI returned empty content for section {section}")
+                return ""
+
+        except Exception as e:
+            msg = f"Error processing section {section} with AI: {str(e)}"
+            logger.error(msg, exc_info=True)
+            raise
+
+    def process_section(
+        self, section: str, process_type: str, job_description: str
+    ) -> str:
+        """Process a single section based on the process type."""
+        logger.debug(f"Processing section {section} with type {process_type}")
+
+        process_type = process_type.lower()
+        if process_type == "skip":
+            logger.debug(f"Skipping section {section}")
+            return ""
+        elif process_type == "hardcode":
+            return self._process_hardcode_section(section)
+        elif process_type == "process":
+            return self._process_ai_section(section, job_description)
+        else:
+            error_msg = f"Invalid process type: {process_type}"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+
     def _generate_and_save_resume(
         self, content_dict: Dict[str, str], output_manager: OutputManager
     ) -> Resume:
@@ -138,7 +219,8 @@ class ResumeGenerator:
             logger.debug("Generating PDF")
             # Generate PDF
             generated_pdf = self.latex_compiler.generate_pdf(
-                content_dict=content_dict, output_manager=output_manager
+                content_dict=content_dict,
+                output_manager=output_manager,
             )
             if not generated_pdf:
                 logger.error("PDF generation failed")
@@ -165,83 +247,15 @@ class ResumeGenerator:
                 saved_resume = self.uow.resumes.add(resume)
                 self.uow.commit()
                 logger.debug(
-                    f"Resume saved with ID: {saved_resume.id} for user_id: {saved_resume.user_id}"
+                    f"Resume saved with ID: {saved_resume.id} "
+                    f"for user_id: {saved_resume.user_id}"
                 )
 
             return saved_resume
 
         except Exception as e:
-            logger.error(f"Failed to generate and save resume: {str(e)}", exc_info=True)
+            logger.error(
+                f"Failed to generate and save resume: {str(e)}",
+                exc_info=True,
+            )
             raise
-
-    def process_section(
-        self, section: str, process_type: str, job_description: str
-    ) -> str:
-        """Process a single section based on the process type."""
-        logger.debug(f"Processing section {section} with type {process_type}")
-
-        if process_type.lower() == "skip":
-            logger.debug(f"Skipping section {section}")
-            return ""
-
-        elif process_type.lower() == "hardcode":
-            logger.debug(f"Hardcoding section {section}")
-            try:
-                content = self.hardcoder.hardcode_section(section)
-                if content:
-                    logger.debug(
-                        f"Successfully hardcoded section {section}, content length: {len(content)}"
-                    )
-                    return content
-                else:
-                    logger.warning(
-                        f"Hardcoder returned empty content for section {section}"
-                    )
-                    return ""
-            except Exception as e:
-                logger.error(
-                    f"Error in hardcoding section {section}: {str(e)}", exc_info=True
-                )
-                raise
-
-        elif process_type.lower() == "process":
-            logger.debug(f"AI processing section {section}")
-            try:
-                # Get the prompt template for this section
-                prompt = self.prompt_loader.get_section_prompt(section)
-                logger.debug(f"Got prompt for section {section}")
-
-                # Get the section data using portfolio_loader
-                section_data = str(self.portfolio_loader.get_section_data(section))
-                logger.debug(f"Raw data for section {section}: {section_data}")
-
-                if not section_data:
-                    logger.warning(f"No data found for section {section} in portfolio")
-                    return ""
-
-                logger.debug(f"Formatted data for section {section}: {section_data}")
-
-                # Generate content using the prompt and portfolio data
-                content = self.llm_runner.generate_content(
-                    prompt, section_data, job_description
-                )
-
-                if content:
-                    logger.debug(
-                        f"Successfully generated AI content for section {section}, length: {len(content)}"
-                    )
-                    return content
-                else:
-                    logger.warning(f"AI returned empty content for section {section}")
-                    return ""
-
-            except Exception as e:
-                logger.error(
-                    f"Error processing section {section} with AI: {str(e)}",
-                    exc_info=True,
-                )
-                raise
-        else:
-            error_msg = f"Invalid process type: {process_type}"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
