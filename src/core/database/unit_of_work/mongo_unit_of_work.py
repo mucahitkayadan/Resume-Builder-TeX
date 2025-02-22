@@ -26,12 +26,12 @@ class MongoUnitOfWork:
     
     def get_cover_letter_preamble(self) -> Optional[str]:
         """Get cover letter preamble."""
-        preamble = self.preambles.get_by_type("cover_letter")
+        preamble = self.preambles.get_by_type("cover_letter_preamble")
         return preamble.content if preamble else None
 
     def get_resume_preamble(self) -> Optional[str]:
         """Get resume preamble."""
-        preamble = self.preambles.get_by_type("resume")
+        preamble = self.preambles.get_by_type("resume_preamble")
         return preamble.content if preamble else None
 
     def get_user_signature(self, user_id: str) -> Optional[str]:
@@ -78,12 +78,12 @@ class AsyncMongoUnitOfWork:
     
     async def get_cover_letter_preamble(self) -> Optional[str]:
         """Get cover letter preamble asynchronously."""
-        preamble = await self.preambles.get_by_type("cover_letter")
+        preamble = await self.preambles.get_by_type("cover_letter_preamble")
         return preamble.content if preamble else None
 
     async def get_resume_preamble(self) -> Optional[str]:
         """Get resume preamble asynchronously."""
-        preamble = await self.preambles.get_by_type("resume")
+        preamble = await self.preambles.get_by_type("resume_preamble")
         return preamble.content if preamble else None
 
     async def get_user_signature(self, user_id: str) -> Optional[str]:

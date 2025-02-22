@@ -35,11 +35,11 @@ class HomePage:
                         )
                         logger.debug(f"Configured LLM with: {llm_prefs}")
                     
-                    # Set section preferences
+                    # Set section preferences - convert Pydantic model to dict
                     section_prefs = user.preferences.section_preferences
                     if section_prefs:
-                        st.session_state['section_preferences'] = section_prefs
-                        logger.debug(f"Loaded section preferences: {section_prefs}")
+                        st.session_state['section_preferences'] = section_prefs.model_dump()
+                        logger.debug(f"Loaded section preferences: {section_prefs.model_dump()}")
                     
                     logger.debug("User preferences loaded successfully")
         except Exception as e:
