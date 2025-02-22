@@ -1,0 +1,56 @@
+name: Lint
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master, develop ]
+
+jobs:
+  lint:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: ["3.13"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Set up Poetry
+      uses: abatilo/actions-poetry@v2
+      with:
+        poetry-version: "1.7.1"
+
+    - name: Configure Poetry
+      run: |
+        poetry config virtualenvs.create true
+        poetry config virtualenvs.in-project true
+
+    - name: Cache Poetry virtualenv
+      uses: actions/cache@v3
+      id: cache
+      with:
+        path: ./.venv
+        key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: poetry install --with dev
+
+    - name: Run black
+      run: |
+        poetry run black . --check --diff
+
+    - name: Run isort
+      run: |
+        poetry run isort . --check --diff
+
+    - name: Run flake8
+      run: |
+        poetry run flake8 . --count --show-source --statistics 

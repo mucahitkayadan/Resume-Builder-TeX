@@ -1,14 +1,18 @@
-from openai import OpenAI
 import os
-from .base import LLMStrategy
+from typing import Tuple
+
+from openai import OpenAI
+
 from config.llm_config import LLMConfig
 from config.logger_config import setup_logger
-from ..utils.errors import APIError, ConfigurationError
-from ..utils.response import process_api_response
-from typing import Tuple
 from src.generator.utils.string_utils import sanitize_filename
 
+from ..utils.errors import APIError, ConfigurationError
+from ..utils.response import process_api_response
+from .base import LLMStrategy
+
 logger = setup_logger(__name__)
+
 
 class OpenAIStrategy(LLMStrategy):
     def __init__(self, system_instruction: str):
@@ -27,28 +31,36 @@ class OpenAIStrategy(LLMStrategy):
                 model=self.model,
                 messages=[
                     {"role": "system", "content": self.system_instruction},
-                    {"role": "user", "content": self._format_prompt(prompt, data, job_description)}
+                    {
+                        "role": "user",
+                        "content": self._format_prompt(prompt, data, job_description),
+                    },
                 ],
                 temperature=self.temperature,
                 max_tokens=LLMConfig.OPENAI_MODEL.max_tokens,
-                **LLMConfig.OPENAI_MODEL.default_options
+                **LLMConfig.OPENAI_MODEL.default_options,
             )
             return process_api_response(response, "OpenAI")
         except Exception as e:
             logger.error(f"OpenAI API error: {e}")
             raise APIError(f"OpenAI API error: {e}")
 
-    def create_folder_name(self, prompt: str, job_description: str)  -> str:
+    def create_folder_name(self, prompt: str, job_description: str) -> str:
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": self.system_instruction},
-                    {"role": "user", "content": self._format_prompt(prompt, job_description=job_description)}
+                    {
+                        "role": "user",
+                        "content": self._format_prompt(
+                            prompt, job_description=job_description
+                        ),
+                    },
                 ],
                 temperature=self.temperature,
                 max_tokens=LLMConfig.OPENAI_MODEL.max_tokens,
-                **LLMConfig.OPENAI_MODEL.default_options
+                **LLMConfig.OPENAI_MODEL.default_options,
             )
             result = process_api_response(response, "OpenAI")
             return result

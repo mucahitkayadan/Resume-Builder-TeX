@@ -1,11 +1,13 @@
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
+
 from src.core.database.factory import get_unit_of_work
 from src.generator.cover_letter_generator import CoverLetterGenerator
-from src.llms.runner import LLMRunner
-from src.loaders.prompt_loader import PromptLoader
 from src.generator.utils.job_info import JobInfo
 from src.generator.utils.output_manager import OutputManager
+from src.llms.runner import LLMRunner
+from src.loaders.prompt_loader import PromptLoader
+
 
 class CoverLetterService:
     def __init__(self):
@@ -16,7 +18,7 @@ class CoverLetterService:
         user_id: str,
         job_description: str,
         resume_id: Optional[str] = None,
-        options: Optional[dict] = None
+        options: Optional[dict] = None,
     ):
         try:
             # Initialize LLM runner with user preferences
@@ -29,17 +31,16 @@ class CoverLetterService:
                 llm_preferences.update(options)
 
             llm_runner = LLMRunner.from_preferences(llm_preferences)
-            
+
             # Initialize cover letter generator
             cover_letter_generator = CoverLetterGenerator(llm_runner, user_id)
-            
+
             # Extract job info using LLM
             prompt_loader = PromptLoader(user_id)
             job_info = JobInfo.extract_from_description(
-                job_description=job_description,
-                llm_runner=llm_runner
+                job_description=job_description, llm_runner=llm_runner
             )
-            
+
             # Create output manager
             output_manager = OutputManager(job_info)
 
@@ -47,7 +48,7 @@ class CoverLetterService:
             cover_letter = await cover_letter_generator.generate_cover_letter(
                 job_description=job_description,
                 resume_id=resume_id,
-                output_manager=output_manager
+                output_manager=output_manager,
             )
 
             return cover_letter
@@ -64,4 +65,4 @@ class CoverLetterService:
 
     async def list_cover_letters(self, user_id: str) -> List:
         with self.uow:
-            return self.uow.cover_letters.get_all_by_user(user_id) 
+            return self.uow.cover_letters.get_all_by_user(user_id)

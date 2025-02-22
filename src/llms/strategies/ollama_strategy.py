@@ -1,13 +1,17 @@
-import os
-import requests
 import json
-from .base import LLMStrategy
+import os
+
+import requests
+
 from config.llm_config import LLMConfig
 from config.logger_config import setup_logger
+
 from ..utils.errors import APIError, ConfigurationError
 from ..utils.response import process_api_response
+from .base import LLMStrategy
 
 logger = setup_logger(__name__)
+
 
 class OllamaStrategy(LLMStrategy):
     def __init__(self, system_instruction: str):
@@ -19,14 +23,16 @@ class OllamaStrategy(LLMStrategy):
     def _process_ollama_response(self, response: requests.Response) -> str:
         """Process streaming response from Ollama API."""
         if not response.ok:
-            raise APIError(f"Ollama API request failed with status {response.status_code}")
-        
+            raise APIError(
+                f"Ollama API request failed with status {response.status_code}"
+            )
+
         try:
             # Get the last response from streaming output
             content = ""
             for line in response.iter_lines():
                 if line:
-                    content = json.loads(line.decode('utf-8'))['response']
+                    content = json.loads(line.decode("utf-8"))["response"]
             return content.strip()
         except json.JSONDecodeError as e:
             raise APIError(f"Failed to parse Ollama API response: {e}")
@@ -42,9 +48,9 @@ class OllamaStrategy(LLMStrategy):
                     "prompt": self._format_prompt(prompt, data, job_description),
                     "temperature": self.temperature,
                     "stream": True,
-                    **LLMConfig.OLLAMA_MODEL.default_options
+                    **LLMConfig.OLLAMA_MODEL.default_options,
                 },
-                stream=True
+                stream=True,
             )
             return self._process_ollama_response(response)
         except requests.RequestException as e:
@@ -61,16 +67,18 @@ class OllamaStrategy(LLMStrategy):
                 json={
                     "model": self.model,
                     "system": "Create a concise folder name using underscores for this job application.",
-                    "prompt": self._format_prompt(prompt, job_description=job_description),
+                    "prompt": self._format_prompt(
+                        prompt, job_description=job_description
+                    ),
                     "temperature": self.temperature,
                     "stream": True,
-                    **LLMConfig.OLLAMA_MODEL.default_options
+                    **LLMConfig.OLLAMA_MODEL.default_options,
                 },
-                stream=True
+                stream=True,
             )
             result = self._process_ollama_response(response)
             # Clean up the folder name
-            folder_name = result.strip().replace('"', '').replace("'", "")
+            folder_name = result.strip().replace('"', "").replace("'", "")
             return folder_name
 
         except Exception as e:

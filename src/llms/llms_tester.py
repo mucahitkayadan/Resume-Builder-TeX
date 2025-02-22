@@ -6,16 +6,17 @@ from pathlib import Path
 project_root = str(Path(__file__).parent.parent.parent)
 sys.path.append(project_root)
 
-from src.llms.strategies.openai_strategy import OpenAIStrategy
-from src.llms.strategies.claude_strategy import ClaudeStrategy
-from src.llms.strategies.ollama_strategy import OllamaStrategy
-from src.llms.strategies.gemini_strategy import GeminiStrategy
-from src.llms.utils.errors import APIError, ConfigurationError
 from config.llm_config import LLMConfig
+from src.llms.strategies.claude_strategy import ClaudeStrategy
+from src.llms.strategies.gemini_strategy import GeminiStrategy
+from src.llms.strategies.ollama_strategy import OllamaStrategy
+from src.llms.strategies.openai_strategy import OpenAIStrategy
+from src.llms.utils.errors import APIError, ConfigurationError
+
 
 def llm_strategy_tester(strategy_name: str, strategy_class, api_key_env: str):
     print(f"\n=== Testing {strategy_name} Strategy ===")
-    
+
     # Test initialization
     print("\nTesting initialization...")
     try:
@@ -24,8 +25,10 @@ def llm_strategy_tester(strategy_name: str, strategy_class, api_key_env: str):
             if LLMConfig.PROVIDER_CONFIG[strategy_name]["is_uri"]:
                 print(f"! Using default URI: {LLMConfig.OLLAMA_DEFAULT_URI}")
             else:
-                raise ConfigurationError(LLMConfig.MISSING_API_KEY_ERROR.format(strategy_name))
-            
+                raise ConfigurationError(
+                    LLMConfig.MISSING_API_KEY_ERROR.format(strategy_name)
+                )
+
         strategy = strategy_class("You are a helpful assistant.")
         print(f"✓ Successfully initialized {strategy_name}")
         print(f"Model: {strategy.model}")
@@ -42,7 +45,7 @@ def llm_strategy_tester(strategy_name: str, strategy_class, api_key_env: str):
     test_prompt = "Write a short test response"
     test_data = '{"name": "John Doe", "skills": ["Python", "Testing"]}'
     test_job = "Looking for a Python developer with testing experience"
-    
+
     try:
         response = strategy.generate_content(test_prompt, test_data, test_job)
         print(f"✓ Successfully generated content")
@@ -56,8 +59,7 @@ def llm_strategy_tester(strategy_name: str, strategy_class, api_key_env: str):
     print("\nTesting folder name creation...")
     try:
         folder_name = strategy.create_folder_name(
-            "Generate a folder name for this job application",
-            test_job
+            "Generate a folder name for this job application", test_job
         )
         print(f"✓ Successfully created folder name")
         print(f"Folder name: {folder_name}")
@@ -66,17 +68,19 @@ def llm_strategy_tester(strategy_name: str, strategy_class, api_key_env: str):
     except Exception as e:
         print(f"✗ Unexpected error: {e}")
 
+
 def main():
     strategies = [
         ("OpenAI", OpenAIStrategy, "OPENAI_API_KEY"),
         ("Claude", ClaudeStrategy, "ANTHROPIC_API_KEY"),
         ("Ollama", OllamaStrategy, "OLLAMA_URI"),
-        ("Gemini", GeminiStrategy, "GEMINI_API_KEY")
+        ("Gemini", GeminiStrategy, "GEMINI_API_KEY"),
     ]
 
     for strategy_name, strategy_class, api_key_env in strategies:
         llm_strategy_tester(strategy_name, strategy_class, api_key_env)
-        print("\n" + "="*50)
+        print("\n" + "=" * 50)
+
 
 if __name__ == "__main__":
-    main() 
+    main()

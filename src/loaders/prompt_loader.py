@@ -1,10 +1,11 @@
 # Testing is done - Successful
+import logging
 from string import Template
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
+from config.config import test_user_id
 from config.settings import PROMPTS_DIR
 from src.core.database.factory import get_unit_of_work
-from config.config import test_user_id
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ class PromptLoader:
     def __init__(self, user_id: Optional[str] = None):
         """
         Initialize the PromptLoader with a base directory path and user_id.
-        
+
         Args:
             user_id: Optional user ID (can be either user_id or _id)
         """
@@ -46,10 +47,10 @@ class PromptLoader:
     def _load_prompt(self, filename: str) -> str:
         """
         Load and format a prompt file with user preferences if available.
-        
+
         Args:
             filename: The name of the file to load
-            
+
         Returns:
             Formatted prompt string
         """
@@ -57,10 +58,10 @@ class PromptLoader:
             prompt_path = self.prompt_dir / filename
             if not prompt_path.exists():
                 raise FileNotFoundError(f"Prompt file not found at {prompt_path}")
-                
-            with open(prompt_path, 'r', encoding='utf-8') as f:
+
+            with open(prompt_path, "r", encoding="utf-8") as f:
                 template = Template(f.read().strip())
-                
+
             variables = {}
             if self.preferences:
                 for category, values in self.preferences.items():
@@ -69,9 +70,9 @@ class PromptLoader:
                             variables[f"{category}_{key}"] = value
                     else:
                         variables[category] = values
-                            
+
             # Add life story if loading cover letter prompt
-            if filename == 'cover_letter_prompt.txt' and self.user_id:
+            if filename == "cover_letter_prompt.txt" and self.user_id:
                 try:
                     with self.uow as uow:
                         # Try first with user_id field
@@ -80,13 +81,13 @@ class PromptLoader:
                             # If not found, try with _id
                             user = uow.users.get_by_id(self.user_id)
                         if user and user.life_story:
-                            variables['life_story'] = user.life_story
+                            variables["life_story"] = user.life_story
                         else:
-                            variables['life_story'] = "No personal story available."
+                            variables["life_story"] = "No personal story available."
                 except Exception as e:
                     logger.error(f"Error loading life story: {e}")
-                    variables['life_story'] = "No personal story available."
-                            
+                    variables["life_story"] = "No personal story available."
+
             return template.safe_substitute(variables)
         except Exception as e:
             logger.error(f"Error loading prompt {filename}: {e}")
@@ -95,13 +96,13 @@ class PromptLoader:
     def get_section_prompt(self, section: str) -> str:
         """
         Get the prompt for a specific section with user preferences.
-        
+
         Args:
             section: The section name (e.g. 'career_summary', 'skills')
-            
+
         Returns:
             str: The formatted prompt text
-            
+
         Raises:
             FileNotFoundError: If prompt file doesn't exist
             TemplateError: If template substitution fails
@@ -110,19 +111,19 @@ class PromptLoader:
         return self._load_prompt(filename)
 
     def get_system_prompt(self):
-        return self._load_prompt('system_prompt.txt')
+        return self._load_prompt("system_prompt.txt")
 
     def get_folder_name_prompt(self):
-        return self._load_prompt('folder_name_prompt.txt')
+        return self._load_prompt("folder_name_prompt.txt")
 
     def get_cover_letter_prompt(self) -> str:
         """
         Get the cover letter prompt with user's life story.
-        
+
         Returns:
             str: The cover letter prompt with user's life story
         """
-        return self._load_prompt('cover_letter_prompt.txt')
+        return self._load_prompt("cover_letter_prompt.txt")
 
     def refresh_preferences(self) -> None:
         """Force reload of user preferences"""
@@ -130,9 +131,9 @@ class PromptLoader:
         _ = self.preferences  # Trigger reload
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Example usage
     prompt_loader = PromptLoader(user_id=test_user_id)
     print(f"Resolved PROMPTS_FOLDER: {PROMPTS_DIR}")
-    prompt = prompt_loader.get_section_prompt('projects')
+    prompt = prompt_loader.get_section_prompt("projects")
     print(prompt)

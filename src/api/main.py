@@ -8,35 +8,35 @@ import sys
 from pathlib import Path
 from typing import Dict
 
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # Add project root to Python path
 project_root = Path(__file__).parent.parent.parent
 sys.path.append(str(project_root))
 
+from config.settings import settings
+from src.api.middleware.auth import verify_token
 from src.api.routers import (
     auth_router,
-    resumes_router,
     cover_letters_router,
     portfolio_router,
-    preferences_router
+    preferences_router,
+    resumes_router,
 )
-from src.api.middleware.auth import verify_token
-from config.settings import settings
 
 
 def create_app() -> FastAPI:
     """
     Creates and configures the FastAPI application.
-    
+
     Returns:
         FastAPI: Configured FastAPI application instance
     """
     app = FastAPI(
         title="Resume Builder API",
         description="API for building and managing resumes",
-        version="1.0.0"
+        version="1.0.0",
     )
 
     # Configure CORS middleware with more explicit settings
@@ -65,33 +65,31 @@ def create_app() -> FastAPI:
 
     # Include all routers with prefix
     app.include_router(
-        auth_router,
-        prefix=f"{settings.api_v1_prefix}/auth",
-        tags=["auth"]
+        auth_router, prefix=f"{settings.api_v1_prefix}/auth", tags=["auth"]
     )
     app.include_router(
         resumes_router,
         prefix=f"{settings.api_v1_prefix}/resumes",
         tags=["resumes"],
-        dependencies=[Depends(verify_token)]
+        dependencies=[Depends(verify_token)],
     )
     app.include_router(
         cover_letters_router,
         prefix=f"{settings.api_v1_prefix}/cover-letters",
         tags=["cover-letters"],
-        dependencies=[Depends(verify_token)]
+        dependencies=[Depends(verify_token)],
     )
     app.include_router(
         preferences_router,
         prefix=f"{settings.api_v1_prefix}/preferences",
         tags=["preferences"],
-        dependencies=[Depends(verify_token)]
+        dependencies=[Depends(verify_token)],
     )
     app.include_router(
         portfolio_router,
         prefix=f"{settings.api_v1_prefix}/portfolio",
         tags=["portfolio"],
-        dependencies=[Depends(verify_token)]
+        dependencies=[Depends(verify_token)],
     )
 
     @app.get("/")

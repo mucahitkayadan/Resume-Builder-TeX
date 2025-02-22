@@ -1,28 +1,37 @@
-import streamlit as st
 from typing import Dict
+
+import streamlit as st
+
 from config.logger_config import setup_logger
 
 logger = setup_logger(__name__)
+
 
 class SectionSelector:
     def __init__(self):
         logger.debug("Initializing SectionSelector")
         self.sections = [
-            "personal_information", "career_summary", "skills", "work_experience",
-            "education", "projects", "awards", "publications"
+            "personal_information",
+            "career_summary",
+            "skills",
+            "work_experience",
+            "education",
+            "projects",
+            "awards",
+            "publications",
         ]
         self.options = ["Process", "Hardcode", "Skip"]
 
     def get_user_section_selection(self) -> Dict[str, str]:
         """
         Creates a UI for selecting how to handle each resume section.
-        
+
         Returns:
             Dict[str, str]: Dictionary mapping section names to their selected handling method
         """
         logger.debug("Getting user section selection")
         selected_sections = {}
-        
+
         st.subheader("Section Handling")
 
         # Create column headers
@@ -42,7 +51,7 @@ class SectionSelector:
                 index=0,  # Default to "Process"
                 key=f"section_{section}",
                 label_visibility="collapsed",
-                horizontal=True
+                horizontal=True,
             )
 
             selected_sections[section] = selected_option.lower()

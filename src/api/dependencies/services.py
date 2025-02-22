@@ -2,13 +2,15 @@
 Service dependencies for FastAPI endpoints.
 """
 
-from typing import Generator, AsyncGenerator
-from src.api.services.resume_service import ResumeService
+from typing import AsyncGenerator, Generator
+
+from src.api.services.auth_service import AuthService
 from src.api.services.cover_letter_service import CoverLetterService
 from src.api.services.portfolio_service import PortfolioService
 from src.api.services.preferences_service import PreferencesService
-from src.api.services.auth_service import AuthService
+from src.api.services.resume_service import ResumeService
 from src.core.database.factory import get_async_unit_of_work
+
 
 async def get_auth_service() -> AsyncGenerator[AuthService, None]:
     """Get auth service instance."""
@@ -18,6 +20,7 @@ async def get_auth_service() -> AsyncGenerator[AuthService, None]:
     finally:
         pass
 
+
 async def get_resume_service() -> AsyncGenerator[ResumeService, None]:
     """Get resume service instance."""
     service = ResumeService()
@@ -25,6 +28,7 @@ async def get_resume_service() -> AsyncGenerator[ResumeService, None]:
         yield service
     finally:
         pass
+
 
 async def get_cover_letter_service() -> AsyncGenerator[CoverLetterService, None]:
     """Get cover letter service instance."""
@@ -34,6 +38,7 @@ async def get_cover_letter_service() -> AsyncGenerator[CoverLetterService, None]
     finally:
         pass
 
+
 async def get_portfolio_service() -> AsyncGenerator[PortfolioService, None]:
     """Get portfolio service instance."""
     service = PortfolioService()
@@ -42,6 +47,7 @@ async def get_portfolio_service() -> AsyncGenerator[PortfolioService, None]:
     finally:
         pass
 
+
 async def get_preferences_service() -> AsyncGenerator[PreferencesService, None]:
     """Get preferences service instance."""
     service = PreferencesService()
@@ -49,6 +55,7 @@ async def get_preferences_service() -> AsyncGenerator[PreferencesService, None]:
         yield service
     finally:
         pass
+
 
 async def get_uow():
     """Get async unit of work instance."""

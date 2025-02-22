@@ -1,6 +1,8 @@
-from typing import Dict, Any
 from datetime import datetime
+from typing import Any, Dict
+
 from src.core.database.factory import get_unit_of_work
+
 
 class PreferencesService:
     def __init__(self):
@@ -13,7 +15,9 @@ class PreferencesService:
                 return {}
             return preferences
 
-    async def update_preferences(self, user_id: str, preferences_update: Dict[str, Any]) -> Dict[str, Any]:
+    async def update_preferences(
+        self, user_id: str, preferences_update: Dict[str, Any]
+    ) -> Dict[str, Any]:
         with self.uow:
             user = self.uow.users.get_by_user_id(user_id)
             if not user:

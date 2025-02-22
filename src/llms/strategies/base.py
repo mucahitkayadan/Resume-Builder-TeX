@@ -1,8 +1,9 @@
-from abc import ABC, abstractmethod
 import logging
+from abc import ABC, abstractmethod
 from typing import Tuple
 
 logger = logging.getLogger(__name__)
+
 
 class LLMStrategy(ABC):
     def __init__(self, system_instruction: str):
@@ -31,14 +32,20 @@ class LLMStrategy(ABC):
         else:
             raise ValueError("Temperature must be between 0.0 and 1.0")
 
-    def _format_prompt(self, prompt: str, data: str = None, job_description: str = None) -> str:
+    def _format_prompt(
+        self, prompt: str, data: str = None, job_description: str = None
+    ) -> str:
         formatted_prompt = f"{prompt}\n\n"
         if data:
-            formatted_prompt += (f"Here is the personal information in JSON format:\n"
-                               f"<data> \n{data}\n </data>\n\n")
+            formatted_prompt += (
+                f"Here is the personal information in JSON format:\n"
+                f"<data> \n{data}\n </data>\n\n"
+            )
         if job_description:
-            formatted_prompt += (f"Job Description:\n"
-                               f"<job_description> \n{job_description}\n </job_description>\n\n")
+            formatted_prompt += (
+                f"Job Description:\n"
+                f"<job_description> \n{job_description}\n </job_description>\n\n"
+            )
         return formatted_prompt
 
     @abstractmethod
@@ -46,5 +53,5 @@ class LLMStrategy(ABC):
         pass
 
     @abstractmethod
-    def create_folder_name(self, prompt: str, job_description: str)  -> str:
+    def create_folder_name(self, prompt: str, job_description: str) -> str:
         pass

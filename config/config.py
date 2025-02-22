@@ -1,4 +1,5 @@
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -22,4 +23,3 @@ OLLAMA_URI = "http://localhost:11434"
 # This configuration is used in the Streamlit app, since there is no sign-up and sign-in logics are implemented in the Streamlit UI
 # Note that these logics are implemented in the back-end service.
 test_user_id = "mujakayadan"
-

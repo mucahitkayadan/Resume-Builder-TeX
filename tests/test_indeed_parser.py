@@ -1,5 +1,7 @@
 import unittest
+
 from parsers.indeed_parser import parse_indeed_job
+
 
 class TestIndeedParser(unittest.TestCase):
 
@@ -9,5 +11,6 @@ class TestIndeedParser(unittest.TestCase):
         self.assertIsInstance(job_description, str)
         self.assertGreater(len(job_description), 0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

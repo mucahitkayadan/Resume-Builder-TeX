@@ -1,17 +1,21 @@
+import logging
 import os
-from __legacy__.engine import CoverLetterCreator
+
 from __legacy__.database_manager import DatabaseManager
+from __legacy__.engine import (  # Import the actual AI strategy you're using
+    AIRunner,
+    CoverLetterCreator,
+    OpenAIStrategy,
+)
 from __legacy__.json_loader import JsonLoader
 from src.loaders.prompt_loader import PromptLoader
-from __legacy__.engine import AIRunner
-from __legacy__.engine import OpenAIStrategy  # Import the actual AI strategy you're using
-import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class TestCoverLetterCreator:
-#class TestCoverLetterCreator(unittest.TestCase):
+    # class TestCoverLetterCreator(unittest.TestCase):
     # def setUp(self):
     #     # Mock dependencies
     #     self.ai_runner = Mock(spec=AIRunner)
@@ -97,19 +101,20 @@ class TestCoverLetterCreator:
     #     str_input = "Test string"
     #     self.assertEqual(self.cover_letter_creator._ensure_string(str_input), str_input)
 
-    def generate_cover_letter_with_values(self, job_description, company_name, job_title):
+    def generate_cover_letter_with_values(
+        self, job_description, company_name, job_title
+    ):
         # Use actual instances
-        db_manager = DatabaseManager('../__legacy__/db/resumes.db')
-        json_loader = JsonLoader('../__legacy__/files/information.json')
-        prompt_loader = PromptLoader('../prompts')
-        ai_strategy = OpenAIStrategy('gpt-3.5-turbo', 0.2, system_prompt=prompt_loader.get_system_prompt())
+        db_manager = DatabaseManager("../__legacy__/db/resumes.db")
+        json_loader = JsonLoader("../__legacy__/files/information.json")
+        prompt_loader = PromptLoader("../prompts")
+        ai_strategy = OpenAIStrategy(
+            "gpt-3.5-turbo", 0.2, system_prompt=prompt_loader.get_system_prompt()
+        )
         ai_runner = AIRunner(ai_strategy)
 
         cover_letter_creator = CoverLetterCreator(
-            ai_runner,
-            json_loader,
-            prompt_loader,
-            db_manager
+            ai_runner, json_loader, prompt_loader, db_manager
         )
 
         # Get the last resume from the database
@@ -117,7 +122,7 @@ class TestCoverLetterCreator:
         if not last_resume:
             raise ValueError("No resumes found in the database")
 
-        resume_id = last_resume['id']
+        resume_id = last_resume["id"]
         logger.info(f"Using resume ID: {resume_id}")
 
         # Fetch the resume data for cover letter
@@ -127,7 +132,9 @@ class TestCoverLetterCreator:
 
         logger.info("Retrieved resume data for cover letter:")
         for key, value in resume_data.items():
-            logger.info(f"{key}: {value[:50]}..." if value else f"{key}: None")  # Log first 50 characters of each field
+            logger.info(
+                f"{key}: {value[:50]}..." if value else f"{key}: None"
+            )  # Log first 50 characters of each field
 
         # Generate the cover letter
         result = cover_letter_creator.generate_cover_letter(
@@ -136,9 +143,9 @@ class TestCoverLetterCreator:
 
         # Check the database for the generated cover letter
         updated_resume = db_manager.get_resume_for_cover_letter(resume_id)
-        if updated_resume and updated_resume.get('cover_letter'):
+        if updated_resume and updated_resume.get("cover_letter"):
             logger.info("Cover letter LaTeX content found in database")
-            latex_content = updated_resume['cover_letter']
+            latex_content = updated_resume["cover_letter"]
         else:
             logger.warning("Cover letter LaTeX content not found in database")
             latex_content = None
@@ -152,7 +159,7 @@ class TestCoverLetterCreator:
 
         # If we have LaTeX content, save it to a file
         if latex_content:
-            with open(latex_path, 'w', encoding='utf-8') as f:
+            with open(latex_path, "w", encoding="utf-8") as f:
                 f.write(latex_content)
             logger.info(f"LaTeX file saved to: {latex_path}")
 
@@ -168,13 +175,14 @@ class TestCoverLetterCreator:
 
         return result, latex_path, pdf_path
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # unittest.main()
     test_instance = TestCoverLetterCreator()
     result, latex_path, pdf_path = test_instance.generate_cover_letter_with_values(
         job_description="We are seeking a Python developer with 5+ years of experience in AI and machine learning.",
         company_name="AI Solutions Inc.",
-        job_title="Senior AI Engineer"
+        job_title="Senior AI Engineer",
     )
 
     print(result)

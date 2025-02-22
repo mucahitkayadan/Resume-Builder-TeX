@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field, HttpUrl
-from typing import Optional, Dict, List
 from datetime import datetime
 from enum import Enum
+from typing import Dict, List, Optional
+
+from pydantic import BaseModel, Field, HttpUrl
+
 
 class ApplicationStatus(str, Enum):
     DRAFT = "draft"
@@ -12,12 +14,14 @@ class ApplicationStatus(str, Enum):
     REJECTED = "rejected"
     WITHDRAWN = "withdrawn"
 
+
 class InterviewStage(BaseModel):
     stage_name: str
     date: datetime
     notes: Optional[str]
     feedback: Optional[str]
     status: str
+
 
 class JobApplicationBase(BaseModel):
     company_name: str
@@ -32,8 +36,10 @@ class JobApplicationBase(BaseModel):
     salary_range: Optional[Dict[str, float]]
     interview_stages: List[InterviewStage] = []
 
+
 class JobApplicationCreate(JobApplicationBase):
     pass
+
 
 class JobApplicationUpdate(BaseModel):
     status: Optional[ApplicationStatus]
@@ -41,8 +47,9 @@ class JobApplicationUpdate(BaseModel):
     interview_stages: Optional[List[InterviewStage]]
     salary_range: Optional[Dict[str, float]]
 
+
 class JobApplicationResponse(JobApplicationBase):
     id: str
     user_id: str
     created_at: datetime
-    updated_at: datetime 
+    updated_at: datetime

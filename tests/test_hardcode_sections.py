@@ -2,13 +2,16 @@ import logging
 import os
 from pathlib import Path
 
-from src.generator.hardcode_sections import HardcodeSections
 from src.core.database.factory import get_unit_of_work
+from src.generator.hardcode_sections import HardcodeSections
 from src.latex.resume.resume_compiler import ResumeLatexCompiler
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 def hardcode_sections_demo():
     # Setup paths
@@ -24,7 +27,7 @@ def hardcode_sections_demo():
 
     with uow:
         # Get latest resume for testing
-        test_resume = uow.resumes.get_latest_resume('mujakayadan')
+        test_resume = uow.resumes.get_latest_resume("mujakayadan")
         if not test_resume:
             logger.error("No resume found in database for testing")
             return
@@ -32,9 +35,14 @@ def hardcode_sections_demo():
         # Generate content dictionary from resume
         content_dict = {}
         sections = [
-            'personal_information', 'career_summary', 'skills',
-            'work_experience', 'education', 'projects',
-            'awards', 'publications'
+            "personal_information",
+            "career_summary",
+            "skills",
+            "work_experience",
+            "education",
+            "projects",
+            "awards",
+            "publications",
         ]
 
         for section in sections:
@@ -58,5 +66,6 @@ def hardcode_sections_demo():
         except Exception as e:
             logger.error(f"PDF generation failed: {str(e)}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     hardcode_sections_demo()

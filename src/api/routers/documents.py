@@ -1,22 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from typing import Dict, List, Optional
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
-from typing import Dict, Optional, List
-from ..schemas.document import (
-    DocumentCreate,
-    DocumentResponse,
-    DocumentType
-)
-from ..services.document_service import DocumentService
+
 from ..middleware.auth import auth0_middleware
+from ..schemas.document import DocumentCreate, DocumentResponse, DocumentType
+from ..services.document_service import DocumentService
 
 router = APIRouter()
+
 
 @router.post("/", response_model=DocumentResponse)
 async def create_document(
     document: DocumentCreate,
     file: UploadFile = File(...),
     document_service: DocumentService = Depends(get_document_service),
-    user_payload: Dict = Depends(auth0_middleware)
+    user_payload: Dict = Depends(auth0_middleware),
 ):
     try:
         user_id = user_payload["sub"]
@@ -24,15 +23,15 @@ async def create_document(
         return created
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
+
 
 @router.get("/", response_model=List[DocumentResponse])
 async def list_documents(
     doc_type: Optional[DocumentType] = None,
     document_service: DocumentService = Depends(get_document_service),
-    user_payload: Dict = Depends(auth0_middleware)
+    user_payload: Dict = Depends(auth0_middleware),
 ):
     try:
         user_id = user_payload["sub"]
@@ -40,35 +39,35 @@ async def list_documents(
         return documents
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
+
 
 @router.get("/{document_id}/download")
 async def download_document(
     document_id: str,
     document_service: DocumentService = Depends(get_document_service),
-    user_payload: Dict = Depends(auth0_middleware)
+    user_payload: Dict = Depends(auth0_middleware),
 ):
     try:
         user_id = user_payload["sub"]
         file_path = await document_service.get_document_path(user_id, document_id)
         return FileResponse(
             path=file_path,
-            media_type='application/pdf',
-            filename=f"document_{document_id}.pdf"
+            media_type="application/pdf",
+            filename=f"document_{document_id}.pdf",
         )
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
+
 
 @router.delete("/{document_id}")
 async def delete_document(
     document_id: str,
     document_service: DocumentService = Depends(get_document_service),
-    user_payload: Dict = Depends(auth0_middleware)
+    user_payload: Dict = Depends(auth0_middleware),
 ):
     try:
         user_id = user_payload["sub"]
@@ -76,6 +75,5 @@ async def delete_document(
         return {"message": "Document deleted successfully"}
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        ) 
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )

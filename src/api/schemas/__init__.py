@@ -1,40 +1,36 @@
-from .resume import *
+from .application import *
 from .cover_letter import *
 from .portfolio import *
-from .application import *
+from .resume import *
 from .user import *
 
 __all__ = [
     # Resume schemas
-    'ResumeRequest',
-    'ResumeResponse',
-    'ResumeGenerationOptions',
-    
+    "ResumeRequest",
+    "ResumeResponse",
+    "ResumeGenerationOptions",
     # Cover letter schemas
-    'CoverLetterRequest',
-    'CoverLetterResponse',
-    'CoverLetterGenerationOptions',
-    
+    "CoverLetterRequest",
+    "CoverLetterResponse",
+    "CoverLetterGenerationOptions",
     # Portfolio schemas
-    'PortfolioResponse',
-    'PortfolioUpdate',
-    'WorkExperienceCreate',
-    'ProjectCreate',
-    'EducationCreate',
-    'SkillsUpdate',
-    
+    "PortfolioResponse",
+    "PortfolioUpdate",
+    "WorkExperienceCreate",
+    "ProjectCreate",
+    "EducationCreate",
+    "SkillsUpdate",
     # Application schemas
-    'JobApplicationCreate',
-    'JobApplicationResponse',
-    'JobApplicationUpdate',
-    'ApplicationStatus',
-    'InterviewStage',
-    
+    "JobApplicationCreate",
+    "JobApplicationResponse",
+    "JobApplicationUpdate",
+    "ApplicationStatus",
+    "InterviewStage",
     # User schemas
-    'UserBase',
-    'UserCreate',
-    'UserLogin',
-    'UserResponse',
-    'UserPreferencesUpdate',
-    'UserUpdate'
-] 
+    "UserBase",
+    "UserCreate",
+    "UserLogin",
+    "UserResponse",
+    "UserPreferencesUpdate",
+    "UserUpdate",
+]

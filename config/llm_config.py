@@ -1,9 +1,11 @@
-from dataclasses import dataclass, field
-from typing import Dict, Any, Optional
 import os
+from dataclasses import dataclass, field
+from typing import Any, Dict, Optional
+
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 @dataclass
 class ModelConfig:
@@ -12,26 +14,21 @@ class ModelConfig:
     max_tokens: Optional[int] = None
     default_options: Dict[str, Any] = field(default_factory=dict)
 
+
 class LLMConfig:
     # Provider configurations
     PROVIDER_CONFIG = {
         "OpenAI": {"env_var": "OPENAI_API_KEY", "is_uri": False},
         "Claude": {"env_var": "ANTHROPIC_API_KEY", "is_uri": False},
         "Ollama": {"env_var": "OLLAMA_URI", "is_uri": True},
-        "Gemini": {"env_var": "GEMINI_API_KEY", "is_uri": False}
+        "Gemini": {"env_var": "GEMINI_API_KEY", "is_uri": False},
     }
 
     # Model configurations
-    OPENAI_MODEL = ModelConfig(
-        name="gpt-4o",
-        default_temperature=0.1,
-        max_tokens=4000
-    )
+    OPENAI_MODEL = ModelConfig(name="gpt-4o", default_temperature=0.1, max_tokens=4000)
 
     CLAUDE_MODEL = ModelConfig(
-        name="claude-3-sonnet-latest",
-        default_temperature=0.1,
-        max_tokens=4000
+        name="claude-3-sonnet-latest", default_temperature=0.1, max_tokens=4000
     )
 
     OLLAMA_MODEL = ModelConfig(
@@ -41,8 +38,8 @@ class LLMConfig:
             "num_predict": 2048,
             "top_k": 40,
             "top_p": 0.9,
-            "repeat_penalty": 1.1
-        }
+            "repeat_penalty": 1.1,
+        },
     )
 
     GEMINI_MODEL = ModelConfig(
@@ -52,7 +49,7 @@ class LLMConfig:
         default_options={
             "top_p": 0.95,
             "top_k": 40,
-        }
+        },
     )
 
     # Default URIs and folder names
@@ -76,7 +73,7 @@ class LLMConfig:
         config = cls.PROVIDER_CONFIG.get(provider)
         if not config:
             return None
-            
+
         value = os.getenv(config["env_var"])
         if config["is_uri"]:
             return value or cls.OLLAMA_DEFAULT_URI

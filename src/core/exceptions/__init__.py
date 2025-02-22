@@ -3,15 +3,15 @@ Custom exceptions for the core package.
 """
 
 from .database_exceptions import (
-    DatabaseError,
     ConnectionError,
+    DatabaseError,
+    EntityNotFoundError,
     TransactionError,
-    EntityNotFoundError
 )
 
 __all__ = [
-    'DatabaseError',
-    'ConnectionError',
-    'TransactionError',
-    'EntityNotFoundError'
-] 
+    "DatabaseError",
+    "ConnectionError",
+    "TransactionError",
+    "EntityNotFoundError",
+]

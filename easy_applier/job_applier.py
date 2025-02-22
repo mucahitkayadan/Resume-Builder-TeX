@@ -1,8 +1,10 @@
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from src.core.database.unit_of_work import MongoUnitOfWork
+from selenium.webdriver.support.ui import WebDriverWait
+
 from src.core.database.models.resume import Resume
+from src.core.database.unit_of_work import MongoUnitOfWork
+
 
 class JobApplier:
     def __init__(self, driver, unit_of_work: MongoUnitOfWork):
@@ -19,11 +21,15 @@ class JobApplier:
             apply_button.click()
 
             # Upload resume
-            upload_button = self.driver.find_element(By.CSS_SELECTOR, "input[type='file']")
+            upload_button = self.driver.find_element(
+                By.CSS_SELECTOR, "input[type='file']"
+            )
             upload_button.send_keys(resume_path)
 
             # Submit application
-            submit_button = self.driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
+            submit_button = self.driver.find_element(
+                By.CSS_SELECTOR, "button[type='submit']"
+            )
             submit_button.click()
 
             return True

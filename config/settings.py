@@ -1,9 +1,10 @@
-from pydantic_settings import BaseSettings
-from typing import List, Dict, Optional
-from functools import lru_cache
-from dotenv import load_dotenv
 import os
+from functools import lru_cache
 from pathlib import Path
+from typing import Dict, List, Optional
+
+from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
 
 load_dotenv()
 
@@ -15,16 +16,19 @@ OUTPUT_DIR = PROJECT_ROOT / "created_resumes"
 # Create output directory if it doesn't exist
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+
 class Settings(BaseSettings):
     # JWT settings
-    jwt_secret_key: str = os.getenv("JWT_SECRET_KEY", "your-default-secret-key")  # Never use default in production
+    jwt_secret_key: str = os.getenv(
+        "JWT_SECRET_KEY", "your-default-secret-key"
+    )  # Never use default in production
     jwt_algorithm: str = "HS256"
     jwt_expires_minutes: int = 30
-    
+
     # MongoDB settings
     mongodb_uri: Optional[str] = None
     mongodb_database: Optional[str] = None
-    
+
     # API settings
     api_v1_prefix: str = "/api/v1"
 
@@ -44,8 +48,8 @@ class Settings(BaseSettings):
 
     # CORS Settings
     cors_origins: List[str] = [
-        "http://localhost:3000",      # React development server
-        "http://localhost:8001",      # FastAPI server
+        "http://localhost:3000",  # React development server
+        "http://localhost:8001",  # FastAPI server
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8001",
     ]
@@ -55,29 +59,27 @@ class Settings(BaseSettings):
 
     @property
     def feature_flags(self) -> Dict[str, bool]:
-        return {
-            'check_clearance': True
-        }
-    
+        return {"check_clearance": True}
+
     @property
     def app_constants(self) -> Dict[str, List[str]]:
         return {
-            'clearance_keywords': [
+            "clearance_keywords": [
                 "security clearance",
                 "clearance required",
                 "US citizen only",
                 "US Citizen",
                 "Permanent Resident",
                 "U.S. Citizenship",
-                "Government Security Clearance"
+                "Government Security Clearance",
             ]
         }
-    
+
     model_config = {
-        'env_file': '.env',
-        'case_sensitive': True,
-        'use_enum_values': True,
-        'extra': 'ignore',  # Allow extra fields
+        "env_file": ".env",
+        "case_sensitive": True,
+        "use_enum_values": True,
+        "extra": "ignore",  # Allow extra fields
     }
 
     def __init__(self, **kwargs):
@@ -92,9 +94,11 @@ class Settings(BaseSettings):
         self.linkedin_email = os.getenv("LINKEDIN_EMAIL")
         self.linkedin_password = os.getenv("LINKEDIN_PASSWORD")
 
+
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()
+
 
 settings = get_settings()
 

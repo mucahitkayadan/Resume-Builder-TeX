@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from src.core.database.models.user import User
 
 
@@ -13,7 +14,7 @@ def test_mongo_uow_transaction_commit(mongo_uow):
             preferences={},
             last_login=datetime.utcnow(),
             created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            updated_at=datetime.utcnow(),
         )
         mongo_uow.users.add(user)
 
@@ -36,7 +37,7 @@ def test_mongo_uow_transaction_rollback(mongo_uow):
                 preferences={},
                 last_login=datetime.utcnow(),
                 created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
+                updated_at=datetime.utcnow(),
             )
             mongo_uow.users.add(user)
             raise ValueError("Test error")

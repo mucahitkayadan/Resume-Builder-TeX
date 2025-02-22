@@ -1,11 +1,14 @@
 """Resume schemas module."""
 
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
 from pydantic import BaseModel, Field
+
 
 class ResumeBase(BaseModel):
     """Base resume schema."""
+
     title: str = "My Resume"
     template_id: str = "default"
     version: int = 1
@@ -26,14 +29,19 @@ class ResumeBase(BaseModel):
 
     class Config:
         """Pydantic config."""
+
         arbitrary_types_allowed = True
+
 
 class ResumeCreate(ResumeBase):
     """Resume create schema."""
+
     pass
+
 
 class ResumeUpdate(BaseModel):
     """Resume update schema."""
+
     title: Optional[str] = None
     template_id: Optional[str] = None
     version: Optional[int] = None
@@ -54,10 +62,13 @@ class ResumeUpdate(BaseModel):
 
     class Config:
         """Pydantic config."""
+
         arbitrary_types_allowed = True
+
 
 class Resume(ResumeBase):
     """Resume schema with database fields."""
+
     _id: str
     user_id: str
     created_at: datetime
@@ -65,6 +76,7 @@ class Resume(ResumeBase):
 
     class Config:
         """Pydantic config."""
+
         from_attributes = True
         populate_by_name = True
         arbitrary_types_allowed = True

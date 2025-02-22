@@ -1,16 +1,18 @@
 import logging
-from typing import Dict, Any, Optional, Tuple
 from datetime import datetime, timezone
+from typing import Any, Dict, Optional, Tuple
 
-from src.llms.runner import LLMRunner
-from src.latex.cover_letter.cover_letter_compiler import CoverLetterLatexCompiler
-from src.loaders.prompt_loader import PromptLoader
-from .utils.string_utils import ensure_string
 from src.core.database.factory import get_unit_of_work
-from src.generator.utils.output_manager import OutputManager
 from src.core.database.models import Resume
+from src.generator.utils.output_manager import OutputManager
+from src.latex.cover_letter.cover_letter_compiler import CoverLetterLatexCompiler
+from src.llms.runner import LLMRunner
+from src.loaders.prompt_loader import PromptLoader
+
+from .utils.string_utils import ensure_string
 
 logger = logging.getLogger(__name__)
+
 
 class CoverLetterGenerator:
     """A class for generating cover letters based on job descriptions and resume data."""
@@ -23,10 +25,12 @@ class CoverLetterGenerator:
         self.uow = get_unit_of_work()
         self.latex_compiler = CoverLetterLatexCompiler()
 
-    def generate_cover_letter(self, job_description: str, resume_id: str, output_manager: OutputManager) -> str:
+    def generate_cover_letter(
+        self, job_description: str, resume_id: str, output_manager: OutputManager
+    ) -> str:
         """Generate a cover letter based on the given job description and resume data."""
         logger.info(f"Starting cover letter generation for resume ID: {resume_id}")
-        
+
         try:
             # Validate inputs and get resume data
             logger.debug("Validating inputs and getting resume data")
@@ -48,10 +52,10 @@ class CoverLetterGenerator:
                 content=cover_letter_content,
                 output_manager=output_manager,
                 user_id=self.user_id,
-                resume_id=resume_id
+                resume_id=resume_id,
             )
             logger.debug("PDF generation complete")
-            
+
             if not pdf_content:
                 logger.error("PDF generation failed")
                 return "Cover letter PDF generation failed."
@@ -68,11 +72,13 @@ class CoverLetterGenerator:
                     self.uow.commit()
                     logger.info(f"Cover letter saved to resume {resume_id}")
                 else:
-                    logger.error(f"Resume {resume_id} not found for saving cover letter")
+                    logger.error(
+                        f"Resume {resume_id} not found for saving cover letter"
+                    )
                     return "Failed to save cover letter: Resume not found"
-            
+
             return "Cover letter generated and saved successfully."
-            
+
         except Exception as e:
             logger.error(f"Failed to generate cover letter: {str(e)}", exc_info=True)
             raise
@@ -88,16 +94,16 @@ class CoverLetterGenerator:
                 portfolio = self.uow.portfolios.get_by_user_id(self.user_id)
                 if not portfolio:
                     return "No portfolio found for user"
-                
+
                 minimal_resume = {
-                    'personal_information': portfolio.personal_information,
-                    'career_summary': "",
-                    'skills': "",
-                    'work_experience': "",
-                    'education': "",
-                    'projects': "",
-                    'awards': "",
-                    'publications': ""
+                    "personal_information": portfolio.personal_information,
+                    "career_summary": "",
+                    "skills": "",
+                    "work_experience": "",
+                    "education": "",
+                    "projects": "",
+                    "awards": "",
+                    "publications": "",
                 }
                 return minimal_resume, None
 
@@ -121,7 +127,9 @@ class CoverLetterGenerator:
             cover_letter_prompt, resume_data, job_description
         )
 
-    def _get_resume_for_cover_letter(self, resume_id: Optional[str] = None) -> Tuple[Dict[str, Any], Optional[Resume]]:
+    def _get_resume_for_cover_letter(
+        self, resume_id: Optional[str] = None
+    ) -> Tuple[Dict[str, Any], Optional[Resume]]:
         """Get the most appropriate resume for cover letter generation."""
         with self.uow:
             if resume_id:
@@ -142,16 +150,15 @@ class CoverLetterGenerator:
             portfolio = self.uow.portfolios.get_by_user_id(self.user_id)
             if not portfolio:
                 raise ValueError("No portfolio found for user")
-            
+
             minimal_resume = {
-                'personal_information': portfolio.personal_information,
-                'career_summary': "",
-                'skills': "",
-                'work_experience': "",
-                'education': "",
-                'projects': "",
-                'awards': "",
-                'publications': ""
+                "personal_information": portfolio.personal_information,
+                "career_summary": "",
+                "skills": "",
+                "work_experience": "",
+                "education": "",
+                "projects": "",
+                "awards": "",
+                "publications": "",
             }
             return minimal_resume, None
-  

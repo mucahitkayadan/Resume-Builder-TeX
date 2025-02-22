@@ -1,18 +1,17 @@
+import logging
 import sys
 from pathlib import Path
-import logging
 
 # Add project root to Python path
 project_root = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(0, project_root)
 
-from __legacy__.engine import ResumeCreator
-from __legacy__.engine import AIRunner
-from __legacy__.engine import ClaudeStrategy
-from src.loaders.prompt_loader import PromptLoader
+from __legacy__.engine import AIRunner, ClaudeStrategy, ResumeCreator
 from src.core.database.factory import get_unit_of_work
+from src.loaders.prompt_loader import PromptLoader
 
 # Reference to config.py for logging setup
+
 
 def career_summary_generation():
     # Setup logging
@@ -46,20 +45,23 @@ def career_summary_generation():
                 section="career_summary",
                 process_type="process",
                 job_description=latest_resume.job_description,
-                user_id=latest_resume.user_id
+                user_id=latest_resume.user_id,
             )
-            
+
             print("\n=== Generated Career Summary ===")
             print(f"Job Description: {latest_resume.job_description[:200]}...")
             print("\nGenerated Summary:")
             print(career_summary)
             print("\nOriginal Portfolio Career Summary Data:")
             print(f"Job Titles: {portfolio.career_summary.job_titles}")
-            print(f"Years of Experience: {portfolio.career_summary.years_of_experience}")
+            print(
+                f"Years of Experience: {portfolio.career_summary.years_of_experience}"
+            )
             print(f"Default Summary: {portfolio.career_summary.default_summary}")
-            
+
         except Exception as e:
             logger.error(f"Error generating career summary: {str(e)}")
+
 
 if __name__ == "__main__":
     career_summary_generation()

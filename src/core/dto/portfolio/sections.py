@@ -1,12 +1,15 @@
 from dataclasses import dataclass
 from typing import List
+
 from .base_dto import BaseDTO
+
 
 @dataclass
 class CareerSummaryDTO(BaseDTO):
     job_titles: List[str]
     years_of_experience: str
     default_summary: str
+
 
 @dataclass
 class EducationItemDTO(BaseDTO):
@@ -17,12 +20,14 @@ class EducationItemDTO(BaseDTO):
     time: str
     transcript: List[str]
 
+
 @dataclass
 class ProjectDTO(BaseDTO):
     name: str
     technologies: str
     date: str
     bullet_points: List[str]
+
 
 @dataclass
 class WorkExperienceDTO(BaseDTO):
@@ -32,10 +37,12 @@ class WorkExperienceDTO(BaseDTO):
     time: str
     responsibilities: List[str]
 
+
 @dataclass
 class AwardDTO(BaseDTO):
     name: str
     explanation: str
+
 
 @dataclass
 class PublicationDTO(BaseDTO):
@@ -43,6 +50,7 @@ class PublicationDTO(BaseDTO):
     publisher: str
     time: str
     link: str
+
 
 @dataclass
 class PersonalInformationDTO(BaseDTO):

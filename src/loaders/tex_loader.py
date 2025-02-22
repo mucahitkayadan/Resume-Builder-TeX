@@ -1,7 +1,9 @@
 # Testing is done - Successful
-from src.core.exceptions.database_exceptions import DatabaseError
 import logging
+
 from src.core.database.factory import get_unit_of_work
+from src.core.exceptions.database_exceptions import DatabaseError
+
 
 class TexLoader:
     """A class for loading LaTeX template files from MongoDB."""
@@ -43,7 +45,9 @@ class TexLoader:
                 self.uow.commit()
                 raise ValueError(f"Template '{name}' not found in the database")
         except DatabaseError as e:
-            self.logger.error(f"Database error while retrieving template '{name}': {str(e)}")
+            self.logger.error(
+                f"Database error while retrieving template '{name}': {str(e)}"
+            )
             raise ValueError(f"Error retrieving template '{name}': {str(e)}")
 
     def safe_format_template(self, template_name: str, **kwargs) -> str:
@@ -70,6 +74,7 @@ class TexLoader:
             self.logger.error(f"ValueError in template '{template_name}': {e}")
             raise ValueError(f"Error formatting template '{template_name}': {e}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     tex_loader = TexLoader()
     print(tex_loader.get_template("personal_information"))

@@ -1,8 +1,12 @@
-from typing import Optional, Dict, Any
 from datetime import datetime
-from src.core.database.factory import get_unit_of_work
-from ..schemas.portfolio import PortfolioResponse
+from typing import Any, Dict, Optional
+
 from fastapi import UploadFile
+
+from src.core.database.factory import get_unit_of_work
+
+from ..schemas.portfolio import PortfolioResponse
+
 
 class PortfolioService:
     def __init__(self):
@@ -28,4 +32,4 @@ class PortfolioService:
 
     async def upload_transcript(self, user_id: str, file: UploadFile):
         # TODO: Implement file upload logic
-        pass 
+        pass

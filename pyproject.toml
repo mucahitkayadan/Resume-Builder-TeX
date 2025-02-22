@@ -1,0 +1,70 @@
+[tool.poetry]
+name = "resume-builder-tex"
+version = "0.1.0"
+description = ""
+authors = ["Muja Kayadan <mujakayadan@gmail.com>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.13"
+pydantic = {version = ">=2.9.0", extras = ["email"]}
+anthropic = ">=0.40.0,<0.41.0"
+openai = ">=1.57.2,<1.58.0"
+python-dotenv = ">=1.0.1,<1.1.0"
+tqdm = ">=4.67.1,<4.68.0"
+requests = ">=2.32.3,<2.33.0"
+beautifulsoup4 = ">=4.12.3,<4.13.0"
+selenium = "4.27.1"
+webdriver-manager = "4.0.2"
+pandas = ">=2.2.2,<2.3.0"
+psutil = ">=6.1.0,<6.2.0"
+pymongo = ">=4.10.1,<4.11.0"
+protobuf = ">=5.29.1,<5.30.0"
+google-generativeai = ">=0.8.3,<0.9.0"
+fastapi = ">=0.104.0,<0.105.0"
+uvicorn = {version = ">=0.24.0", extras = ["standard"]}
+python-multipart = ">=0.0.6"
+passlib = ">=1.7.4"
+bcrypt = ">=4.0.1"
+python-jose = {version = ">=3.3.0", extras = ["cryptography"]}
+pytest = ">=8.3.4,<8.4.0"
+pytest-asyncio = ">=0.24.0,<0.25.0"
+pytest-cov = ">=6.0.0,<6.1.0"
+motor = ">=3.3.1"
+pydantic-settings = ">=2.6.1,<2.7.0"
+pyjwt = ">=2.10.1,<2.11.0"
+cryptography = ">=44.0.0,<44.1.0"
+mongomock = ">=4.3.0,<4.4.0"
+python-dateutil = ">=2.8.2"
+email-validator = ">=2.1.0.post1"
+streamlit = ">=1.41.0,<1.42.0"
+stqdm = ">=0.0.5,<0.1.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.1.1"
+isort = "^5.13.2"
+flake8 = "^7.0.0"
+
+[tool.black]
+line-length = 88
+target-version = ['py313']
+include = '\.pyi?$'
+extend-exclude = '''
+# A regex preceded with ^/ will apply only to files and directories
+# in the root of the project.
+(
+    .*\.tex
+    | .*\.cls
+    | .*\.sty
+)
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+skip_glob = ["*.tex", "*.cls", "*.sty"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api" 

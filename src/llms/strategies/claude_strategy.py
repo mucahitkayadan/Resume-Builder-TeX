@@ -1,11 +1,14 @@
 from anthropic import Anthropic
-from .base import LLMStrategy
+
 from config.llm_config import LLMConfig
 from config.logger_config import setup_logger
+
 from ..utils.errors import APIError, ConfigurationError
 from ..utils.response import process_api_response
+from .base import LLMStrategy
 
 logger = setup_logger(__name__)
+
 
 class ClaudeStrategy(LLMStrategy):
     def __init__(self, system_instruction: str):
@@ -26,8 +29,11 @@ class ClaudeStrategy(LLMStrategy):
                 system=self.system_instruction,
                 temperature=self.temperature,
                 messages=[
-                    {"role": "user", "content": self._format_prompt(prompt, data, job_description)}
-                ]
+                    {
+                        "role": "user",
+                        "content": self._format_prompt(prompt, data, job_description),
+                    }
+                ],
             )
             return process_api_response(response, "Claude")
         except Exception as e:
@@ -42,8 +48,13 @@ class ClaudeStrategy(LLMStrategy):
                 system=self.system_instruction,
                 temperature=self.temperature,
                 messages=[
-                    {"role": "user", "content": self._format_prompt(prompt, job_description=job_description)}
-                ]
+                    {
+                        "role": "user",
+                        "content": self._format_prompt(
+                            prompt, job_description=job_description
+                        ),
+                    }
+                ],
             )
             result = process_api_response(response, "Claude")
             return result

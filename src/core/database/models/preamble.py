@@ -1,8 +1,11 @@
-from pydantic import BaseModel
 from typing import Optional
+
+from pydantic import BaseModel
+
 
 class Preamble(BaseModel):
     """MongoDB Preamble Model"""
+
     id: Optional[str]
     name: str
     content: str

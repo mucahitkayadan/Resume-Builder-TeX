@@ -1,18 +1,21 @@
-from typing import Optional, List
+from datetime import datetime, timezone
+from typing import List, Optional
+
 from bson import ObjectId
+
 from ...exceptions.database_exceptions import DatabaseError
 from ..interfaces.repository_interface import BaseRepository
-from ..models.portfolio import Portfolio, CareerSummary
-from datetime import datetime, timezone
+from ..models.portfolio import CareerSummary, Portfolio
+
 
 class MongoPortfolioRepository(BaseRepository[Portfolio]):
     def __init__(self, connection):
         self.connection = connection
-        self.collection = self.connection.db['portfolios']
+        self.collection = self.connection.db["portfolios"]
 
     def get_by_id(self, id: str) -> Optional[Portfolio]:
         try:
-            result = self.collection.find_one({'_id': ObjectId(id)})
+            result = self.collection.find_one({"_id": ObjectId(id)})
             return self._map_to_entity(result) if result else None
         except Exception as e:
             raise DatabaseError(f"Error retrieving portfolio: {str(e)}")
@@ -26,7 +29,7 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
 
     def add(self, portfolio: Portfolio) -> Portfolio:
         try:
-            result = self.collection.insert_one(portfolio.model_dump(exclude={'id'}))
+            result = self.collection.insert_one(portfolio.model_dump(exclude={"id"}))
             portfolio.id = str(result.inserted_id)
             return portfolio
         except Exception as e:
@@ -35,8 +38,8 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
     def update(self, portfolio: Portfolio) -> bool:
         try:
             result = self.collection.update_one(
-                {'_id': ObjectId(portfolio.id)},
-                {'$set': portfolio.model_dump(exclude={'id'})}
+                {"_id": ObjectId(portfolio.id)},
+                {"$set": portfolio.model_dump(exclude={"id"})},
             )
             return result.modified_count > 0
         except Exception as e:
@@ -44,14 +47,14 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
 
     def delete(self, id: str) -> bool:
         try:
-            result = self.collection.delete_one({'_id': ObjectId(id)})
+            result = self.collection.delete_one({"_id": ObjectId(id)})
             return result.deleted_count > 0
         except Exception as e:
             raise DatabaseError(f"Error deleting portfolio: {str(e)}")
 
     def exists(self, id: str) -> bool:
         try:
-            return self.collection.count_documents({'_id': ObjectId(id)}) > 0
+            return self.collection.count_documents({"_id": ObjectId(id)}) > 0
         except Exception as e:
             raise DatabaseError(f"Error checking portfolio existence: {str(e)}")
 
@@ -60,38 +63,43 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
             return None
         try:
             # Convert ObjectId to string for both id and profile_id
-            doc['id'] = str(doc.pop('_id'))
-            if isinstance(doc.get('profile_id'), ObjectId):
-                doc['profile_id'] = str(doc['profile_id'])
-            
+            doc["id"] = str(doc.pop("_id"))
+            if isinstance(doc.get("profile_id"), ObjectId):
+                doc["profile_id"] = str(doc["profile_id"])
+
             # Convert any other ObjectId fields if they exist
             for key, value in doc.items():
                 if isinstance(value, ObjectId):
                     doc[key] = str(value)
                 elif isinstance(value, list):
-                    doc[key] = [str(item) if isinstance(item, ObjectId) else item for item in value]
+                    doc[key] = [
+                        str(item) if isinstance(item, ObjectId) else item
+                        for item in value
+                    ]
                 elif isinstance(value, dict):
-                    doc[key] = {k: str(v) if isinstance(v, ObjectId) else v for k, v in value.items()}
+                    doc[key] = {
+                        k: str(v) if isinstance(v, ObjectId) else v
+                        for k, v in value.items()
+                    }
 
             # Set default values for all required fields
-            doc.setdefault('user_id', 'default_user')
-            doc.setdefault('personal_information', {})
-            doc.setdefault('career_summary', {
-                'job_titles': [],
-                'years_of_experience': '',
-                'default_summary': ''
-            })
-            doc.setdefault('skills', [])
-            doc.setdefault('work_experience', [])
-            doc.setdefault('education', [])
-            doc.setdefault('projects', [])
-            doc.setdefault('awards', [])
-            doc.setdefault('publications', [])
-            doc.setdefault('certifications', [])
-            doc.setdefault('languages', [])
-            doc.setdefault('created_at', datetime.now(timezone.utc))
-            doc.setdefault('updated_at', datetime.now(timezone.utc))
-            
+            doc.setdefault("user_id", "default_user")
+            doc.setdefault("personal_information", {})
+            doc.setdefault(
+                "career_summary",
+                {"job_titles": [], "years_of_experience": "", "default_summary": ""},
+            )
+            doc.setdefault("skills", [])
+            doc.setdefault("work_experience", [])
+            doc.setdefault("education", [])
+            doc.setdefault("projects", [])
+            doc.setdefault("awards", [])
+            doc.setdefault("publications", [])
+            doc.setdefault("certifications", [])
+            doc.setdefault("languages", [])
+            doc.setdefault("created_at", datetime.now(timezone.utc))
+            doc.setdefault("updated_at", datetime.now(timezone.utc))
+
             return Portfolio(**doc)
         except Exception as e:
             raise DatabaseError(f"Error mapping portfolio entity: {str(e)}")
@@ -99,19 +107,23 @@ class MongoPortfolioRepository(BaseRepository[Portfolio]):
     def get_by_user_id(self, user_id: str) -> Optional[Portfolio]:
         """Additional method specific to portfolio repository"""
         try:
-            result = self.collection.find_one({'user_id': user_id})
+            result = self.collection.find_one({"user_id": user_id})
             return self._map_to_entity(result) if result else None
         except Exception as e:
-            raise DatabaseError(f"Error retrieving portfolio by user ID: {str(e)}") 
-    
-    def update_career_summary(self, portfolio_id: str, career_summary: CareerSummary) -> bool:
+            raise DatabaseError(f"Error retrieving portfolio by user ID: {str(e)}")
+
+    def update_career_summary(
+        self, portfolio_id: str, career_summary: CareerSummary
+    ) -> bool:
         try:
             result = self.collection.update_one(
-                {'_id': ObjectId(portfolio_id)},
-                {'$set': {
-                    'career_summary': career_summary.model_dump(),
-                    'updated_at': datetime.now(timezone.utc)
-                }}
+                {"_id": ObjectId(portfolio_id)},
+                {
+                    "$set": {
+                        "career_summary": career_summary.model_dump(),
+                        "updated_at": datetime.now(timezone.utc),
+                    }
+                },
             )
             return result.modified_count > 0
         except Exception as e:

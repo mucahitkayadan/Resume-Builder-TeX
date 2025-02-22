@@ -1,5 +1,7 @@
 import unittest
+
 from __legacy__.json_loader import JsonLoader
+
 
 class TestJsonLoader(unittest.TestCase):
 
@@ -16,5 +18,6 @@ class TestJsonLoader(unittest.TestCase):
         self.assertIsInstance(career_summary, dict)
         self.assertIn("job_titles", career_summary)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

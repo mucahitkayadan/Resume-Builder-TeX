@@ -1,9 +1,12 @@
-from pydantic import BaseModel
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel
+
 
 class TexHeader(BaseModel):
     """MongoDB TeX Header Model"""
+
     id: Optional[str]
     name: str
     content: str
@@ -11,4 +14,4 @@ class TexHeader(BaseModel):
     updated_at: datetime
 
     class Config:
-        arbitrary_types_allowed = True 
+        arbitrary_types_allowed = True
