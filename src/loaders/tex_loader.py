@@ -72,4 +72,4 @@ class TexLoader:
 
 if __name__ == '__main__':
     tex_loader = TexLoader()
-    print(tex_loader.get_template("publications"))
+    print(tex_loader.get_template("personal_information"))

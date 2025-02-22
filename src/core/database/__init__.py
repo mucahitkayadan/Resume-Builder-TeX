@@ -1,31 +1,16 @@
-"""
-Database management package including repositories, models, and unit of work implementations.
-"""
+"""Database module."""
 
-from .models import *
-from .repositories import *
-from .unit_of_work import *
-from .connections import *
-from .interfaces import *
+from .connections import MongoConnection, AsyncMongoConnection
+from .unit_of_work import MongoUnitOfWork, AsyncMongoUnitOfWork
+from .factory import get_database_connection, get_async_database_connection, get_unit_of_work, get_async_unit_of_work
 
 __all__ = [
-    # Models
-    'User',
-    'Portfolio',
-    'Resume',
-    
-    # Repositories
-    'MongoPortfolioRepository',
-    'MongoUserRepository',
-    'MongoResumeRepository',
-    
-    # Unit of Work
-    'MongoUnitOfWork',
-    
-    # Connections
     'MongoConnection',
-    
-    # Interfaces
-    'DatabaseInterface',
-    'BaseRepository'
+    'AsyncMongoConnection',
+    'MongoUnitOfWork',
+    'AsyncMongoUnitOfWork',
+    'get_database_connection',
+    'get_async_database_connection',
+    'get_unit_of_work',
+    'get_async_unit_of_work'
 ]

@@ -1,28 +1,42 @@
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, Dict, Any
+"""Resume schemas module."""
+
+from typing import Optional
 from datetime import datetime
+from pydantic import BaseModel, Field
 
-class ResumeRequest(BaseModel):
-    job_description: str
+class ResumeBase(BaseModel):
+    """Base resume schema."""
+    title: str = "My Resume"
+    template_id: str = "default"
+    version: int = 1
+    personal_information: str
+    career_summary: str
+    skills: str
+    work_experience: str
+    education: str
+    projects: str
+    awards: str
+    publications: str
+    resume_pdf: Optional[bytes] = None
+    cover_letter_content: Optional[str] = None
+    cover_letter_pdf: Optional[bytes] = None
+    model_type: str = "ClaudeStrategy"
+    model_name: str = "ClaudeStrategy"
+    temperature: float = 0.1
 
-class ResumeGenerationOptions(BaseModel):
-    model_config = ConfigDict(protected_namespaces=())
-    
-    temperature: Optional[float] = 0.1
-    model_type: Optional[str] = "openai"
-    model_name: Optional[str] = "gpt-3.5-turbo"
+    class Config:
+        """Pydantic config."""
+        arbitrary_types_allowed = True
 
-class ResumeResponse(BaseModel):
-    model_config = ConfigDict(
-        from_attributes=True,
-        protected_namespaces=(),
-        json_encoders={bytes: lambda v: v.decode('utf-8') if v else None}
-    )
+class ResumeCreate(ResumeBase):
+    """Resume create schema."""
+    pass
 
-    id: str
-    company_name: str
-    job_title: str
-    job_description: str
+class ResumeUpdate(BaseModel):
+    """Resume update schema."""
+    title: Optional[str] = None
+    template_id: Optional[str] = None
+    version: Optional[int] = None
     personal_information: Optional[str] = None
     career_summary: Optional[str] = None
     skills: Optional[str] = None
@@ -37,5 +51,20 @@ class ResumeResponse(BaseModel):
     model_type: Optional[str] = None
     model_name: Optional[str] = None
     temperature: Optional[float] = None
+
+    class Config:
+        """Pydantic config."""
+        arbitrary_types_allowed = True
+
+class Resume(ResumeBase):
+    """Resume schema with database fields."""
+    _id: str
+    user_id: str
     created_at: datetime
     updated_at: datetime
+
+    class Config:
+        """Pydantic config."""
+        from_attributes = True
+        populate_by_name = True
+        arbitrary_types_allowed = True

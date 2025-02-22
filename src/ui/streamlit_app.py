@@ -3,13 +3,11 @@ import logging
 from config.logger_config import setup_logger
 from pathlib import Path
 
-from src.ui.components.section_selector import SectionSelector
 from src.ui.components.model_selector import ModelSelector
 from src.ui.components.database_viewer import DatabaseViewer
 from src.generator.generator_manager import GeneratorManager
 from src.ui.pages.home import HomePage
 from src.ui.pages.settings import SettingsPage
-from src.ui.pages.section_manager import SectionManagerPage
 from config.config import test_user_id
 
 logger = setup_logger(__name__, level=logging.INFO)
@@ -32,13 +30,11 @@ class StreamlitApp:
         
         # Initialize components after session state is set up
         self.model_selector = ModelSelector()
-        self.section_selector = SectionSelector()
         self.generator_manager = GeneratorManager(st.session_state['user_id'])
         
         # Initialize pages
-        self.home_page = HomePage(self.model_selector, self.section_selector, self.generator_manager)
+        self.home_page = HomePage(self.model_selector, self.generator_manager)
         self.settings_page = SettingsPage(self.model_selector)
-        self.section_manager = SectionManagerPage(self.section_selector)
         
         if 'components_initialized' not in st.session_state:
             self._store_components()
@@ -47,14 +43,16 @@ class StreamlitApp:
     def _store_components(self):
         """Store components in session state"""
         st.session_state['model_selector'] = self.model_selector
-        st.session_state['section_selector'] = self.section_selector
         st.session_state['generator_manager'] = self.generator_manager
         logger.debug("Components stored in session state")
 
     def setup_session_state(self):  # Removed @staticmethod and @st.cache_resource
         """Initialize session state variables"""
         if 'user_id' not in st.session_state:
+            logger.debug(f"Setting user_id in session state to: {test_user_id}")
             st.session_state['user_id'] = test_user_id
+        else:
+            logger.debug(f"Current user_id in session state: {st.session_state['user_id']}")
         if 'portfolio_initialized' not in st.session_state:
             st.session_state['portfolio_initialized'] = False
 
@@ -90,9 +88,6 @@ class StreamlitApp:
             if st.button("🏠 Home", key="nav_home", use_container_width=True):
                 st.session_state.current_page = "home"
                 
-            if st.button("📋 Section Manager", key="nav_section", use_container_width=True):
-                st.session_state.current_page = "section_manager"
-                
             if st.button("⚙️ Settings", key="nav_settings", use_container_width=True):
                 st.session_state.current_page = "settings"
                 
@@ -103,8 +98,6 @@ class StreamlitApp:
         # Render selected page
         if st.session_state.current_page == "home":
             self.home_page.render()
-        elif st.session_state.current_page == "section_manager":
-            self.section_manager.render()
         elif st.session_state.current_page == "settings":
             self.settings_page.render()
         else:

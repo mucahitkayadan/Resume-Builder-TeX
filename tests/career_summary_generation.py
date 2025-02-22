@@ -35,7 +35,7 @@ def career_summary_generation():
             return
 
         # Get user's portfolio
-        portfolio = uow.portfolio.get_by_user_id(latest_resume.user_id)
+        portfolio = uow.portfolios.get_by_user_id(latest_resume.user_id)
         if not portfolio:
             logger.error("No portfolio found for user")
             return

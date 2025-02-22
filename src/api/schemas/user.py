@@ -1,60 +1,57 @@
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
-from typing import Optional, Dict, Any
-from datetime import datetime
+"""User schemas module."""
 
-class UserPreferences(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    
-    project_details: Dict[str, int] = Field(default_factory=dict)
-    work_experience_details: Dict[str, int] = Field(default_factory=dict)
-    skills_details: Dict[str, Any] = Field(default_factory=dict)
-    career_summary_details: Dict[str, int] = Field(default_factory=dict)
-    education_details: Dict[str, int] = Field(default_factory=dict)
-    cover_letter_details: Dict[str, Any] = Field(default_factory=dict)
-    awards_details: Dict[str, int] = Field(default_factory=dict)
-    publications_details: Dict[str, int] = Field(default_factory=dict)
-    
-    llm_preferences: Optional[Dict] = Field(default_factory=dict)
-    section_preferences: Optional[Dict] = Field(default_factory=dict)
-    feature_preferences: Optional[Dict] = Field(default_factory=dict)
+from datetime import datetime
+from typing import Optional
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 class UserBase(BaseModel):
-    user_id: str = Field(..., min_length=3, description="Unique identifier for the user")
+    """Base user schema."""
     email: EmailStr
-    full_name: Optional[str] = Field(None, min_length=2)
+    is_active: bool = True
+    is_superuser: bool = False
+    full_name: Optional[str] = None
 
 class UserCreate(UserBase):
-    password: str = Field(
-        ..., 
-        min_length=8,
-        description="Password must be at least 8 characters long"
-    )
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
+    """User creation schema."""
+    password: str = Field(..., min_length=8)
+    
+class UserUpdate(BaseModel):
+    """User update schema."""
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+    password: Optional[str] = None
+    is_active: Optional[bool] = None
+    is_superuser: Optional[bool] = None
 
 class UserResponse(UserBase):
+    """User response schema."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    user_id: str
     created_at: datetime
     updated_at: datetime
-    preferences: UserPreferences
 
-    model_config = ConfigDict(
-        from_attributes=True,
-        protected_namespaces=()
-    )
+# Alias for backward compatibility
+User = UserResponse
 
-class UserPreferencesUpdate(BaseModel):
-    project_details: Optional[Dict[str, int]] = None
-    work_experience_details: Optional[Dict[str, int]] = None
-    skills_details: Optional[Dict[str, Any]] = None
-    career_summary_details: Optional[Dict[str, int]] = None
-    education_details: Optional[Dict[str, int]] = None
-    cover_letter_details: Optional[Dict[str, Any]] = None
-    awards_details: Optional[Dict[str, int]] = None
-    publications_details: Optional[Dict[str, int]] = None
-    llm_preferences: Optional[Dict] = None
-    section_preferences: Optional[Dict] = None
-    feature_preferences: Optional[Dict] = None
+class UserPreferencesBase(BaseModel):
+    """Base user preferences schema."""
+    theme: str = "light"
+    language: str = "en"
+    notifications_enabled: bool = True
+    email_notifications: bool = True
 
-    model_config = ConfigDict(protected_namespaces=()) 
+class UserPreferencesUpdate(UserPreferencesBase):
+    """User preferences update schema."""
+    theme: Optional[str] = None
+    language: Optional[str] = None
+    notifications_enabled: Optional[bool] = None
+    email_notifications: Optional[bool] = None
+
+class UserPreferencesResponse(UserPreferencesBase):
+    """User preferences response schema."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    user_id: str
+    created_at: datetime
+    updated_at: datetime

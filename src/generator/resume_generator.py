@@ -111,6 +111,7 @@ class ResumeGenerator:
 
     def _generate_and_save_resume(self, content_dict: Dict[str, str], output_manager: OutputManager) -> Resume:
         try:
+            logger.debug(f"Creating resume with user_id: {self.user_id}")
             job_info = output_manager.get_job_info()
 
             # Log content for each section
@@ -144,14 +145,15 @@ class ResumeGenerator:
                 model_name=self.llm_runner.strategy.__class__.__name__,
                 temperature=self.llm_runner.get_config().get('temperature')
             )
+            logger.debug(f"Created resume object with user_id: {resume.user_id}")
 
             logger.debug("Saving resume to database")
             with self.uow:
-                self.uow.resumes.add(resume)
+                saved_resume = self.uow.resumes.add(resume)
                 self.uow.commit()
+                logger.debug(f"Resume saved with ID: {saved_resume.id} for user_id: {saved_resume.user_id}")
 
-            logger.info(f"Resume saved successfully with ID: {resume.id}")
-            return resume
+            return saved_resume
             
         except Exception as e:
             logger.error(f"Failed to generate and save resume: {str(e)}", exc_info=True)

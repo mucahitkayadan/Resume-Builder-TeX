@@ -55,7 +55,7 @@ class CoverLetterLatexCompiler(LatexCompiler):
         try:
             with self.uow:
                 preamble = self.uow.get_cover_letter_preamble()
-                portfolio = self.uow.portfolio.get_by_user_id(user_id)
+                portfolio = self.uow.portfolios.get_by_user_id(user_id)
                 signature = self.uow.get_user_signature(user_id)
                 job_info = output_manager.get_job_info()
 

@@ -25,7 +25,7 @@ class ResumeLatexCompiler(LatexCompiler):
                     logger.error("Preamble not found in database")
                     return None
 
-                tex_content = self._generate_tex_content(preamble.content, content_dict)
+                tex_content = self._generate_tex_content(preamble, content_dict)
                 return self.compile_pdf(tex_path, tex_content, output_manager)
                 
         except Exception as e:

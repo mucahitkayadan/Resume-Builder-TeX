@@ -1,9 +1,5 @@
-"""
-Database connection implementations.
-"""
+"""Database connections module."""
 
-from .mongo_connection import MongoConnection
+from .mongo_connection import MongoConnection, AsyncMongoConnection
 
-__all__ = [
-    'MongoConnection'
-] 
+__all__ = ['MongoConnection', 'AsyncMongoConnection'] 

@@ -1,14 +1,47 @@
-import os
-from src.core.database.connections.mongo_connection import MongoConnection
+"""Database factory module for creating database connections and unit of work."""
 
+from typing import AsyncGenerator
+from config.config import MONGODB_URI, MONGODB_DATABASE
+from .connections import MongoConnection, AsyncMongoConnection
+from .unit_of_work import MongoUnitOfWork, AsyncMongoUnitOfWork
 
-def get_database_connection():
-    uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
-    db_name = os.getenv("MONGODB_DATABASE", "user_information")
-    return MongoConnection(uri=uri, db_name=db_name)
+def get_database_connection() -> MongoConnection:
+    """
+    Get a MongoDB connection instance.
+    
+    Returns:
+        MongoConnection: MongoDB connection instance
+    """
+    connection = MongoConnection(uri=MONGODB_URI, database=MONGODB_DATABASE)
+    return connection
 
-def get_unit_of_work():
+def get_async_database_connection() -> AsyncMongoConnection:
+    """
+    Get an async MongoDB connection instance.
+    
+    Returns:
+        AsyncMongoConnection: Async MongoDB connection instance
+    """
+    connection = AsyncMongoConnection(uri=MONGODB_URI, database=MONGODB_DATABASE)
+    return connection
+
+def get_unit_of_work() -> MongoUnitOfWork:
+    """
+    Get a MongoDB unit of work instance.
+    
+    Returns:
+        MongoUnitOfWork: MongoDB unit of work instance
+    """
     connection = get_database_connection()
-    # Import here to avoid circular import
-    from src.core.database.unit_of_work.mongo_unit_of_work import MongoUnitOfWork
-    return MongoUnitOfWork(connection) 
+    return MongoUnitOfWork(connection)
+
+async def get_async_unit_of_work() -> AsyncGenerator[AsyncMongoUnitOfWork, None]:
+    """
+    Get an async MongoDB unit of work instance.
+    
+    Yields:
+        AsyncMongoUnitOfWork: Async MongoDB unit of work instance
+    """
+    connection = get_async_database_connection()
+    async with AsyncMongoUnitOfWork(connection) as uow:
+        yield uow 

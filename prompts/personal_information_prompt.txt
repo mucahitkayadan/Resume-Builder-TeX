@@ -1,5 +1,5 @@
 Format the given personal information into a LaTeX-compatible header for a resume.
-Use the \personalinfo command with the following syntax: \personalinfo{Name}{Phone}{Email}{LinkedIn URL}{GitHub URL}{Location}.
+Use the \personalinfo command with the following syntax: \personalinfo{Name}{Phone}{Email}{LinkedIn URL}{GitHub URL}{Website}{Location}.
 Ensure all information is accurate and formatted correctly for LaTeX.
 
 ## Rules for selecting the location:
@@ -21,9 +21,11 @@ Tex file format: **DO NOT PRINT THIS** iT WILL BE IN ANOTHER FILE, SO THIS IS NO
         $|$
         \faGithub \hspace{.5pt} \href{#5}{GitHub}
         $|$
-        \faMapMarker \hspace{.5pt} \href{#6}{#6}
+	    \faGlobe \hspace{.5pt} \href{#6}{Website}
+	    $|$
+        \faMapMarker \hspace{.5pt} \href{#7}{#7}
     \end{center}
 }
 
 Example:
-\personalinfo{Muja Kayadan}{641 233 9607}{mujakayadan@outlook.com}{https://www.linkedin.com/in/muja-kayadan/}{https://github.com/mucahitkayadan}{San Francisco, CA, 94133}
+\personalinfo{Muja Kayadan}{641-233-9607}{mujakayadan@outlook.com}{https://www.linkedin.com/in/muja-kayadan/}{https://github.com/mucahitkayadan}{https://www.mujakayadan.com}{San Francisco, CA}

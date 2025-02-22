@@ -35,5 +35,6 @@ __all__ = [
     'UserCreate',
     'UserLogin',
     'UserResponse',
-    'UserPreferencesUpdate'
+    'UserPreferencesUpdate',
+    'UserUpdate'
 ] 

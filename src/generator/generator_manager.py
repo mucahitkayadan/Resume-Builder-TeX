@@ -26,6 +26,7 @@ class GeneratorManager:
         self._llm_runner = None
         self._resume_generator = None
         self._cover_letter_generator = None
+        logger.debug(f"Initializing GeneratorManager with user_id: {user_id}")
         self._prompt_loader = PromptLoader(user_id=user_id)
 
     @property
@@ -133,18 +134,24 @@ class GeneratorManager:
                              resume_id: Optional[str] = None):
         """Handle cover letter generation."""
         logger.info("Starting cover letter generation")
+        logger.debug(f"Current user_id: {self.user_id}")
         
         try:
             # If no resume_id provided, get the latest resume
             if not resume_id:
                 with get_unit_of_work() as uow:
-                    latest_resume = uow.resumes.get_latest_resume()
-                    if latest_resume:
-                        resume_id = latest_resume.id
+                    logger.debug(f"Getting last resume ID for user_id: {self.user_id}")
+                    latest_resume_id = uow.get_last_resume_id(self.user_id)
+                    logger.debug(f"Retrieved latest_resume_id: {latest_resume_id}")
+                    if latest_resume_id:
+                        resume_id = latest_resume_id
                         logger.info(f"Using latest resume with ID: {resume_id}")
                     else:
-                        logger.warning("No existing resume found in database")
-                        raise ValueError("Please generate a resume first or select an existing one")
+                        logger.warning("No existing resume found for user")
+                        raise ValueError("No resume found. Please generate a resume first or select an existing one.")
+
+            if not resume_id:
+                raise ValueError("Resume ID is required for cover letter generation")
 
             result = self.cover_letter_generator.generate_cover_letter(
                 job_description=job_description,
@@ -152,12 +159,12 @@ class GeneratorManager:
                 output_manager=output_manager
             )
             
-            if "Failed to save" in result:
+            if isinstance(result, str) and "Failed to save" in result:
                 logger.error(f"Cover letter generation failed: {result}")
                 raise ValueError(result)
             
             yield f"Cover letter generation: {result}", 1.0
             
         except Exception as e:
-            logger.error(f"Cover letter generation failed: {e}")
+            logger.error(f"Cover letter generation failed: {str(e)}")
             raise

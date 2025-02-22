@@ -1,0 +1,29 @@
+{
+  "scripts": {
+    "start:backend": "python api.py",
+    "start:frontend": "cd frontend && npm start",
+    "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\""
+  },
+  "name": "resumebuildertex",
+  "version": "1.0.0",
+  "description": "- [Project Overview](#project-overview)\r - [Features](#features)\r - [Project Structure](#project-structure)\r - [Setup and Installation](#setup-and-installation)\r - [Docker Setup](#docker-setup)\r - [Usage](#usage)\r - [Parsing Indeed Job Descriptions](#parsing-indeed-job-descriptions)\r - [Key Components](#key-components)\r - [Customization](#customization)\r - [Contributing](#contributing)\r - [License](#license)\r - [Acknowledgments](#acknowledgments)\r - [TODO](#todo)",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mucahitkayadan/Resume-Builder-TeX.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/mucahitkayadan/Resume-Builder-TeX/issues"
+  },
+  "homepage": "https://github.com/mucahitkayadan/Resume-Builder-TeX#readme",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

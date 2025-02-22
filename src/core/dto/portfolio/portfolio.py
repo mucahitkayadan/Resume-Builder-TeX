@@ -1,96 +1,57 @@
 from dataclasses import dataclass
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+from src.core.database.models.portfolio import Portfolio
+from src.core.database.models.profile import Profile
 from src.latex.utils.latex_escaper import LatexEscaper
-from .sections import (
-    CareerSummaryDTO, EducationItemDTO, ProjectDTO, 
-    WorkExperienceDTO, AwardDTO, PublicationDTO, PersonalInformationDTO
-)
-from .base_dto import BaseDTO
 
 @dataclass
-class PortfolioDTO(BaseDTO):
-    personal_information: PersonalInformationDTO
-    career_summary: CareerSummaryDTO
-    education: List[EducationItemDTO]
+class PortfolioDTO:
+    # Personal Information
+    name: str
+    phone: str
+    email: str
+    linkedin: str
+    github: str
+    address: str
+    website: str
+    
+    # Portfolio Sections
+    career_summary: Dict[str, Any]
+    work_experience: List[Dict[str, Any]]
     skills: List[Dict[str, List[str]]]
-    work_experience: List[WorkExperienceDTO]
-    projects: List[ProjectDTO]
-    awards: List[AwardDTO]
-    publications: List[PublicationDTO]
+    education: List[Dict[str, Any]]
+    projects: List[Dict[str, Any]]
+    awards: List[Dict[str, Any]]
+    publications: List[Dict[str, Any]]
 
     @classmethod
-    def from_db_model(cls, data: Dict[str, Any]) -> 'PortfolioDTO':
+    def from_db_models(cls, portfolio: Portfolio, profile: Profile):
+        """Create DTO from both Portfolio and Profile models"""
         return cls(
-            personal_information=PersonalInformationDTO(
-                name=LatexEscaper.escape_text(data.personal_information.get('name', '')),
-                email=LatexEscaper.escape_text(data.personal_information.get('email', '')),
-                phone=LatexEscaper.escape_text(data.personal_information.get('phone', '')),
-                address=LatexEscaper.escape_text(data.personal_information.get('address', '')),
-                linkedin=LatexEscaper.escape_text(data.personal_information.get('linkedin', '')),
-                github=LatexEscaper.escape_text(data.personal_information.get('github', ''))
-            ),
-            career_summary=CareerSummaryDTO(
-                job_titles=[LatexEscaper.escape_text(title) for title in data.career_summary.job_titles],
-                years_of_experience=str(data.career_summary.years_of_experience),
-                default_summary=LatexEscaper.escape_text(data.career_summary.default_summary)
-            ),
-            education=[
-                EducationItemDTO(
-                    university_name=LatexEscaper.escape_text(edu.get('university_name', '')),
-                    location=LatexEscaper.escape_text(edu.get('location', '')),
-                    degree_type=LatexEscaper.escape_text(edu.get('degree_type', '')),
-                    degree=LatexEscaper.escape_text(edu.get('degree', '')),
-                    time=LatexEscaper.escape_text(edu.get('time', '')),
-                    transcript=[LatexEscaper.escape_text(course) for course in edu.get('transcript', [])]
-                )
-                for edu in data.education
-            ],
-            skills=[
-                {
-                    LatexEscaper.escape_text(category): [
-                        LatexEscaper.escape_text(skill) for skill in skills
-                    ]
-                    for category, skills in skill_group.items()
-                }
-                for skill_group in data.skills
-            ],
-            work_experience=[
-                WorkExperienceDTO(
-                    job_title=LatexEscaper.escape_text(exp.get('job_title', '')),
-                    company=LatexEscaper.escape_text(exp.get('company', '')),
-                    location=LatexEscaper.escape_text(exp.get('location', '')),
-                    time=LatexEscaper.escape_text(exp.get('time', '')),
-                    responsibilities=[
-                        LatexEscaper.escape_text(resp) for resp in exp.get('responsibilities', [])
-                    ]
-                )
-                for exp in data.work_experience
-            ],
-            projects=[
-                ProjectDTO(
-                    name=LatexEscaper.escape_text(proj.get('name', '')),
-                    technologies=LatexEscaper.escape_text(proj.get('technologies', '')),
-                    date=LatexEscaper.escape_text(proj.get('date', '')),
-                    bullet_points=[
-                        LatexEscaper.escape_text(point) for point in proj.get('bullet_points', [])
-                    ]
-                )
-                for proj in data.projects
-            ],
-            awards=[
-                AwardDTO(
-                    name=LatexEscaper.escape_text(award.get('name', '')),
-                    explanation=LatexEscaper.escape_text(award.get('explanation', ''))
-                )
-                for award in data.awards
-            ],
-            publications=[
-                PublicationDTO(
-                    name=LatexEscaper.escape_text(pub.get('name', '')),
-                    publisher=LatexEscaper.escape_text(pub.get('publisher', '')),
-                    time=LatexEscaper.escape_text(pub.get('time', '')),
-                    link=LatexEscaper.escape_text(pub.get('link', ''))
-                )
-                for pub in data.publications
-            ]
+            name=LatexEscaper.escape_text(profile.personal_information.get('full_name', '')),
+            phone=LatexEscaper.escape_text(profile.personal_information.get('phone', '')),
+            email=LatexEscaper.escape_text(profile.personal_information.get('email', '')),
+            linkedin=LatexEscaper.escape_text(profile.personal_information.get('linkedin', '')),
+            github=LatexEscaper.escape_text(profile.personal_information.get('github', '')),
+            address=LatexEscaper.escape_text(profile.personal_information.get('address', '')),
+            website=LatexEscaper.escape_text(profile.personal_information.get('website', '')),
+            career_summary=portfolio.career_summary,
+            work_experience=portfolio.work_experience,
+            skills=portfolio.skills,
+            education=portfolio.education,
+            projects=portfolio.projects,
+            awards=portfolio.awards,
+            publications=portfolio.publications
         )
+
+    def get_personal_information(self) -> Dict[str, str]:
+        """Get all personal information as a dictionary"""
+        return {
+            'name': self.name,
+            'phone': self.phone,
+            'email': self.email,
+            'linkedin': self.linkedin,
+            'github': self.github,
+            'address': self.address,
+            'website': self.website
+        }

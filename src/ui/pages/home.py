@@ -12,9 +12,8 @@ from config.config import LINKEDIN_EMAIL, LINKEDIN_PASSWORD
 logger = setup_logger(__name__)
 
 class HomePage:
-    def __init__(self, model_selector, section_selector, generator_manager):
+    def __init__(self, model_selector, generator_manager):
         self.model_selector = model_selector
-        self.section_selector = section_selector
         self.generator_manager = generator_manager
         self.job_extractor = JobExtractor(LINKEDIN_EMAIL, LINKEDIN_PASSWORD)
         # Load saved preferences
@@ -24,25 +23,33 @@ class HomePage:
         """Load user preferences from database"""
         try:
             with get_unit_of_work() as uow:
-                preferences = uow.users.get_preferences(st.session_state['user_id'])
-                if preferences:
+                user = uow.users.get_by_user_id(st.session_state['user_id'])
+                if user and user.preferences:
                     # Set LLM preferences
-                    llm_prefs = preferences.get('llm_preferences', {})
+                    llm_prefs = user.preferences.llm_preferences
                     if llm_prefs:
                         self.generator_manager.configure_llm(
-                            llm_prefs['model_type'],
-                            llm_prefs['model_name'],
-                            llm_prefs['temperature']
+                            model_type=llm_prefs.model_type,
+                            model_name=llm_prefs.model_name,
+                            temperature=llm_prefs.temperature
                         )
+                        logger.debug(f"Configured LLM with: {llm_prefs}")
                     
-                    # Set section preferences
-                    section_prefs = preferences.get('section_preferences', {})
+                    # Set section preferences - convert Pydantic model to dict
+                    section_prefs = user.preferences.section_preferences
                     if section_prefs:
-                        st.session_state['section_preferences'] = section_prefs
+                        st.session_state['section_preferences'] = section_prefs.model_dump()
+                        logger.debug(f"Loaded section preferences: {section_prefs.model_dump()}")
                     
                     logger.debug("User preferences loaded successfully")
         except Exception as e:
             logger.error(f"Error loading user preferences: {e}")
+            # Set default preferences if loading fails
+            self.generator_manager.configure_llm(
+                model_type="Claude",
+                model_name="claude-3-5-sonnet-20240620",
+                temperature=0.1
+            )
         
     def render(self):
         try:
@@ -119,12 +126,12 @@ class HomePage:
                 with st.expander("Model Settings"):
                     # Get preferences from database
                     with get_unit_of_work() as uow:
-                        preferences = uow.users.get_preferences(st.session_state['user_id'])
-                        if preferences and preferences.get('llm_preferences'):
-                            llm_prefs = preferences['llm_preferences']
-                            st.text(f"Model Type: {llm_prefs['model_type']}")
-                            st.text(f"Model: {llm_prefs['model_name']}")
-                            st.text(f"Temperature: {llm_prefs['temperature']}")
+                        user = uow.users.get_by_user_id(st.session_state['user_id'])
+                        if user and user.preferences.llm_preferences:
+                            llm_prefs = user.preferences.llm_preferences
+                            st.text(f"Model Type: {llm_prefs.model_type}")
+                            st.text(f"Model: {llm_prefs.model_name}")
+                            st.text(f"Temperature: {llm_prefs.temperature}")
                         else:
                             # Fallback to model_selector defaults
                             model_type, model_name, temperature = self.model_selector.get_model_settings()
