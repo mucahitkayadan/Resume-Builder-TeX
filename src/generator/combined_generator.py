@@ -44,9 +44,7 @@ class CombinedGenerator:
                     logger.debug(f"Got result type: {type(result)}")
                     if isinstance(result, tuple):
                         status_msg, progress = result
-                        logger.debug(
-                            f"Progress update: {status_msg} ({progress*100}%)"
-                        )
+                        logger.debug(f"Progress update: {status_msg} ({progress*100}%)")
                         yield result  # Progress updates
                     else:
                         logger.debug(f"Got non-tuple result: {type(result)}")
@@ -61,8 +59,7 @@ class CombinedGenerator:
                 resume = last_result
                 if resume:
                     logger.info(
-                        f"Resume generation completed, "
-                        f"got resume ID: {resume.id}"
+                        f"Resume generation completed, " f"got resume ID: {resume.id}"
                     )
                 else:
                     logger.error("Resume is None after generation loop")
@@ -70,8 +67,7 @@ class CombinedGenerator:
 
                 # Then generate the cover letter using the same resume
                 logger.info(
-                    f"Starting cover letter generation "
-                    f"for resume ID: {resume.id}"
+                    f"Starting cover letter generation " f"for resume ID: {resume.id}"
                 )
                 result = self.cover_letter_generator.generate_cover_letter(
                     job_description=job_description,
@@ -88,8 +84,7 @@ class CombinedGenerator:
 
         except Exception as e:
             logger.error(
-                "Failed to generate resume and cover letter: "
-                f"{str(e)}",
+                "Failed to generate resume and cover letter: " f"{str(e)}",
                 exc_info=True,
             )
             raise

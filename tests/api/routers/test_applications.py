@@ -1,17 +1,34 @@
+"""Test applications router."""
+
 from datetime import datetime
 from unittest.mock import Mock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.main import app
 from src.api.schemas.application import ApplicationStatus, JobApplicationCreate
 
-client = TestClient(app)
+
+@pytest.fixture
+def client(app):
+    """Create a test client.
+
+    Args:
+        app: The FastAPI application instance
+
+    Returns:
+        TestClient: The test client
+    """
+    return TestClient(app)
 
 
 @pytest.fixture
 def mock_auth_middleware():
+    """Create a mock auth middleware.
+
+    Returns:
+        Mock: The mock auth middleware
+    """
     with patch("src.api.middleware.auth.auth0_middleware") as mock:
         mock.return_value = {"sub": "test_user_id"}
         yield mock
@@ -19,11 +36,23 @@ def mock_auth_middleware():
 
 @pytest.fixture
 def mock_application_service():
+    """Create a mock application service.
+
+    Returns:
+        Mock: The mock application service
+    """
     with patch("src.api.services.application_service.ApplicationService") as mock:
         yield mock
 
 
-def test_create_application(mock_auth_middleware, mock_application_service):
+def test_create_application(client, mock_auth_middleware, mock_application_service):
+    """Test creating an application.
+
+    Args:
+        client: The test client
+        mock_auth_middleware: The mock auth middleware
+        mock_application_service: The mock application service
+    """
     # Arrange
     test_application = {
         "company_name": "Test Company",
@@ -54,7 +83,14 @@ def test_create_application(mock_auth_middleware, mock_application_service):
     mock_service.create_application.assert_called_once()
 
 
-def test_list_applications(mock_auth_middleware, mock_application_service):
+def test_list_applications(client, mock_auth_middleware, mock_application_service):
+    """Test listing applications.
+
+    Args:
+        client: The test client
+        mock_auth_middleware: The mock auth middleware
+        mock_application_service: The mock application service
+    """
     # Arrange
     mock_applications = [
         {
@@ -90,7 +126,16 @@ def test_list_applications(mock_auth_middleware, mock_application_service):
     mock_service.list_applications.assert_called_once()
 
 
-def test_get_application_not_found(mock_auth_middleware, mock_application_service):
+def test_get_application_not_found(
+    client, mock_auth_middleware, mock_application_service
+):
+    """Test getting a non-existent application.
+
+    Args:
+        client: The test client
+        mock_auth_middleware: The mock auth middleware
+        mock_application_service: The mock application service
+    """
     # Arrange
     mock_service = Mock()
     mock_service.get_application.return_value = None
@@ -104,7 +149,14 @@ def test_get_application_not_found(mock_auth_middleware, mock_application_servic
     assert response.json()["detail"] == "Application not found"
 
 
-def test_update_application(mock_auth_middleware, mock_application_service):
+def test_update_application(client, mock_auth_middleware, mock_application_service):
+    """Test updating an application.
+
+    Args:
+        client: The test client
+        mock_auth_middleware: The mock auth middleware
+        mock_application_service: The mock application service
+    """
     # Arrange
     test_update = {"status": ApplicationStatus.INTERVIEWING, "notes": "Updated notes"}
 

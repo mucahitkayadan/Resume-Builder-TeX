@@ -1,69 +1,74 @@
+"""Portfolio schemas module."""
+
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, Field
 
 
-class PersonalInformation(BaseModel):
-    name: str
-    email: str
-    phone: Optional[str] = None
-    address: Optional[str] = None
-    linkedin: Optional[str] = None
-    github: Optional[str] = None
+class PortfolioBase(BaseModel):
+    """Base portfolio schema."""
+
+    title: str = Field(..., description="Portfolio title")
+    description: str = Field(..., description="Portfolio description")
+    skills: List[str] = Field(default_factory=list, description="List of skills")
+    projects: List[str] = Field(default_factory=list, description="List of projects")
+    experience: List[str] = Field(
+        default_factory=list, description="List of experience"
+    )
+    education: List[str] = Field(default_factory=list, description="List of education")
+    certifications: List[str] = Field(
+        default_factory=list, description="List of certifications"
+    )
+    awards: List[str] = Field(default_factory=list, description="List of awards")
+    publications: List[str] = Field(
+        default_factory=list, description="List of publications"
+    )
+    languages: List[str] = Field(default_factory=list, description="List of languages")
+    interests: List[str] = Field(default_factory=list, description="List of interests")
+    website: Optional[str] = Field(None, description="Portfolio website")
+    github: Optional[str] = Field(None, description="GitHub profile")
+    linkedin: Optional[str] = Field(None, description="LinkedIn profile")
+    twitter: Optional[str] = Field(None, description="Twitter profile")
+    blog: Optional[str] = Field(None, description="Blog URL")
+
+
+class PortfolioCreate(PortfolioBase):
+    """Portfolio creation schema."""
+
+    pass
+
+
+class PortfolioUpdate(BaseModel):
+    """Portfolio update schema."""
+
+    title: Optional[str] = None
+    description: Optional[str] = None
+    skills: Optional[List[str]] = None
+    projects: Optional[List[str]] = None
+    experience: Optional[List[str]] = None
+    education: Optional[List[str]] = None
+    certifications: Optional[List[str]] = None
+    awards: Optional[List[str]] = None
+    publications: Optional[List[str]] = None
+    languages: Optional[List[str]] = None
+    interests: Optional[List[str]] = None
     website: Optional[str] = None
+    github: Optional[str] = None
+    linkedin: Optional[str] = None
+    twitter: Optional[str] = None
+    blog: Optional[str] = None
 
 
-class CareerSummary(BaseModel):
-    job_titles: List[str]
-    years_of_experience: int
-    default_summary: str
+class PortfolioResponse(PortfolioBase):
+    """Portfolio response schema."""
 
+    id: str = Field(..., description="Portfolio ID")
+    user_id: str = Field(..., description="User ID")
+    created_at: datetime = Field(..., description="Creation timestamp")
+    updated_at: datetime = Field(..., description="Last update timestamp")
 
-class WorkExperience(BaseModel):
-    company: str
-    job_title: str
-    time: str
-    location: str
-    responsibilities: List[str]
+    class Config:
+        """Pydantic config."""
 
-
-class Education(BaseModel):
-    university_name: str
-    degree_type: str
-    degree: str
-    time: str
-    location: str
-    transcript: List[str] = []
-
-
-class Project(BaseModel):
-    name: str
-    date: str
-    technologies: Optional[str] = None
-    bullet_points: List[str]
-
-
-class Award(BaseModel):
-    name: str
-    explanation: str
-
-
-class Publication(BaseModel):
-    name: str
-    publisher: str
-    time: str
-    link: Optional[str] = None
-
-
-class PortfolioResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    personal_information: PersonalInformation
-    career_summary: CareerSummary
-    work_experience: List[WorkExperience]
-    education: List[Education]
-    projects: List[Project]
-    skills: List[Dict[str, List[str]]]
-    awards: List[Award]
-    publications: List[Publication]
+        from_attributes = True

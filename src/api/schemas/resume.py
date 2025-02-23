@@ -6,6 +6,38 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
+class ResumeGenerationOptions(BaseModel):
+    """Resume generation options schema."""
+
+    model_type: str = "ClaudeStrategy"
+    model_name: str = "ClaudeStrategy"
+    temperature: float = 0.1
+    max_tokens: Optional[int] = None
+    template_id: str = "default"
+
+
+class ResumeRequest(BaseModel):
+    """Resume generation request schema."""
+
+    job_description: str = Field(
+        ..., description="Job description to generate resume for"
+    )
+    options: Optional[ResumeGenerationOptions] = None
+
+
+class ResumeResponse(BaseModel):
+    """Resume response schema."""
+
+    id: str
+    user_id: str
+    title: str
+    content: str
+    created_at: datetime
+    updated_at: datetime
+    status: str = "completed"
+    error: Optional[str] = None
+
+
 class ResumeBase(BaseModel):
     """Base resume schema."""
 

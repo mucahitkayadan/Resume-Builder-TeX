@@ -21,6 +21,13 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
 
 
+class UserLogin(BaseModel):
+    """User login schema."""
+
+    email: EmailStr
+    password: str
+
+
 class UserUpdate(BaseModel):
     """User update schema."""
 

@@ -39,26 +39,13 @@ def create_app() -> FastAPI:
         version="1.0.0",
     )
 
-    # Configure CORS middleware with more explicit settings
-    origins = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:8001",
-        "http://127.0.0.1:8001",
-    ]
-
+    # Configure CORS middleware with settings
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-        allow_headers=[
-            "Content-Type",
-            "Authorization",
-            "Accept",
-            "Origin",
-            "X-Requested-With",
-        ],
+        allow_origins=settings.cors_origins,
+        allow_credentials=settings.cors_allow_credentials,
+        allow_methods=settings.cors_allow_methods,
+        allow_headers=settings.cors_allow_headers,
         expose_headers=["*"],
         max_age=600,
     )

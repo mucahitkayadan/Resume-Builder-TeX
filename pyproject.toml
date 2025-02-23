@@ -3,7 +3,10 @@ name = "resume-builder-tex"
 version = "0.1.0"
 description = ""
 authors = ["Muja Kayadan <mujakayadan@gmail.com>"]
-package-mode = false
+package-mode = true
+packages = [
+    { include = "src" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.13"
@@ -45,6 +48,7 @@ black = "^24.1.1"
 isort = "^5.13.2"
 flake8 = "^7.0.0"
 autoflake = "^2.3.1"
+mongomock-motor = "^0.0.35"
 
 [tool.black]
 line-length = 88

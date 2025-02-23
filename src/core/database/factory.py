@@ -2,7 +2,7 @@
 
 from typing import AsyncGenerator
 
-from config.config import MONGODB_DATABASE, MONGODB_URI
+from config.settings import settings
 
 from .connections import AsyncMongoConnection, MongoConnection
 from .unit_of_work import AsyncMongoUnitOfWork, MongoUnitOfWork
@@ -15,7 +15,9 @@ def get_database_connection() -> MongoConnection:
     Returns:
         MongoConnection: MongoDB connection instance
     """
-    connection = MongoConnection(uri=MONGODB_URI, database=MONGODB_DATABASE)
+    connection = MongoConnection(
+        uri=settings.mongodb_uri, database=settings.mongodb_database
+    )
     return connection
 
 
@@ -26,7 +28,9 @@ def get_async_database_connection() -> AsyncMongoConnection:
     Returns:
         AsyncMongoConnection: Async MongoDB connection instance
     """
-    connection = AsyncMongoConnection(uri=MONGODB_URI, database=MONGODB_DATABASE)
+    connection = AsyncMongoConnection(
+        uri=settings.mongodb_uri, database=settings.mongodb_database
+    )
     return connection
 
 

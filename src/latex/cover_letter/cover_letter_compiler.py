@@ -72,19 +72,21 @@ class CoverLetterLatexCompiler(LatexCompiler):
                         "Missing required data for cover letter generation"
                     )
 
-                tex_content = preamble  
+                tex_content = preamble
                 personal_info = profile.personal_information
 
                 # Handle signature if exists
-                if signature and hasattr(signature, 'image'):
+                if signature and hasattr(signature, "image"):
                     signature_path = output_manager.output_dir / "signature.jpg"
                     signature_bytes = signature.image
-                    if hasattr(signature_bytes, 'binary'):
+                    if hasattr(signature_bytes, "binary"):
                         signature_bytes = signature_bytes.binary
                     signature_path.write_bytes(signature_bytes)
 
                 # Format the cover letter content with proper paragraph style
-                formatted_content = content.replace("\n", "\n\n")  # Ensure proper paragraph breaks
+                formatted_content = content.replace(
+                    "\n", "\n\n"
+                )  # Ensure proper paragraph breaks
 
                 # Replace placeholders with escaped values
                 replacements = {

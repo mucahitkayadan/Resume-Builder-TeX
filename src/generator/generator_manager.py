@@ -70,7 +70,9 @@ class GeneratorManager:
             )
         return self._cover_letter_generator
 
-    def _check_security_clearance(self, job_description: str, feature_flags: Dict) -> None:
+    def _check_security_clearance(
+        self, job_description: str, feature_flags: Dict
+    ) -> None:
         """Check if the job requires security clearance."""
         if feature_flags.get("check_clearance", FEATURE_FLAGS["check_clearance"]):
             if check_clearance_requirement(
@@ -84,11 +86,7 @@ class GeneratorManager:
         """Get user feature preferences."""
         with get_unit_of_work() as uow:
             preferences = uow.users.get_preferences(self.user_id)
-            return (
-                preferences.get("feature_preferences", {})
-                if preferences
-                else {}
-            )
+            return preferences.get("feature_preferences", {}) if preferences else {}
 
     def generate(
         self,
@@ -109,9 +107,7 @@ class GeneratorManager:
                 )
 
             elif generation_type == GenerationType.COVER_LETTER:
-                yield from self._generate_cover_letter(
-                    job_description, output_manager
-                )
+                yield from self._generate_cover_letter(job_description, output_manager)
 
             elif generation_type == GenerationType.BOTH:
                 resume = None

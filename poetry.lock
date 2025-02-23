@@ -1412,7 +1412,7 @@ version = "4.3.0"
 description = "Fake pymongo stub for testing simple MongoDB-dependent code"
 optional = false
 python-versions = "*"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "mongomock-4.3.0-py2.py3-none-any.whl", hash = "sha256:5ef86bd12fc8806c6e7af32f21266c61b6c4ba96096f85129852d1c4fec1327e"},
     {file = "mongomock-4.3.0.tar.gz", hash = "sha256:32667b79066fabc12d4f17f16a8fd7361b5f4435208b3ba32c226e52212a8c30"},
@@ -1426,6 +1426,21 @@ sentinels = "*"
 [package.extras]
 pyexecjs = ["pyexecjs"]
 pymongo = ["pymongo"]
+
+[[package]]
+name = "mongomock-motor"
+version = "0.0.35"
+description = "Library for mocking AsyncIOMotorClient built on top of mongomock."
+optional = false
+python-versions = "<4.0,>=3.8"
+groups = ["dev"]
+files = [
+    {file = "mongomock_motor-0.0.35-py3-none-any.whl", hash = "sha256:ea18d51887c77fc4e3c0491c33fdc4c0963308319168658d0fe907227b46e9d3"},
+    {file = "mongomock_motor-0.0.35.tar.gz", hash = "sha256:123aae6286013e0cfbcb3bd331120ef5cd01b26719d1bea561759fb415ffa091"},
+]
+
+[package.dependencies]
+mongomock = ">=4.1.2,<5.0.0"
 
 [[package]]
 name = "motor"
@@ -2484,7 +2499,7 @@ version = "2025.1"
 description = "World timezone definitions, modern and historical"
 optional = false
 python-versions = "*"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "pytz-2025.1-py2.py3-none-any.whl", hash = "sha256:89dd22dca55b46eac6eda23b2d72721bf1bdfef212645d81513ef5d03038de57"},
     {file = "pytz-2025.1.tar.gz", hash = "sha256:c2db42be2a2518b28e65f9207c4d05e6ff547d1efa4086469ef855e4ab70178e"},
@@ -2764,7 +2779,7 @@ version = "1.0.0"
 description = "Various objects to denote special meanings in python"
 optional = false
 python-versions = "*"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "sentinels-1.0.0.tar.gz", hash = "sha256:7be0704d7fe1925e397e92d18669ace2f619c92b5d4eb21a89f31e026f9ff4b1"},
 ]
@@ -3402,4 +3417,4 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.13"
-content-hash = "6dc891bcab6c757aefbff6f31d7fc25976cc07a434c6812284963e4acc95bdfc"
+content-hash = "3ff7d5dc00a9f216086f7c74fbfc7a17d5a6b25bf559382e53932d8dbfa4167a"
