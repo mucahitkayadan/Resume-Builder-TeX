@@ -1,5 +1,21 @@
 # AI-Powered Resume and Cover Letter Generator
 
+> [!CAUTION]
+> **This repository is deprecated and no longer maintained.**
+>
+> Resume-Builder-TeX has been superseded by **[YARBA](https://www.yarba.app)** — a portfolio-first AI career platform for truthful resumes, cover letters, portfolio sites, and job applications.
+>
+> - App: [https://www.yarba.app](https://www.yarba.app)
+> - Backend: [mujakayadan/yarba-backend](https://github.com/mujakayadan/yarba-backend)
+> - Frontend: [mujakayadan/yarba-frontend](https://github.com/mujakayadan/yarba-frontend)
+>
+> This repo stays up as a historical archive. Please do not open new issues or pull requests here — take that work to YARBA instead.
+
+[![Status](https://img.shields.io/badge/status-deprecated-red?style=for-the-badge)](https://www.yarba.app)
+[![Successor](https://img.shields.io/badge/successor-YARBA-0A66C2?style=for-the-badge)](https://www.yarba.app)
+[![Backend](https://img.shields.io/badge/yarba-backend-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://github.com/mujakayadan/yarba-backend)
+[![Frontend](https://img.shields.io/badge/yarba-frontend-3178C6?style=for-the-badge&logo=react&logoColor=white)](https://github.com/mujakayadan/yarba-frontend)
+
 ## Table of Contents
 
 - [Project Overview](#project-overview)
@@ -61,7 +77,7 @@ project_root/
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/mucahitkayadan/Resume-Builder-TeX.git
+   git clone https://github.com/mujakayadan/Resume-Builder-TeX.git
    cd Resume-Builder-TeX
    ```
 
@@ -158,7 +174,7 @@ Contains utility functions for file operations, LaTeX compilation, etc.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+This project is deprecated. New work belongs in [YARBA](https://www.yarba.app) ([backend](https://github.com/mujakayadan/yarba-backend), [frontend](https://github.com/mujakayadan/yarba-frontend)), not here.
 
 ## License
 
@@ -184,35 +200,4 @@ The TexLoader class now loads LaTeX templates from the database instead of from 
 
 ## TODO
 
-### Upcoming Features
-1. **LinkedIn Easy Apply Integration**
-   - Automated job application process
-   - Application tracking
-   - Multi-platform support
-
-2. **Resume Generation Controls**
-   - Configurable section limits
-   - Smart content selection
-   - Template customization
-
-3. **API and Integration**
-   - RESTful API endpoints
-   - Documentation
-   - Authentication
-
-4. **UI Enhancements**
-   - Real-time PDF preview
-   - Better progress indicators
-   - Improved user settings
-
-5. **Storage Options**
-   - JSON template support
-   - Multiple database options
-   - Template management
-
-6. **Documentation**
-   - API guides
-   - Template customization
-   - Deployment instructions
-
-For technical details and implementation plans, see TECHNICAL.md.
+The roadmap below is historical. Those features live in [YARBA](https://www.yarba.app) now.
